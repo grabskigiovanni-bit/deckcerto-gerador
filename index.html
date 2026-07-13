@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#150f22">
+<title>Gerador de Ofertas · Deck Certo</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap');
+
+  :root{
+    --bg:#150f22; --panel:#1f1733; --panel-2:#251b3d; --border:#37285c;
+    --accent:#8b5cf6; --accent-hi:#a78bfa; --text:#efeaf9; --muted:#a89cc8;
+    --danger:#fca5a5;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    background:radial-gradient(1200px 500px at 80% -10%, rgba(139,92,246,.14), transparent 60%), var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    padding:calc(16px + env(safe-area-inset-top)) 14px calc(56px + env(safe-area-inset-bottom));
+  }
+  .shell{max-width:560px;margin:0 auto}
+
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .mark{width:46px;height:46px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;font-size:24px;
+    background:linear-gradient(145deg,#2d1f52,#1c1436);border:1px solid var(--border);
+    box-shadow:0 0 24px rgba(139,92,246,.25)}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-hi);font-weight:600}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;line-height:1.15;margin:2px 0 0}
+  .gear{margin-left:auto;background:var(--panel);border:1px solid var(--border);color:var(--muted);
+    border-radius:11px;width:38px;height:38px;font-size:17px;cursor:pointer}
+  .gear:focus-visible{outline:2px solid var(--accent-hi)}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+  .label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 7px 2px}
+
+  .seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:4px}
+  .seg button{flex:1;border:0;border-radius:9px;padding:10px 8px;background:transparent;color:var(--muted);
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+  .seg button.on{background:var(--accent);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:1px}
+
+  .drop{border:1.5px dashed var(--border);border-radius:13px;background:var(--panel-2);padding:18px 12px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;
+    text-align:center;cursor:pointer;width:100%;font-family:inherit;transition:border-color .15s,color .15s}
+  .drop:hover,.drop:focus-visible{border-color:var(--accent);color:var(--accent-hi);outline:none}
+  .drop small{font-size:11.5px;opacity:.75}
+  .drop .ic{font-size:22px}
+
+  .thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .thumb{position:relative}
+  .thumb img{width:64px;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:block}
+  .thumb button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+    background:#3b2a63;color:#fff;border:1px solid var(--border);display:grid;place-items:center;
+    cursor:pointer;padding:0;font-size:11px;line-height:1}
+
+  input[type=url],textarea,input[type=password]{
+    width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;color:var(--text);
+    padding:11px 12px;font-size:14px;font-family:inherit}
+  input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  textarea{resize:vertical;min-height:58px}
+  ::placeholder{color:#7d71a3}
+
+  .toggle{display:flex;align-items:center;gap:9px;margin-top:12px;cursor:pointer;user-select:none}
+  .toggle input{position:absolute;opacity:0}
+  .switch{width:36px;height:21px;border-radius:999px;flex-shrink:0;background:var(--panel-2);
+    border:1px solid var(--border);position:relative;transition:background .15s}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+    background:var(--muted);transition:transform .15s,background .15s}
+  .toggle input:checked + .switch{background:var(--accent);border-color:var(--accent)}
+  .toggle input:checked + .switch::after{transform:translateX(15px);background:#fff}
+  .toggle input:focus-visible + .switch{outline:2px solid var(--accent-hi);outline-offset:1px}
+  .toggle span.t{font-size:13px;color:var(--muted)}
+
+  .go{width:100%;border:0;border-radius:13px;background:var(--accent);color:#fff;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15.5px;padding:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px;transition:background .15s,transform .1s}
+  .go:hover:not(:disabled){background:var(--accent-hi)}
+  .go:active:not(:disabled){transform:scale(.99)}
+  .go:disabled{opacity:.6;cursor:wait}
+  .go:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .spin{display:inline-block;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.seg button,.go,.switch,.switch::after{transition:none}}
+
+  .error{margin-top:11px;font-size:13px;color:var(--danger);background:rgba(252,165,165,.08);
+    border:1px solid rgba(252,165,165,.25);border-radius:10px;padding:9px 12px}
+  .hidden{display:none !important}
+
+  /* Prévia WhatsApp */
+  .wa-pane{background:#0b141a;border:1px solid var(--border);border-radius:16px;padding:14px 12px 16px;margin-top:20px}
+  .wa-pane-head{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6f8a96;font-weight:600;
+    margin:0 4px 12px;display:flex;justify-content:space-between;align-items:center}
+  .wa-row{display:flex;justify-content:flex-end;margin-bottom:12px}
+  .wa-wrap{max-width:92%}
+  .wa-bubble{background:#005c4b;color:#e9edef;border-radius:10px;border-top-right-radius:2px;
+    padding:8px 10px;font-size:14.2px;line-height:1.42;box-shadow:0 1px 1px rgba(0,0,0,.3)}
+  .wa-line{min-height:1.2em;word-break:break-word}
+  .wa-link{color:#53bdeb;text-decoration:underline}
+  .wa-meta{display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:4px;
+    font-size:10.5px;color:rgba(233,237,239,.6)}
+  .wa-tag{background:rgba(0,0,0,.22);border-radius:999px;padding:1px 7px;font-size:9.5px;
+    letter-spacing:.04em;text-transform:uppercase}
+  .wa-actions{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}
+  .wa-actions button{display:flex;align-items:center;gap:5px;background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:999px;font-size:12px;padding:6px 12px;cursor:pointer;font-family:inherit}
+  .wa-actions button:hover{border-color:var(--accent)}
+  .wa-actions button:focus-visible{outline:2px solid var(--accent-hi)}
+  .wa-actions .share{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .again{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:4px;
+    background:transparent;border:1px dashed var(--border);color:var(--accent-hi);border-radius:11px;
+    font-size:13.5px;font-weight:600;padding:10px;cursor:pointer;font-family:inherit}
+  .again:hover:not(:disabled){border-color:var(--accent)}
+  .again:disabled{opacity:.5;cursor:wait}
+
+  /* Porta de entrada da chave */
+  .gate{position:fixed;inset:0;background:rgba(13,9,22,.9);display:grid;place-items:center;padding:18px;z-index:50}
+  .gate-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:400px;width:100%}
+  .gate-card h2{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:0 0 6px}
+  .gate-card p{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5}
+  .gate-card .go{margin-top:12px}
+  .gate-note{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.5;opacity:.85}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="head">
+    <div class="mark" aria-hidden="true">🧙‍♂️</div>
+    <div>
+      <div class="eyebrow">Deck Certo</div>
+      <h1>Gerador de Ofertas</h1>
+    </div>
+    <button class="gear" id="btnGear" title="Trocar chave de API" aria-label="Configurações">⚙️</button>
+  </header>
+
+  <div class="card">
+    <span class="label">Tipo de mensagem</span>
+    <div class="seg" role="tablist" aria-label="Tipo de mensagem">
+      <button id="modePromo" class="on" role="tab" aria-selected="true">🔥 Promoção</button>
+      <button id="modeCupom" role="tab" aria-selected="false">🎫 Cupom</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label">Print da oferta</span>
+    <button type="button" class="drop" id="drop">
+      <span class="ic" aria-hidden="true">🖼️</span>
+      <span>Toque para anexar o print</span>
+      <small>da galeria ou câmera · até 3 imagens · no PC, cole ou arraste aqui</small>
+    </button>
+    <input type="file" id="file" accept="image/*" multiple hidden>
+    <div class="thumbs" id="thumbs"></div>
+
+    <div style="margin-top:14px">
+      <span class="label">Seu link de afiliado</span>
+      <input type="url" id="link" inputmode="url" placeholder="https://meli.la/...">
+    </div>
+
+    <div style="margin-top:12px">
+      <span class="label">Observações (opcional)</span>
+      <textarea id="notes" placeholder="Ex.: é pré-venda · preço certo é 55,99 · cupom TECH100 mín. R$ 79"></textarea>
+    </div>
+
+    <label class="toggle">
+      <input type="checkbox" id="rich">
+      <span class="switch" aria-hidden="true"></span>
+      <span class="t">Usar *negrito* e ~riscado~ do WhatsApp</span>
+    </label>
+  </div>
+
+  <button class="go" id="btnGo"><span id="goIcon">✨</span><span id="goText">Gerar mensagem</span></button>
+  <div class="error hidden" id="err" role="alert"></div>
+
+  <div class="wa-pane hidden" id="pane">
+    <div class="wa-pane-head">
+      <span>Prévia · Deck Certo | Promoções</span>
+      <span id="count"></span>
+    </div>
+    <div id="bubbles"></div>
+    <button class="again hidden" id="btnAgain">↻ Gerar outra versão desta oferta</button>
+  </div>
+</div>
+
+<!-- Porta da chave de API -->
+<div class="gate hidden" id="gate">
+  <div class="gate-card">
+    <h2>🧙‍♂️ Conecte sua chave</h2>
+    <p>Cole sua chave da API da Anthropic. Ela fica salva <b>somente neste aparelho</b> e é usada direto na API, sem passar por nenhum servidor intermediário.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off">
+    <button class="go" id="btnKey">Salvar e começar</button>
+    <div class="gate-note">Crie a chave em console.anthropic.com → API Keys. Dica: defina um limite de gasto mensal na conta pra ficar tranquilo.</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const KEY_STORE = "dc_anthropic_key";
+const MAX_IMAGES = 3;
+
+const STYLE_HINTS = [
+  "abra com urgência de estoque ou de tempo",
+  "abra destacando o preço como o ponto forte",
+  "abra com tom de achado / garimpo",
+  "fale direto com o colecionador, citando a coleção se der",
+  "abra com uma pergunta curta que conecta com o produto",
+  "abra anunciando como novidade ou lançamento",
+  "seja mais seco e direto, estilo telegrama de oferta",
+  "use um toque leve de humor, sem forçar",
+];
+
+let mode = "promo";
+let images = []; // {data, media_type, preview, id}
+let history = []; // {id, text, mode, offerKey, time}
+let loading = false;
+
+// ── Chave de API ─────────────────────────────────────────────
+function getKey() { try { return localStorage.getItem(KEY_STORE) || ""; } catch { return ""; } }
+function setKey(v) { try { localStorage.setItem(KEY_STORE, v); } catch {} }
+function ensureKey() {
+  if (!getKey()) $("gate").classList.remove("hidden");
+}
+$("btnKey").addEventListener("click", () => {
+  const v = $("keyInput").value.trim();
+  if (!v.startsWith("sk-ant-")) { $("keyInput").focus(); return; }
+  setKey(v);
+  $("keyInput").value = "";
+  $("gate").classList.add("hidden");
+});
+$("btnGear").addEventListener("click", () => {
+  $("keyInput").value = "";
+  $("gate").classList.remove("hidden");
+});
+ensureKey();
+
+// ── Modo ─────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  $("modePromo").classList.toggle("on", m === "promo");
+  $("modeCupom").classList.toggle("on", m === "cupom");
+  $("modePromo").setAttribute("aria-selected", m === "promo");
+  $("modeCupom").setAttribute("aria-selected", m === "cupom");
+}
+$("modePromo").addEventListener("click", () => setMode("promo"));
+$("modeCupom").addEventListener("click", () => setMode("cupom"));
+
+// ── Imagens ──────────────────────────────────────────────────
+function fileToImageBlock(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = () => reject(new Error("Falha ao ler a imagem."));
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
+      img.onload = () => {
+        const maxSide = 1568;
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        const jpeg = c.toDataURL("image/jpeg", 0.85);
+        resolve({
+          data: jpeg.split(",")[1],
+          media_type: "image/jpeg",
+          preview: jpeg,
+          id: Math.random().toString(36).slice(2),
+        });
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+async function addFiles(list) {
+  const files = Array.from(list || []).filter((f) => f.type && f.type.startsWith("image/"));
+  if (!files.length) return;
+  hideError();
+  try {
+    for (const f of files) {
+      if (images.length >= MAX_IMAGES) break;
+      images.push(await fileToImageBlock(f));
+    }
+    renderThumbs();
+  } catch (e) { showError(e.message || "Não deu pra processar essa imagem."); }
+}
+
+function renderThumbs() {
+  const box = $("thumbs");
+  box.textContent = "";
+  images.forEach((img) => {
+    const t = document.createElement("div");
+    t.className = "thumb";
+    const el = document.createElement("img");
+    el.src = img.preview; el.alt = "Print anexado";
+    const x = document.createElement("button");
+    x.textContent = "✕"; x.setAttribute("aria-label", "Remover print");
+    x.addEventListener("click", () => { images = images.filter((i) => i.id !== img.id); renderThumbs(); });
+    t.appendChild(el); t.appendChild(x); box.appendChild(t);
+  });
+}
+
+$("drop").addEventListener("click", () => $("file").click());
+$("drop").addEventListener("dragover", (e) => e.preventDefault());
+$("drop").addEventListener("drop", (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); });
+$("file").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+window.addEventListener("paste", (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  const files = [];
+  for (const it of items) if (it.type && it.type.startsWith("image/")) { const f = it.getAsFile(); if (f) files.push(f); }
+  if (files.length) addFiles(files);
+});
+
+// ── Prompt ───────────────────────────────────────────────────
+function buildPrompt(link, notes, allowRich, avoid) {
+  const hint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
+  const modeLabel = mode === "promo" ? "PROMOÇÃO (oferta de produto)" : "CUPOM (divulgação de cupom de desconto)";
+  const richRules = allowRich
+    ? "- Formatação nativa do WhatsApp liberada: *texto* vira negrito (use no preço final e no código de cupom), ~texto~ vira tachado (use no preço antigo quando houver). Use com moderação."
+    : "- NÃO use negrito (*texto*), tachado (~texto~) nem itálico. Texto puro, só com emojis e quebras de linha.";
+  const avoidBlock = avoid.length
+    ? "\nVERSÕES JÁ GERADAS PARA ESTA OFERTA (não repita os mesmos ganchos nem a mesma estrutura):\n" +
+      avoid.map((t, i) => "--- versão " + (i + 1) + " ---\n" + t).join("\n") + "\n"
+    : "";
+
+  return `Você escreve as mensagens do canal de ofertas "Deck Certo | Promoções" no WhatsApp. O canal é focado em Pokémon TCG e colecionáveis, mas também posta ofertas gerais de e-commerce (Mercado Livre, Shopee, Amazon etc).
+
+TAREFA: analise o(s) print(s) em anexo e escreva UMA mensagem pronta para postar no WhatsApp, no modo indicado.
+
+MODO: ${modeLabel}
+LINK DE AFILIADO (obrigatório na mensagem, use exatamente este e ignore qualquer link que apareça no print): ${link}
+${notes ? "OBSERVAÇÕES DO USUÁRIO (têm prioridade sobre o que estiver no print): " + notes : ""}
+
+REGRAS DE ESTILO:
+- pt-BR, tom de canal de ofertas: direto, empolgado na medida certa, zero enrolação.
+- 3 a 8 linhas no total. Cada bloco em uma linha própria.
+- Emojis com moderação, no máximo um por linha e SOMENTE desta lista: 🚨 🔥 💰 🛒 🎫 ⚠️ 👉 ✨ 📦 ⭐ 🧙‍♂️
+- O emoji 🧙‍♂️ é a logo do canal. Use quando encaixar bem, em torno de metade das vezes, nunca force.
+- PROIBIDO usar travessão (—) ou meia-risca (–) em qualquer posição. Pra ligar preço e desconto, use parênteses, tipo "por R$ 39 (21% OFF)". Nunca use hashtags.
+${richRules}
+- Se for produto de TCG ou Pokémon, escreva como quem entende do assunto: pode citar a coleção, dizer se é pré-venda, mencionar "Copag oficial" quando fizer sentido.
+
+REGRAS DE DADOS:
+- Extraia nome do produto, preço, preço antigo, condição de pagamento (Pix, parcelamento), nota e número de vendidos SOMENTE do que estiver visível no print ou nas observações.
+- Nunca invente preço, desconto, validade, frete ou condição. Se o preço não estiver legível, escreva [PREÇO] no lugar para o usuário preencher.
+- Se houver preço antigo e novo visíveis, pode calcular e citar o percentual de desconto arredondado.
+- Encurte o nome do produto se estiver longo, mantendo o que identifica o item.
+
+ESTRUTURAS DE REFERÊNCIA (adapte livremente, não copie literalmente):
+
+Promoção, estilo casa:
+🔥 OFERTA Pokémon TCG
+Blister Quadrúplo Escuridão Absoluta (Copag oficial)
+💰 De R$ 79,90 por R$ 55,99 no Pix (30% OFF)
+⭐ 4.9 no Mercado Livre, 500+ vendidos
+👉 ${link}
+
+Promoção, estilo urgência:
+🚨 Garanta antes do lançamento oficial!
+Blister Quadrúplo Pokémon Escuridão Absoluta já disponível.
+💰 Por R$ 55,99
+🛒 Link seguro: ${link}
+
+Cupom:
+🧙‍♂️ Cupom novo na área!
+🎫 CODIGO10 👉 15% OFF
+🔗 ${link}
+(Mín. R$ 79) Válido até 11/07 ou enquanto durar o estoque, em produtos selecionados.
+
+VARIAÇÃO DESTA VERSÃO: ${hint}.
+${avoidBlock}
+Responda SOMENTE com o texto final da mensagem. Sem aspas em volta, sem explicação, sem cerca de código.`;
+}
+
+// ── Geração ──────────────────────────────────────────────────
+function offerKey(link) { return link + "|" + images.map((i) => i.id).join(","); }
+function showError(msg) { const e = $("err"); e.textContent = msg; e.classList.remove("hidden"); }
+function hideError() { $("err").classList.add("hidden"); }
+function setLoading(on) {
+  loading = on;
+  $("btnGo").disabled = on;
+  $("btnAgain").disabled = on;
+  $("goIcon").innerHTML = on ? '<span class="spin">↻</span>' : "✨";
+  $("goText").textContent = on ? "Conjurando a oferta..." : "Gerar mensagem";
+}
+
+async function generate() {
+  if (loading) return;
+  hideError();
+  const key = getKey();
+  if (!key) { ensureKey(); return; }
+  const link = $("link").value.trim();
+  const notes = $("notes").value.trim();
+  if (!/^https?:\/\/\S+/i.test(link)) { showError("Cole o link de afiliado completo, começando com http."); return; }
+  if (!images.length && !notes) { showError("Anexe o print da oferta (ou descreva o produto nas observações)."); return; }
+
+  setLoading(true);
+  try {
+    const ok = offerKey(link);
+    const avoid = history.filter((h) => h.offerKey === ok).slice(0, 3).map((h) => h.text);
+    const prompt = buildPrompt(link, notes, $("rich").checked, avoid);
+    const content = images.map((img) => ({
+      type: "image",
+      source: { type: "base64", media_type: img.media_type, data: img.data },
+    }));
+    content.push({ type: "text", text: prompt });
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        temperature: 1,
+        messages: [{ role: "user", content }],
+      }),
+    });
+    const data = await res.json();
+    if (data.error) {
+      if (res.status === 401) { showError("Chave de API inválida. Toque na engrenagem e cole de novo."); return; }
+      throw new Error(data.error.message || "Erro na API.");
+    }
+
+    let text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+    text = text.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").replace(/^"([\s\S]*)"$/, "$1").trim();
+    text = text.replace(/\s*[—–]\s*/g, ", ").replace(/🎴\s*/g, "");
+    if (!text) throw new Error("A resposta veio vazia. Tente de novo.");
+    if (!text.includes(link)) text = text + "\n👉 " + link;
+
+    history.unshift({
+      id: Math.random().toString(36).slice(2),
+      text, mode, offerKey: ok,
+      time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    });
+    renderHistory(ok);
+  } catch (e) {
+    console.error(e);
+    showError(e.message || "Algo falhou na geração. Tente de novo.");
+  } finally { setLoading(false); }
+}
+$("btnGo").addEventListener("click", generate);
+$("btnAgain").addEventListener("click", generate);
+
+// ── Renderização WhatsApp ────────────────────────────────────
+function renderInline(line, parent) {
+  const rx = /(\*[^*\n]+\*|~[^~\n]+~|_[^_\n]+_|https?:\/\/\S+)/g;
+  let last = 0, m;
+  const push = (node) => parent.appendChild(node);
+  const txt = (s) => document.createTextNode(s);
+  while ((m = rx.exec(line)) !== null) {
+    if (m.index > last) push(txt(line.slice(last, m.index)));
+    const t = m[0];
+    if (t.startsWith("http")) {
+      const s = document.createElement("span"); s.className = "wa-link"; s.textContent = t; push(s);
+    } else {
+      const tag = t.startsWith("*") ? "strong" : t.startsWith("~") ? "s" : "em";
+      const el = document.createElement(tag); el.textContent = t.slice(1, -1); push(el);
+    }
+    last = m.index + t.length;
+  }
+  if (last < line.length) push(txt(line.slice(last)));
+}
+
+async function copyText(item, btn) {
+  const done = () => {
+    const old = btn.textContent;
+    btn.textContent = "✓ Copiado";
+    setTimeout(() => (btn.textContent = old), 1800);
+  };
+  try { await navigator.clipboard.writeText(item.text); done(); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = item.text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); }
+    catch { showError("Não consegui copiar automaticamente. Selecione o texto e copie manualmente."); }
+    document.body.removeChild(ta);
+  }
+}
+
+function renderHistory(currentKey) {
+  const pane = $("pane"), box = $("bubbles");
+  pane.classList.remove("hidden");
+  $("count").textContent = history.length + (history.length === 1 ? " versão" : " versões");
+  box.textContent = "";
+
+  history.forEach((item) => {
+    const row = document.createElement("div"); row.className = "wa-row";
+    const wrap = document.createElement("div"); wrap.className = "wa-wrap";
+    const bubble = document.createElement("div"); bubble.className = "wa-bubble";
+
+    item.text.split("\n").forEach((line) => {
+      const l = document.createElement("div"); l.className = "wa-line";
+      if (line.trim() === "") l.innerHTML = "&nbsp;"; else renderInline(line, l);
+      bubble.appendChild(l);
+    });
+
+    const meta = document.createElement("div"); meta.className = "wa-meta";
+    const tag = document.createElement("span"); tag.className = "wa-tag";
+    tag.textContent = item.mode === "promo" ? "promoção" : "cupom";
+    meta.appendChild(tag);
+    meta.appendChild(document.createTextNode(item.time + " ✓✓"));
+    bubble.appendChild(meta);
+
+    const actions = document.createElement("div"); actions.className = "wa-actions";
+    const bCopy = document.createElement("button");
+    bCopy.textContent = "⧉ Copiar";
+    bCopy.addEventListener("click", () => copyText(item, bCopy));
+    actions.appendChild(bCopy);
+    if (navigator.share) {
+      const bShare = document.createElement("button"); bShare.className = "share";
+      bShare.textContent = "➤ Enviar";
+      bShare.addEventListener("click", () => navigator.share({ text: item.text }).catch(() => {}));
+      actions.appendChild(bShare);
+    }
+
+    wrap.appendChild(bubble); wrap.appendChild(actions); row.appendChild(wrap); box.appendChild(row);
+  });
+
+  const hasForOffer = history.some((h) => h.offerKey === currentKey);
+  $("btnAgain").classList.toggle("hidden", !hasForOffer);
+}
+
+// ── PWA ──────────────────────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
