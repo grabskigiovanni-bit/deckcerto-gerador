@@ -59,9 +59,11 @@
     background:#3b2a63;color:#fff;border:1px solid var(--border);display:grid;place-items:center;
     cursor:pointer;padding:0;font-size:11px;line-height:1}
 
-  input[type=url],textarea,input[type=password]{
+  input[type=url],input[type=text],input[type=number],textarea,input[type=password]{
     width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;color:var(--text);
     padding:11px 12px;font-size:14px;font-family:inherit}
+  .cupom-row{display:flex;gap:8px}
+  .cupom-row input:last-child{width:104px;flex-shrink:0}
   input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
   textarea{resize:vertical;min-height:58px}
   ::placeholder{color:#7d71a3}
@@ -189,6 +191,14 @@
     <div style="margin-top:14px">
       <span class="label">Seu link de afiliado</span>
       <input type="url" id="link" inputmode="url" placeholder="https://meli.la/...">
+    </div>
+
+    <div style="margin-top:12px">
+      <span class="label">Cupom (opcional)</span>
+      <div class="cupom-row">
+        <input type="text" id="cupom" placeholder="Código · ex.: AMOCUPOM" autocapitalize="characters" autocomplete="off">
+        <input type="number" id="cupomPct" inputmode="numeric" min="1" max="99" placeholder="% OFF">
+      </div>
     </div>
 
     <div style="margin-top:12px">
@@ -559,7 +569,7 @@ async function drawBadge(ctx, W) {
   const tw = ctx.measureText(label).width;
   const h = 92, r = h / 2, iconW = badge ? 68 : 0, gap = badge ? 14 : 0, padX = 30;
   const w = padX + iconW + gap + tw + padX;
-  const x = W - 40 - w, y = W - 40 - h;
+  const x = W - 40 - w, y = 40;
   ctx.save();
   rr(ctx, x, y, w, h, r);
   ctx.fillStyle = "rgba(21,15,34,.85)";
@@ -605,7 +615,12 @@ $("piEdit").addEventListener("click", () => { if (postImage) openCropFromDataUrl
 renderPiSources();
 
 // ── Prompt ───────────────────────────────────────────────────
-function buildPrompt(link, notes, allowRich, avoid) {
+function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct) {
+  const cupomInfo = (cupom || cupomPct)
+    ? "- CUPOM confirmado pelo usuário, inclua na mensagem: " +
+      (cupom ? "código " + cupom : "") + (cupom && cupomPct ? ", " : "") +
+      (cupomPct ? cupomPct + "% OFF" : "") + "."
+    : "- Sem cupom informado: só cite cupom se estiver visível no print ou nas observações.";
   const hint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
   const modeLabel = mode === "promo" ? "PROMOÇÃO (oferta de produto)" : "CUPOM (divulgação de cupom de desconto)";
   const richRules = allowRich
@@ -638,6 +653,7 @@ ${richRules}
 
 DADOS:
 - Use SÓ o que estiver legível no print ou nas observações. Nunca invente preço, desconto, validade, frete, cupom ou condição. Preço ilegível = escreva [PREÇO].
+${cupomInfo}
 - Não afirme "voltou ao estoque", "adm garantiu", "tá acabando" nem nada de estoque a menos que esteja nas observações.
 - Com preço antigo e novo visíveis, pode calcular o % OFF arredondado.
 - O link da mensagem é obrigatoriamente este (ignore qualquer link do print): ${link}
@@ -677,7 +693,7 @@ async function generate() {
   try {
     const ok = offerKey(link);
     const avoid = history.filter((h) => h.offerKey === ok).slice(0, 3).map((h) => h.text);
-    const prompt = buildPrompt(link, notes, $("rich").checked, avoid);
+    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim());
     const content = images.map((img) => ({
       type: "image",
       source: { type: "base64", media_type: img.media_type, data: img.data },
