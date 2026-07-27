@@ -29,6 +29,7 @@
   .mark{width:46px;height:46px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;font-size:24px;
     background:linear-gradient(145deg,#2d1f52,#1c1436);border:1px solid var(--border);
     box-shadow:0 0 24px rgba(139,92,246,.25)}
+  .mark img{width:34px;height:34px;display:block}
   .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-hi);font-weight:600}
   h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;line-height:1.15;margin:2px 0 0}
   .gear{margin-left:auto;background:var(--panel);border:1px solid var(--border);color:var(--muted);
@@ -76,6 +77,34 @@
   .toggle input:focus-visible + .switch{outline:2px solid var(--accent-hi);outline-offset:1px}
   .toggle span.t{font-size:13px;color:var(--muted)}
 
+  /* Imagem do post */
+  .pi-src{display:flex;gap:8px;flex-wrap:wrap}
+  .pi-tile{width:54px;height:54px;border-radius:10px;border:1px solid var(--border);background:var(--panel-2);
+    padding:0;cursor:pointer;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:20px}
+  .pi-tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .pi-tile:hover,.pi-tile:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .pi-hint{font-size:11.5px;color:var(--muted);opacity:.8;margin:8px 2px 0}
+  .pi-prev{margin-top:12px}
+  .pi-prev img{width:100%;max-width:280px;border-radius:12px;border:1px solid var(--border);display:block}
+  .pi-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .pi-actions button,.pi-actions a{display:inline-flex;align-items:center;gap:5px;background:var(--panel-2);
+    color:var(--text);border:1px solid var(--border);border-radius:999px;font-size:12px;padding:6px 12px;
+    cursor:pointer;font-family:inherit;text-decoration:none}
+  .pi-actions button:hover,.pi-actions a:hover{border-color:var(--accent)}
+
+  /* Editor de recorte */
+  .crop-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;max-width:380px;width:100%}
+  .crop-card h2{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0 0 10px}
+  #cropCv{width:100%;max-width:320px;aspect-ratio:1;display:block;margin:0 auto;border-radius:12px;
+    border:1px solid var(--border);background:#0d0918;touch-action:none;cursor:grab}
+  .crop-zoom{display:flex;align-items:center;gap:10px;margin:12px 2px 4px;color:var(--muted);font-size:13px}
+  .crop-zoom input{flex:1;accent-color:var(--accent)}
+  .crop-btns{display:flex;gap:8px;margin-top:12px}
+  .crop-btns .go{flex:1;padding:12px}
+  .crop-btns .ghost{flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);
+    border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .crop-note{font-size:11.5px;color:var(--muted);opacity:.8;margin-top:10px;text-align:center}
+
   .go{width:100%;border:0;border-radius:13px;background:var(--accent);color:#fff;
     font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15.5px;padding:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:9px;transition:background .15s,transform .1s}
@@ -99,6 +128,7 @@
   .wa-wrap{max-width:92%}
   .wa-bubble{background:#005c4b;color:#e9edef;border-radius:10px;border-top-right-radius:2px;
     padding:8px 10px;font-size:14.2px;line-height:1.42;box-shadow:0 1px 1px rgba(0,0,0,.3)}
+  .wa-photo{display:block;width:100%;max-width:260px;border-radius:8px;margin-bottom:6px}
   .wa-line{min-height:1.2em;word-break:break-word}
   .wa-link{color:#53bdeb;text-decoration:underline}
   .wa-meta{display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:4px;
@@ -130,7 +160,7 @@
 <body>
 <div class="shell">
   <header class="head">
-    <div class="mark" aria-hidden="true"><img src="./mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>
+    <div class="mark" aria-hidden="true"><img src="./wizard.png" alt=""></div>
     <div>
       <div class="eyebrow">Deck Certo</div>
       <h1>Gerador de Ofertas</h1>
@@ -173,6 +203,21 @@
     </label>
   </div>
 
+  <div class="card">
+    <span class="label">Imagem do post (opcional · sai com o selinho do mago)</span>
+    <div class="pi-src" id="piSrc"></div>
+    <p class="pi-hint">Toque num print pra recortar a foto do produto, ou escolha outra imagem da galeria.</p>
+    <input type="file" id="piFile" accept="image/*" hidden>
+    <div class="pi-prev hidden" id="piPrev">
+      <img id="piImg" alt="Imagem do post com selinho Deck Certo">
+      <div class="pi-actions">
+        <button type="button" id="piEdit">✂️ Ajustar</button>
+        <a id="piDown" download="oferta-deckcerto.jpg">⬇ Baixar</a>
+        <button type="button" id="piDel">✕ Remover</button>
+      </div>
+    </div>
+  </div>
+
   <button class="go" id="btnGo"><span id="goIcon">✨</span><span id="goText">Gerar mensagem</span></button>
   <div class="error hidden" id="err" role="alert"></div>
 
@@ -183,6 +228,23 @@
     </div>
     <div id="bubbles"></div>
     <button class="again hidden" id="btnAgain">↻ Gerar outra versão desta oferta</button>
+  </div>
+</div>
+
+<!-- Editor de recorte da imagem do post -->
+<div class="gate hidden" id="cropModal">
+  <div class="crop-card">
+    <h2>Enquadrar a foto do produto</h2>
+    <canvas id="cropCv" width="320" height="320"></canvas>
+    <div class="crop-zoom">
+      <span aria-hidden="true">🔍</span>
+      <input type="range" id="cropZoom" min="0" max="100" value="0" aria-label="Zoom">
+    </div>
+    <div class="crop-btns">
+      <button type="button" class="ghost" id="cropCancel">Cancelar</button>
+      <button type="button" class="go" id="cropOk">Usar imagem</button>
+    </div>
+    <p class="crop-note">Arraste pra posicionar. O selinho Deck Certo entra no canto automaticamente.</p>
   </div>
 </div>
 
@@ -203,15 +265,58 @@ const $ = (id) => document.getElementById(id);
 const KEY_STORE = "dc_anthropic_key";
 const MAX_IMAGES = 3;
 
+// ── Exemplos de estilo (few-shot) ────────────────────────────
+// Mensagens reais de canais de oferta que o Giovanni aprovou como
+// referência de estilo (27/07/2026). Use LINK no lugar do link.
+const EXEMPLOS = [
+`18 BOOSTERS DE ESCURIDÃO
+loja oficial + frete grátis
+
+🇧🇷 18 Boosters Escuridão Absoluta Darkrai
+
+De: 300 | Por: R$179 👑
+⚠️ resgate o cupom de 10% OFF
+
+Link: LINK`,
+`TRIPLO DE EQUILÍBRIO
+loja oficial + frete grátis
+
+🇧🇷 Equilíbrio Perfeito Makuhita 19 Cards Copag
+
+Por: R$27 pix 👑
+
+Link: LINK`,
+`PRECINHO NESSA BOX🔥
+
+🇧🇷 Box Pokemon Mega Lucario Ex Copag
+
+De R$199,00 ❌
+Por R$114,00 ✅
+
+🎟️ Cupom: AMOCUPOM
+
+Loja Oficial no ML
+🔗 LINK`,
+`ESSE COMBO TÁ VALENDO MUITO🔥
+
+🇧🇷 Kit Mega Clefable + Mega Gengar Pokemon Copag
+
+De R$369,00 ❌
+Por R$222,00 (R$111 CADA) ✅
+
+🎟️ Cupom: AMOCUPOM
+
+Loja Oficial TRP no ML
+🔗 LINK`,
+];
+
 const STYLE_HINTS = [
-  "abra com urgência de estoque ou de tempo",
-  "abra destacando o preço como o ponto forte",
-  "abra com tom de achado / garimpo",
-  "fale direto com o colecionador, citando a coleção se der",
-  "abra com uma pergunta curta que conecta com o produto",
-  "abra anunciando como novidade ou lançamento",
-  "seja mais seco e direto, estilo telegrama de oferta",
-  "use um toque leve de humor, sem forçar",
+  "manchete com o nome abreviado do produto (estilo QUAD DE FOGO)",
+  "manchete destacando o preço (estilo PRECINHO NESSA BOX)",
+  "manchete com tom de achado / garimpo",
+  "manchete fechando com a logo 🧙‍♂️",
+  "o mais seco possível, só os fatos",
+  "um toque leve de empolgação de colecionador, sem forçar",
 ];
 
 let mode = "promo";
@@ -249,7 +354,7 @@ function setMode(m) {
 $("modePromo").addEventListener("click", () => setMode("promo"));
 $("modeCupom").addEventListener("click", () => setMode("cupom"));
 
-// ── Imagens ──────────────────────────────────────────────────
+// ── Imagens (prints) ─────────────────────────────────────────
 function fileToImageBlock(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -305,6 +410,7 @@ function renderThumbs() {
     x.addEventListener("click", () => { images = images.filter((i) => i.id !== img.id); renderThumbs(); });
     t.appendChild(el); t.appendChild(x); box.appendChild(t);
   });
+  renderPiSources();
 }
 
 $("drop").addEventListener("click", () => $("file").click());
@@ -319,65 +425,230 @@ window.addEventListener("paste", (e) => {
   if (files.length) addFiles(files);
 });
 
+// ── Imagem do post + selinho ─────────────────────────────────
+let postImage = null; // {dataUrl}
+let badgeImgPromise = null;
+
+function loadBadgeImg() {
+  if (!badgeImgPromise) {
+    badgeImgPromise = new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = "./wizard.png";
+    });
+  }
+  return badgeImgPromise;
+}
+
+function renderPiSources() {
+  const box = $("piSrc");
+  box.textContent = "";
+  images.forEach((img) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "pi-tile";
+    b.setAttribute("aria-label", "Recortar este print pra imagem do post");
+    const el = document.createElement("img");
+    el.src = img.preview; el.alt = "";
+    b.appendChild(el);
+    b.addEventListener("click", () => openCropFromDataUrl(img.preview));
+    box.appendChild(b);
+  });
+  const plus = document.createElement("button");
+  plus.type = "button"; plus.className = "pi-tile";
+  plus.textContent = "+";
+  plus.setAttribute("aria-label", "Escolher imagem da galeria");
+  plus.addEventListener("click", () => $("piFile").click());
+  box.appendChild(plus);
+}
+
+$("piFile").addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f || !f.type.startsWith("image/")) return;
+  const r = new FileReader();
+  r.onload = () => openCropFromDataUrl(r.result);
+  r.readAsDataURL(f);
+});
+
+// Estado do editor de recorte (coordenadas na base 320)
+const CV = 320;
+let crop = null; // {img, scale, minScale, ox, oy}
+
+function openCropFromDataUrl(dataUrl) {
+  const im = new Image();
+  im.onload = () => {
+    const minScale = CV / Math.min(im.width, im.height);
+    crop = {
+      img: im,
+      scale: minScale,
+      minScale,
+      ox: (CV - im.width * minScale) / 2,
+      oy: (CV - im.height * minScale) / 2,
+    };
+    $("cropZoom").value = "0";
+    $("cropModal").classList.remove("hidden");
+    drawCrop();
+  };
+  im.onerror = () => showError("Não deu pra abrir essa imagem.");
+  im.src = dataUrl;
+}
+
+function clampCrop() {
+  const w = crop.img.width * crop.scale, h = crop.img.height * crop.scale;
+  crop.ox = Math.min(0, Math.max(CV - w, crop.ox));
+  crop.oy = Math.min(0, Math.max(CV - h, crop.oy));
+}
+
+function drawCrop() {
+  const ctx = $("cropCv").getContext("2d");
+  ctx.fillStyle = "#0d0918";
+  ctx.fillRect(0, 0, CV, CV);
+  ctx.drawImage(crop.img, crop.ox, crop.oy, crop.img.width * crop.scale, crop.img.height * crop.scale);
+}
+
+let dragging = null;
+$("cropCv").addEventListener("pointerdown", (e) => {
+  if (!crop) return;
+  e.preventDefault();
+  $("cropCv").setPointerCapture(e.pointerId);
+  dragging = { x: e.clientX, y: e.clientY };
+});
+$("cropCv").addEventListener("pointermove", (e) => {
+  if (!crop || !dragging) return;
+  const rect = $("cropCv").getBoundingClientRect();
+  const f = CV / rect.width;
+  crop.ox += (e.clientX - dragging.x) * f;
+  crop.oy += (e.clientY - dragging.y) * f;
+  dragging = { x: e.clientX, y: e.clientY };
+  clampCrop();
+  drawCrop();
+});
+["pointerup", "pointercancel"].forEach((ev) =>
+  $("cropCv").addEventListener(ev, () => { dragging = null; })
+);
+
+$("cropZoom").addEventListener("input", (e) => {
+  if (!crop) return;
+  const t = Number(e.target.value) / 100;
+  const newScale = crop.minScale * (1 + 2 * t); // até 3x
+  const cx = (CV / 2 - crop.ox) / crop.scale;
+  const cy = (CV / 2 - crop.oy) / crop.scale;
+  crop.scale = newScale;
+  crop.ox = CV / 2 - cx * newScale;
+  crop.oy = CV / 2 - cy * newScale;
+  clampCrop();
+  drawCrop();
+});
+
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+async function drawBadge(ctx, W) {
+  const badge = await loadBadgeImg();
+  try { await document.fonts.load("600 40px 'Space Grotesk'"); } catch {}
+  const label = "deckcerto.com";
+  ctx.font = "600 40px 'Space Grotesk', sans-serif";
+  const tw = ctx.measureText(label).width;
+  const h = 92, r = h / 2, iconW = badge ? 68 : 0, gap = badge ? 14 : 0, padX = 30;
+  const w = padX + iconW + gap + tw + padX;
+  const x = W - 40 - w, y = W - 40 - h;
+  ctx.save();
+  rr(ctx, x, y, w, h, r);
+  ctx.fillStyle = "rgba(21,15,34,.85)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(139,92,246,.6)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  if (badge) ctx.drawImage(badge, x + padX - 6, y + (h - 68) / 2, 68, 68);
+  ctx.fillStyle = "#fff";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, x + padX + iconW + gap - (badge ? 6 : 0), y + h / 2 + 2);
+  ctx.restore();
+}
+
+async function finishCrop() {
+  if (!crop) return;
+  const OUT = 1080, f = OUT / CV;
+  const c = document.createElement("canvas");
+  c.width = OUT; c.height = OUT;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#0d0918";
+  ctx.fillRect(0, 0, OUT, OUT);
+  ctx.drawImage(crop.img, crop.ox * f, crop.oy * f, crop.img.width * crop.scale * f, crop.img.height * crop.scale * f);
+  await drawBadge(ctx, OUT);
+  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88) };
+  $("cropModal").classList.add("hidden");
+  crop = null;
+  renderPostImage();
+  if (history.length) renderHistory(history[0].offerKey);
+}
+$("cropOk").addEventListener("click", () => { finishCrop().catch(() => showError("Falhou ao montar a imagem.")); });
+$("cropCancel").addEventListener("click", () => { $("cropModal").classList.add("hidden"); crop = null; });
+
+function renderPostImage() {
+  const box = $("piPrev");
+  if (!postImage) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  $("piImg").src = postImage.dataUrl;
+  $("piDown").href = postImage.dataUrl;
+}
+$("piDel").addEventListener("click", () => { postImage = null; renderPostImage(); if (history.length) renderHistory(history[0].offerKey); });
+$("piEdit").addEventListener("click", () => { if (postImage) openCropFromDataUrl(postImage.dataUrl); });
+renderPiSources();
+
 // ── Prompt ───────────────────────────────────────────────────
 function buildPrompt(link, notes, allowRich, avoid) {
   const hint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
   const modeLabel = mode === "promo" ? "PROMOÇÃO (oferta de produto)" : "CUPOM (divulgação de cupom de desconto)";
   const richRules = allowRich
-    ? "- Formatação nativa do WhatsApp liberada: *texto* vira negrito (use no preço final e no código de cupom), ~texto~ vira tachado (use no preço antigo quando houver). Use com moderação."
-    : "- NÃO use negrito (*texto*), tachado (~texto~) nem itálico. Texto puro, só com emojis e quebras de linha.";
+    ? "- Pode usar *negrito* (no preço final e em código de cupom) e ~tachado~ (no preço antigo). Com moderação."
+    : "- NÃO use negrito, tachado nem itálico. Texto puro, só emojis e quebras de linha.";
   const avoidBlock = avoid.length
-    ? "\nVERSÕES JÁ GERADAS PARA ESTA OFERTA (não repita os mesmos ganchos nem a mesma estrutura):\n" +
+    ? "\nJÁ GERADAS PRA ESTA OFERTA (não repita gancho nem estrutura):\n" +
       avoid.map((t, i) => "--- versão " + (i + 1) + " ---\n" + t).join("\n") + "\n"
     : "";
+  const exemplos = EXEMPLOS.map((t, i) =>
+    "--- exemplo " + (i + 1) + " ---\n" + t.replaceAll("LINK", link)
+  ).join("\n");
 
-  return `Você escreve as mensagens do canal de ofertas "Deck Certo | Promoções" no WhatsApp. O canal é focado em Pokémon TCG e colecionáveis, mas também posta ofertas gerais de e-commerce (Mercado Livre, Shopee, Amazon etc).
+  return `Você escreve as mensagens do canal "Deck Certo | Promoções" no WhatsApp (Pokémon TCG, colecionáveis e ofertas de e-commerce em geral).
 
-TAREFA: analise o(s) print(s) em anexo e escreva UMA mensagem pronta para postar no WhatsApp, no modo indicado.
+Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 
-MODO: ${modeLabel}
-LINK DE AFILIADO (obrigatório na mensagem, use exatamente este e ignore qualquer link que apareça no print): ${link}
-${notes ? "OBSERVAÇÕES DO USUÁRIO (têm prioridade sobre o que estiver no print): " + notes : ""}
-
-REGRAS DE ESTILO:
-- pt-BR, tom de canal de ofertas: direto, empolgado na medida certa, zero enrolação.
-- 3 a 8 linhas no total. Cada bloco em uma linha própria.
-- Emojis com moderação, no máximo um por linha e SOMENTE desta lista: 🚨 🔥 💰 🛒 🎫 ⚠️ 👉 ✨ 📦 ⭐ 🧙‍♂️
-- O emoji 🧙‍♂️ é a logo do canal. Use quando encaixar bem, em torno de metade das vezes, nunca force.
-- PROIBIDO usar travessão (—) ou meia-risca (–) em qualquer posição. Pra ligar preço e desconto, use parênteses, tipo "por R$ 39 (21% OFF)". Nunca use hashtags.
+FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
+1. MANCHETE CURTA EM CAPS: gancho ou nome abreviado do produto (pode fechar com 🔥).
+2. Logo abaixo da manchete, "loja oficial + frete grátis" (ou o que valer), SÓ se estiver visível no print/observações.
+3. 🇧🇷 + nome completo do produto (🇺🇸 se for importado).
+4. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
+5. Cupom (🎟️ Cupom: CODIGO ou ⚠️), só se houver.
+6. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.
+7. Última linha: o link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
+- Emojis SÓ desta lista: 🇧🇷 🇺🇸 👑 ❌ ✅ 🎟️ ⚠️ 🔗 🔥 👀 💰 🧙‍♂️ (o 🧙‍♂️ é a logo do canal, pode fechar a manchete de vez em quando). Máximo 1 por linha.
+- PROIBIDO travessão (—/–) e hashtag.
 ${richRules}
-- Se for produto de TCG ou Pokémon, escreva como quem entende do assunto: pode citar a coleção, dizer se é pré-venda, mencionar "Copag oficial" quando fizer sentido.
+- Produto de TCG/Pokémon: escreva como quem entende (coleção, pré-venda, "Copag oficial" quando couber).
 
-REGRAS DE DADOS:
-- Extraia nome do produto, preço, preço antigo, condição de pagamento (Pix, parcelamento), nota e número de vendidos SOMENTE do que estiver visível no print ou nas observações.
-- Nunca invente preço, desconto, validade, frete ou condição. Se o preço não estiver legível, escreva [PREÇO] no lugar para o usuário preencher.
-- Se houver preço antigo e novo visíveis, pode calcular e citar o percentual de desconto arredondado.
-- Encurte o nome do produto se estiver longo, mantendo o que identifica o item.
+DADOS:
+- Use SÓ o que estiver legível no print ou nas observações. Nunca invente preço, desconto, validade, frete, cupom ou condição. Preço ilegível = escreva [PREÇO].
+- Não afirme "voltou ao estoque", "adm garantiu", "tá acabando" nem nada de estoque a menos que esteja nas observações.
+- Com preço antigo e novo visíveis, pode calcular o % OFF arredondado.
+- O link da mensagem é obrigatoriamente este (ignore qualquer link do print): ${link}
+${notes ? "- OBSERVAÇÕES DO USUÁRIO (prioridade sobre o print): " + notes : ""}
 
-ESTRUTURAS DE REFERÊNCIA (adapte livremente, não copie literalmente):
-
-Promoção, estilo casa:
-🔥 OFERTA Pokémon TCG
-Blister Quadrúplo Escuridão Absoluta (Copag oficial)
-💰 De R$ 79,90 por R$ 55,99 no Pix (30% OFF)
-⭐ 4.9 no Mercado Livre, 500+ vendidos
-👉 ${link}
-
-Promoção, estilo urgência:
-🚨 Garanta antes do lançamento oficial!
-Blister Quadrúplo Pokémon Escuridão Absoluta já disponível.
-💰 Por R$ 55,99
-🛒 Link seguro: ${link}
-
-Cupom:
-🧙‍♂️ Cupom novo na área!
-🎫 CODIGO10 👉 15% OFF
-🔗 ${link}
-(Mín. R$ 79) Válido até 11/07 ou enquanto durar o estoque, em produtos selecionados.
+EXEMPLOS DO ESTILO DO CANAL (siga o tom e o tamanho, sem copiar literalmente):
+${exemplos}
 
 VARIAÇÃO DESTA VERSÃO: ${hint}.
 ${avoidBlock}
-Responda SOMENTE com o texto final da mensagem. Sem aspas em volta, sem explicação, sem cerca de código.`;
+Responda SOMENTE com o texto final da mensagem. Sem aspas, sem explicação, sem cerca de código.`;
 }
 
 // ── Geração ──────────────────────────────────────────────────
@@ -491,16 +762,36 @@ async function copyText(item, btn) {
   }
 }
 
+async function shareItem(item) {
+  try {
+    if (postImage) {
+      const blob = await (await fetch(postImage.dataUrl)).blob();
+      const file = new File([blob], "oferta-deckcerto.jpg", { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ text: item.text, files: [file] });
+        return;
+      }
+    }
+    await navigator.share({ text: item.text });
+  } catch {}
+}
+
 function renderHistory(currentKey) {
   const pane = $("pane"), box = $("bubbles");
   pane.classList.remove("hidden");
   $("count").textContent = history.length + (history.length === 1 ? " versão" : " versões");
   box.textContent = "";
 
-  history.forEach((item) => {
+  history.forEach((item, idx) => {
     const row = document.createElement("div"); row.className = "wa-row";
     const wrap = document.createElement("div"); wrap.className = "wa-wrap";
     const bubble = document.createElement("div"); bubble.className = "wa-bubble";
+
+    if (postImage && idx === 0) {
+      const ph = document.createElement("img");
+      ph.className = "wa-photo"; ph.src = postImage.dataUrl; ph.alt = "Imagem do post";
+      bubble.appendChild(ph);
+    }
 
     item.text.split("\n").forEach((line) => {
       const l = document.createElement("div"); l.className = "wa-line";
@@ -522,8 +813,8 @@ function renderHistory(currentKey) {
     actions.appendChild(bCopy);
     if (navigator.share) {
       const bShare = document.createElement("button"); bShare.className = "share";
-      bShare.textContent = "➤ Enviar";
-      bShare.addEventListener("click", () => navigator.share({ text: item.text }).catch(() => {}));
+      bShare.textContent = postImage ? "➤ Enviar com foto" : "➤ Enviar";
+      bShare.addEventListener("click", () => shareItem(item));
       actions.appendChild(bShare);
     }
 
