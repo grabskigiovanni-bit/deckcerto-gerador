@@ -62,8 +62,12 @@
   input[type=url],input[type=text],input[type=number],textarea,input[type=password]{
     width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;color:var(--text);
     padding:11px 12px;font-size:14px;font-family:inherit}
+  .masked{-webkit-text-security:disc}
   .cupom-row{display:flex;gap:8px}
   .cupom-row input:last-child{width:104px;flex-shrink:0}
+  .opt-row{display:flex;gap:10px;margin-top:12px}
+  .opt-row>div{flex:1}
+  .seg.seg-sm button{padding:8px 6px;font-size:13px}
   input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
   textarea{resize:vertical;min-height:58px}
   ::placeholder{color:#7d71a3}
@@ -196,8 +200,25 @@
     <div style="margin-top:12px">
       <span class="label">Cupom (opcional)</span>
       <div class="cupom-row">
-        <input type="text" id="cupom" placeholder="Código · ex.: AMOCUPOM" autocapitalize="characters" autocomplete="off">
-        <input type="number" id="cupomPct" inputmode="numeric" min="1" max="99" placeholder="% OFF">
+        <input type="text" id="cupom" placeholder="Código · ex.: AMOCUPOM" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <input type="text" id="cupomPct" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="% OFF" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="opt-row">
+      <div>
+        <span class="label">Mostrar nome da loja?</span>
+        <div class="seg seg-sm" id="segLoja" role="tablist" aria-label="Mostrar nome da loja">
+          <button type="button" class="on" data-v="sim" role="tab" aria-selected="true">Sim</button>
+          <button type="button" data-v="nao" role="tab" aria-selected="false">Não</button>
+        </div>
+      </div>
+      <div>
+        <span class="label">Mostrar total do desconto?</span>
+        <div class="seg seg-sm" id="segDesc" role="tablist" aria-label="Mostrar total do desconto">
+          <button type="button" class="on" data-v="sim" role="tab" aria-selected="true">Sim</button>
+          <button type="button" data-v="nao" role="tab" aria-selected="false">Não</button>
+        </div>
       </div>
     </div>
 
@@ -263,7 +284,7 @@
   <div class="gate-card">
     <h2>🧙‍♂️ Conecte sua chave</h2>
     <p>Cole sua chave da API da Anthropic. Ela fica salva <b>somente neste aparelho</b> e é usada direto na API, sem passar por nenhum servidor intermediário.</p>
-    <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off">
+    <input type="text" class="masked" id="keyInput" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     <button class="go" id="btnKey">Salvar e começar</button>
     <div class="gate-note">Crie a chave em console.anthropic.com → API Keys. Dica: defina um limite de gasto mensal na conta pra ficar tranquilo.</div>
   </div>
@@ -303,7 +324,7 @@ Link: LINK`,
 De R$199,00 ❌
 Por R$114,00 ✅
 
-🎟️ Cupom: AMOCUPOM
+🧙‍♂️🎟️ Cupom: AMOCUPOM
 
 Loja Oficial no ML
 🔗 LINK`,
@@ -314,7 +335,7 @@ Loja Oficial no ML
 De R$369,00 ❌
 Por R$222,00 (R$111 CADA) ✅
 
-🎟️ Cupom: AMOCUPOM
+🧙‍♂️🎟️ Cupom: AMOCUPOM
 
 Loja Oficial TRP no ML
 🔗 LINK`,
@@ -363,6 +384,28 @@ function setMode(m) {
 }
 $("modePromo").addEventListener("click", () => setMode("promo"));
 $("modeCupom").addEventListener("click", () => setMode("cupom"));
+
+// ── Toggles Sim/Não (nome da loja · total do desconto) ───────
+function initSeg(id) {
+  const seg = $(id);
+  const buttons = seg.querySelectorAll("button");
+  buttons.forEach((b) =>
+    b.addEventListener("click", () => {
+      buttons.forEach((x) => {
+        x.classList.toggle("on", x === b);
+        x.setAttribute("aria-selected", x === b);
+      });
+    })
+  );
+  return () => seg.querySelector("button.on").dataset.v === "sim";
+}
+const showLoja = initSeg("segLoja");
+const showDesconto = initSeg("segDesc");
+
+// % OFF: só dígitos (campo texto pra não acionar gerenciador de senha)
+$("cupomPct").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2);
+});
 
 // ── Imagens (prints) ─────────────────────────────────────────
 function fileToImageBlock(file) {
@@ -615,7 +658,7 @@ $("piEdit").addEventListener("click", () => { if (postImage) openCropFromDataUrl
 renderPiSources();
 
 // ── Prompt ───────────────────────────────────────────────────
-function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct) {
+function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto) {
   const cupomInfo = (cupom || cupomPct)
     ? "- CUPOM confirmado pelo usuário, inclua na mensagem: " +
       (cupom ? "código " + cupom : "") + (cupom && cupomPct ? ", " : "") +
@@ -643,10 +686,12 @@ FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco)
 2. Logo abaixo da manchete, "loja oficial + frete grátis" (ou o que valer), SÓ se estiver visível no print/observações.
 3. 🇧🇷 + nome completo do produto (🇺🇸 se for importado).
 4. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
-5. Cupom (🎟️ Cupom: CODIGO ou ⚠️), só se houver.
-6. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.
+5. Cupom: linha "🧙‍♂️🎟️ Cupom: CODIGO" (mago + ticket juntos, é a assinatura do canal), só se houver cupom.
+${comLoja
+    ? '6. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.'
+    : "6. NÃO cite o nome da loja/vendedor em nenhuma linha (pule esse bloco)."}
 7. Última linha: o link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
-- Emojis SÓ desta lista: 🇧🇷 🇺🇸 👑 ❌ ✅ 🎟️ ⚠️ 🔗 🔥 👀 💰 🧙‍♂️ (o 🧙‍♂️ é a logo do canal, pode fechar a manchete de vez em quando). Máximo 1 por linha.
+- Emojis SÓ desta lista: 🇧🇷 🇺🇸 👑 ❌ ✅ 🎟️ ⚠️ 🔗 🔥 👀 💰 🧙‍♂️ (o 🧙‍♂️ é a logo do canal, pode fechar a manchete de vez em quando). Máximo 1 por linha, com uma exceção: a linha do cupom leva 🧙‍♂️🎟️ juntos.
 - PROIBIDO travessão (—/–) e hashtag.
 ${richRules}
 - Produto de TCG/Pokémon: escreva como quem entende (coleção, pré-venda, "Copag oficial" quando couber).
@@ -655,7 +700,9 @@ DADOS:
 - Use SÓ o que estiver legível no print ou nas observações. Nunca invente preço, desconto, validade, frete, cupom ou condição. Preço ilegível = escreva [PREÇO].
 ${cupomInfo}
 - Não afirme "voltou ao estoque", "adm garantiu", "tá acabando" nem nada de estoque a menos que esteja nas observações.
-- Com preço antigo e novo visíveis, pode calcular o % OFF arredondado.
+${comDesconto
+    ? "- Com preço antigo e novo visíveis, pode calcular e mostrar o % OFF arredondado (total do desconto)."
+    : "- NÃO calcule nem mostre % OFF, economia em R$ nem \"total de desconto\": apresente só os preços (e o % do cupom, se o usuário informou)."}
 - O link da mensagem é obrigatoriamente este (ignore qualquer link do print): ${link}
 ${notes ? "- OBSERVAÇÕES DO USUÁRIO (prioridade sobre o print): " + notes : ""}
 
@@ -693,7 +740,7 @@ async function generate() {
   try {
     const ok = offerKey(link);
     const avoid = history.filter((h) => h.offerKey === ok).slice(0, 3).map((h) => h.text);
-    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim());
+    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim(), showLoja(), showDesconto());
     const content = images.map((img) => ({
       type: "image",
       source: { type: "base64", media_type: img.media_type, data: img.data },
