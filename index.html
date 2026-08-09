@@ -154,6 +154,32 @@
   .again:hover:not(:disabled){border-color:var(--accent)}
   .again:disabled{opacity:.5;cursor:wait}
 
+  /* Publicar no site */
+  select{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
+    color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;-webkit-appearance:none;appearance:none}
+  select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  input[type=date]{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
+    color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;color-scheme:dark}
+  .row2{display:flex;gap:8px}
+  .row2>div{flex:1;min-width:0}
+  .pub-ok{margin-top:11px;font-size:13px;color:#86efac;background:rgba(134,239,172,.08);
+    border:1px solid rgba(134,239,172,.25);border-radius:10px;padding:9px 12px}
+  .mp-item{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}
+  .mp-item:first-of-type{border-top:0}
+  .mp-item img{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0}
+  .mp-info{flex:1;min-width:0}
+  .mp-title{font-size:12.5px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .mp-st{font-size:11px;color:var(--muted);margin-top:2px}
+  .mp-st .live{color:#86efac}
+  .mp-st .dead{color:var(--danger)}
+  .mp-btn{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:999px;
+    font-size:11.5px;padding:6px 11px;cursor:pointer;font-family:inherit;flex-shrink:0}
+  .mp-btn:hover{border-color:var(--accent)}
+  .mp-btn:disabled{opacity:.5;cursor:wait}
+  summary.label{cursor:pointer;list-style:none;margin:0}
+  summary.label::-webkit-details-marker{display:none}
+
   /* Porta de entrada da chave */
   .gate{position:fixed;inset:0;background:rgba(13,9,22,.9);display:grid;place-items:center;padding:18px;z-index:50}
   .gate-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:400px;width:100%}
@@ -195,6 +221,7 @@
     <div style="margin-top:14px">
       <span class="label">Seu link de afiliado</span>
       <input type="url" id="link" inputmode="url" placeholder="https://meli.la/...">
+      <p class="pi-hint" id="adImgStatus" style="margin-top:6px"></p>
     </div>
 
     <div style="margin-top:12px">
@@ -260,6 +287,69 @@
     <div id="bubbles"></div>
     <button class="again hidden" id="btnAgain">↻ Gerar outra versão desta oferta</button>
   </div>
+
+  <!-- Publicar no promo.deckcerto.com -->
+  <div class="card" style="margin-top:14px">
+    <span class="label">🧙‍♂️ Publicar no site · promo.deckcerto.com</span>
+    <div style="margin-top:6px">
+      <span class="label">Título do produto</span>
+      <input type="text" id="pubTitulo" placeholder="Ex.: Box Pokémon Coleção Mega Luar Mega Gengar ex Copag" autocomplete="off">
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <div>
+        <span class="label">Jogo</span>
+        <select id="pubCat">
+          <option value="pokemon" selected>Pokémon</option>
+          <option value="magic">Magic</option>
+          <option value="onepiece">One Piece</option>
+          <option value="yugioh">Yu-Gi-Oh</option>
+          <option value="lorcana">Lorcana</option>
+        </select>
+      </div>
+      <div>
+        <span class="label">Loja</span>
+        <input type="text" id="pubLoja" value="Mercado Livre" autocomplete="off">
+      </div>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <div>
+        <span class="label">De R$ (opcional)</span>
+        <input type="text" id="pubDe" inputmode="decimal" placeholder="199,00" autocomplete="off">
+      </div>
+      <div>
+        <span class="label">Por R$ (final, já com cupom)</span>
+        <input type="text" id="pubPor" inputmode="decimal" placeholder="114,00" autocomplete="off">
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <span class="label">Validade do cupom</span>
+      <div class="seg seg-sm" id="segVal" role="tablist" aria-label="Validade do cupom">
+        <button type="button" class="on" data-v="0" role="tab" aria-selected="true">Sem prazo</button>
+        <button type="button" data-v="24" role="tab" aria-selected="false">24h</button>
+        <button type="button" data-v="72" role="tab" aria-selected="false">3 dias</button>
+        <button type="button" data-v="168" role="tab" aria-selected="false">7 dias</button>
+        <button type="button" data-v="data" role="tab" aria-selected="false">Data</button>
+      </div>
+      <input type="date" id="pubData" class="hidden" style="margin-top:8px" aria-label="Data de validade do cupom">
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="pubFrete">
+      <span class="switch" aria-hidden="true"></span>
+      <span class="t">Frete grátis</span>
+    </label>
+    <p class="pi-hint">Usa o cupom e o link preenchidos lá em cima. A imagem do post (com o selinho) é a foto do card no site, obrigatória.</p>
+    <button class="go" id="btnPub" style="margin-top:10px"><span id="pubIcon">🚀</span><span id="pubText">Publicar no site</span></button>
+    <div class="error hidden" id="pubErr" role="alert"></div>
+    <div class="pub-ok hidden" id="pubOk"></div>
+  </div>
+
+  <!-- Minhas promos no site -->
+  <div class="card">
+    <details id="mpBox">
+      <summary class="label">📋 Minhas promos no site · <span id="mpCount">abrir</span></summary>
+      <div id="mpList" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+    </details>
+  </div>
 </div>
 
 <!-- Editor de recorte da imagem do post -->
@@ -276,6 +366,20 @@
       <button type="button" class="go" id="cropOk">Usar imagem</button>
     </div>
     <p class="crop-note">Arraste pra posicionar. O selinho Deck Certo entra no canto automaticamente.</p>
+  </div>
+</div>
+
+<!-- Login Supabase (conta admin do site) -->
+<div class="gate hidden" id="supaGate">
+  <div class="gate-card">
+    <h2>🔑 Entrar pra publicar</h2>
+    <p>Entre com a conta admin do site (a mesma do app Minha Coleção). A sessão fica salva <b>somente neste aparelho</b>.</p>
+    <input type="text" id="supaEmail" inputmode="email" placeholder="email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input type="text" class="masked" id="supaPass" placeholder="senha" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-top:8px">
+    <button class="go" id="btnSupaLogin">Entrar</button>
+    <button type="button" class="again" id="btnSupaCancel" style="margin-top:8px">Cancelar</button>
+    <div class="error hidden" id="supaErr" role="alert"></div>
+    <div class="gate-note">Só a conta autorizada consegue publicar no feed. A senha vai direto pro Supabase do Deck Certo, sem intermediário.</div>
   </div>
 </div>
 
@@ -529,6 +633,7 @@ const CV = 320;
 let crop = null; // {img, scale, minScale, ox, oy}
 
 function openCropFromDataUrl(dataUrl) {
+  lastRawPost = dataUrl;
   const im = new Image();
   im.onload = () => {
     const minScale = CV / Math.min(im.width, im.height);
@@ -653,9 +758,70 @@ function renderPostImage() {
   $("piImg").src = postImage.dataUrl;
   $("piDown").href = postImage.dataUrl;
 }
-$("piDel").addEventListener("click", () => { postImage = null; renderPostImage(); if (history.length) renderHistory(history[0].offerKey); });
-$("piEdit").addEventListener("click", () => { if (postImage) openCropFromDataUrl(postImage.dataUrl); });
+$("piDel").addEventListener("click", () => { postImage = null; lastRawPost = null; renderPostImage(); if (history.length) renderHistory(history[0].offerKey); });
+$("piEdit").addEventListener("click", () => { if (postImage) openCropFromDataUrl(lastRawPost || postImage.dataUrl); });
 renderPiSources();
+
+// ── Imagem automática do anúncio (worker dc-og) ─────────────
+// Cola o link -> resolve meli.la -> og:image/og:title -> selinho.
+const OG_WORKER = "https://dc-og.grabskigiovanni.workers.dev"; // worker dc-og (deploy 09/08/2026)
+let lastRawPost = null;
+let adImgBusy = false;
+
+async function composePostFromDataUrl(dataUrl) {
+  const im = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error("imagem inválida"));
+    i.src = dataUrl;
+  });
+  const OUT = 1080;
+  const c = document.createElement("canvas");
+  c.width = OUT; c.height = OUT;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, OUT, OUT);
+  const s = Math.max(OUT / im.width, OUT / im.height); // cover centralizado
+  const w = im.width * s, h = im.height * s;
+  ctx.drawImage(im, (OUT - w) / 2, (OUT - h) / 2, w, h);
+  await drawBadge(ctx, OUT);
+  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88) };
+  renderPostImage();
+  if (history.length) renderHistory(history[0].offerKey);
+}
+
+async function autoAdImage() {
+  if (!OG_WORKER || OG_WORKER.includes("SEU-SUBDOMINIO") || adImgBusy) return;
+  const link = $("link").value.trim();
+  if (!/^https?:\/\/\S+/i.test(link) || postImage) return;
+  const hint = $("adImgStatus");
+  adImgBusy = true;
+  hint.textContent = "Buscando a imagem do anúncio...";
+  try {
+    const meta = await (await fetch(OG_WORKER + "/resolve?url=" + encodeURIComponent(link))).json();
+    if (!meta || !meta.image) throw new Error();
+    if (meta.title && !$("pubTitulo").value.trim()) {
+      // decodifica entidades HTML (&amp; etc.) que vem no og:title do ML
+      const dec = new DOMParser().parseFromString(meta.title, "text/html").documentElement.textContent || meta.title;
+      $("pubTitulo").value = dec.replace(/\s*\|\s*(Mercado ?Livre|MercadoLivre).*$/i, "").trim();
+    }
+    const ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(meta.image));
+    if (!ir.ok) throw new Error();
+    const blob = await ir.blob();
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = () => rej(new Error("leitura falhou"));
+      r.readAsDataURL(blob);
+    });
+    lastRawPost = dataUrl;
+    await composePostFromDataUrl(dataUrl);
+    hint.textContent = "Imagem do anúncio aplicada com o selinho. Ajuste no card abaixo se quiser.";
+  } catch {
+    hint.textContent = "Não achei a imagem desse link: recorte de um print como sempre.";
+  } finally { adImgBusy = false; }
+}
+$("link").addEventListener("change", autoAdImage);
 
 // ── Prompt ───────────────────────────────────────────────────
 function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto) {
@@ -780,6 +946,7 @@ async function generate() {
       time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
     });
     renderHistory(ok);
+    prefillPublish(text);
   } catch (e) {
     console.error(e);
     showError(e.message || "Algo falhou na geração. Tente de novo.");
@@ -887,6 +1054,281 @@ function renderHistory(currentKey) {
   const hasForOffer = history.some((h) => h.offerKey === currentKey);
   $("btnAgain").classList.toggle("hidden", !hasForOffer);
 }
+
+// ── Publicar no site (Supabase · promo.deckcerto.com) ────────
+// Toda promo tem cupom; preco_por = preco final COM cupom (decisao A).
+// RLS: so a conta em promo_admins escreve; anon so le.
+const SUPA = "https://obycwwyabsfdbomvkwox.supabase.co";
+const SUPA_KEY = "sb_publishable_zm8XfPJjoC3QvB7LjSj55w_-UTtlbPW";
+const SESS_STORE = "dc_supa_session";
+
+function getSess() { try { return JSON.parse(localStorage.getItem(SESS_STORE) || "null"); } catch { return null; } }
+function setSess(s) { try { s ? localStorage.setItem(SESS_STORE, JSON.stringify(s)) : localStorage.removeItem(SESS_STORE); } catch {} }
+
+async function supaAuth(path, body) {
+  const res = await fetch(SUPA + "/auth/v1/" + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error_description || data.msg || data.message || "Falha na autenticação.");
+  return data;
+}
+function saveSessFrom(data) {
+  setSess({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
+    email: data.user && data.user.email,
+  });
+}
+async function supaToken() {
+  const s = getSess();
+  if (!s) return null;
+  if (s.expires_at - 60 > Math.floor(Date.now() / 1000)) return s.access_token;
+  try {
+    const data = await supaAuth("token?grant_type=refresh_token", { refresh_token: s.refresh_token });
+    saveSessFrom(data);
+    return data.access_token;
+  } catch { setSess(null); return null; }
+}
+
+let pendingAfterLogin = null;
+function openLogin(next) {
+  pendingAfterLogin = next || null;
+  $("supaErr").classList.add("hidden");
+  $("supaGate").classList.remove("hidden");
+  $("supaEmail").focus();
+}
+$("btnSupaLogin").addEventListener("click", async () => {
+  const email = $("supaEmail").value.trim(), pass = $("supaPass").value;
+  if (!email || !pass) return;
+  const b = $("btnSupaLogin");
+  b.disabled = true; b.textContent = "Entrando...";
+  try {
+    const data = await supaAuth("token?grant_type=password", { email, password: pass });
+    saveSessFrom(data);
+    $("supaPass").value = "";
+    $("supaGate").classList.add("hidden");
+    if (pendingAfterLogin) { const fn = pendingAfterLogin; pendingAfterLogin = null; fn(); }
+  } catch (e) {
+    const el = $("supaErr");
+    el.textContent = e.message === "Invalid login credentials" ? "Email ou senha errados." : (e.message || "Não deu pra entrar.");
+    el.classList.remove("hidden");
+  } finally { b.disabled = false; b.textContent = "Entrar"; }
+});
+$("btnSupaCancel").addEventListener("click", () => { $("supaGate").classList.add("hidden"); pendingAfterLogin = null; });
+
+// Validade do cupom (seg + data)
+let valSel = "0";
+(function () {
+  const seg = $("segVal"), btns = seg.querySelectorAll("button");
+  btns.forEach((b) =>
+    b.addEventListener("click", () => {
+      btns.forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); });
+      valSel = b.dataset.v;
+      $("pubData").classList.toggle("hidden", valSel !== "data");
+    })
+  );
+  $("pubData").min = new Date().toISOString().slice(0, 10);
+})();
+
+function parseMoney(v) {
+  v = (v || "").trim().replace(/[^\d.,]/g, "");
+  if (!v) return null;
+  if (v.includes(",")) v = v.replace(/\./g, "").replace(",", ".");
+  const n = Number(v);
+  return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+}
+function expiraISO() {
+  if (valSel === "0") return null;
+  if (valSel === "data") {
+    const d = $("pubData").value;
+    if (!d) return undefined; // sinaliza erro de validacao
+    return new Date(d + "T23:59:00").toISOString();
+  }
+  return new Date(Date.now() + Number(valSel) * 3600e3).toISOString();
+}
+
+// 1080 com selinho -> 720 WebP (fallback JPEG) pro storage: free tier folgado
+function postImageWebp() {
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = 720; c.height = 720;
+      c.getContext("2d").drawImage(im, 0, 0, 720, 720);
+      c.toBlob((b) => {
+        if (b && b.type === "image/webp") return resolve({ blob: b, ext: "webp" });
+        c.toBlob((j) => (j ? resolve({ blob: j, ext: "jpg" }) : reject(new Error("Falha ao converter a imagem."))), "image/jpeg", 0.82);
+      }, "image/webp", 0.82);
+    };
+    im.onerror = () => reject(new Error("Falha ao ler a imagem do post."));
+    im.src = postImage.dataUrl;
+  });
+}
+
+function pubError(m) { const e = $("pubErr"); e.textContent = m; e.classList.remove("hidden"); $("pubOk").classList.add("hidden"); }
+function pubDone(m) { const e = $("pubOk"); e.textContent = m; e.classList.remove("hidden"); $("pubErr").classList.add("hidden"); }
+function setPubLoading(on) {
+  $("btnPub").disabled = on;
+  $("pubIcon").innerHTML = on ? '<span class="spin">↻</span>' : "🚀";
+  $("pubText").textContent = on ? "Publicando..." : "Publicar no site";
+}
+
+async function publicar() {
+  $("pubErr").classList.add("hidden"); $("pubOk").classList.add("hidden");
+  const titulo = $("pubTitulo").value.trim();
+  const link = $("link").value.trim();
+  const cupom = $("cupom").value.trim().toUpperCase();
+  const pct = $("cupomPct").value.trim();
+  const de = parseMoney($("pubDe").value);
+  const por = parseMoney($("pubPor").value);
+  if (!postImage) return pubError("Monte a imagem do post primeiro (card acima): ela é a foto do card no site.");
+  if (!titulo) return pubError("Preencha o título do produto.");
+  if (!/^https?:\/\/\S+/i.test(link)) return pubError("Cole o link de afiliado no campo lá em cima.");
+  if (!cupom) return pubError("Toda promo do site tem cupom: preencha o código no campo Cupom lá em cima.");
+  if (!por) return pubError('Preencha o preço "Por R$" (o final, já com o cupom aplicado).');
+  if (de !== null && de <= por) return pubError('O preço "De" precisa ser maior que o "Por".');
+  const exp = expiraISO();
+  if (exp === undefined) return pubError("Escolha a data de validade (ou troque pra Sem prazo).");
+
+  const token = await supaToken();
+  if (!token) { openLogin(publicar); return; }
+
+  setPubLoading(true);
+  try {
+    const { blob, ext } = await postImageWebp();
+    const fname = "promo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7) + "." + ext;
+    const up = await fetch(SUPA + "/storage/v1/object/promos/" + fname, {
+      method: "POST",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": blob.type, "cache-control": "31536000" },
+      body: blob,
+    });
+    if (!up.ok) {
+      const d = await up.json().catch(() => ({}));
+      throw new Error(up.status === 401 || up.status === 403
+        ? "Essa conta não tem permissão de publicar (não é a admin)."
+        : d.message || "Falha no upload da imagem.");
+    }
+    const imagem = SUPA + "/storage/v1/object/public/promos/" + fname;
+
+    const ins = await fetch(SUPA + "/rest/v1/promos", {
+      method: "POST",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({
+        titulo,
+        categoria: $("pubCat").value,
+        imagem,
+        loja: $("pubLoja").value.trim() || "Mercado Livre",
+        preco_de: de,
+        preco_por: por,
+        cupom_codigo: cupom,
+        cupom_beneficio: pct ? pct + "% OFF" : null,
+        url_afiliado: link,
+        frete_gratis: $("pubFrete").checked,
+        expira_em: exp,
+      }),
+    });
+    if (!ins.ok) {
+      const d = await ins.json().catch(() => ({}));
+      const msg = d && d.message ? d.message : "Falha ao salvar a promo.";
+      throw new Error(/row-level security/i.test(msg) ? "Essa conta não tem permissão de publicar (não é a admin)." : msg);
+    }
+    pubDone("Promo publicada! Já está no feed do site.");
+    loadMinhasPromos(true);
+  } catch (e) {
+    pubError(e.message || "Algo falhou ao publicar. Tente de novo.");
+  } finally { setPubLoading(false); }
+}
+$("btnPub").addEventListener("click", publicar);
+
+// Preenche o card de publicacao com o que a mensagem gerada ja revelou
+function prefillPublish(text) {
+  const lines = text.split("\n").map((l) => l.trim());
+  if (!$("pubTitulo").value.trim()) {
+    const t = lines.find((l) => l.startsWith("🇧🇷") || l.startsWith("🇺🇸"));
+    if (t) $("pubTitulo").value = t.replace(/^[🇧🇷🇺🇸]+\s*/u, "").trim();
+  }
+  if (!$("pubPor").value.trim()) {
+    const m = text.match(/Por:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
+    if (m) $("pubPor").value = m[1];
+  }
+  if (!$("pubDe").value.trim()) {
+    const m = text.match(/De:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
+    if (m) $("pubDe").value = m[1];
+  }
+  if ($("pubLoja").value.trim() === "Mercado Livre") {
+    const lj = lines.find((l) => /^loja oficial/i.test(l));
+    if (lj) $("pubLoja").value = lj.replace(/\s*no ML\.?$/i, "").trim();
+  }
+  if (/frete gr[aá]tis/i.test(text)) $("pubFrete").checked = true;
+}
+
+// ── Minhas promos no site ────────────────────────────────────
+function mpStatus(p) {
+  if (!p.ativa) return '<span class="dead">arquivada</span>';
+  if (p.expira_em) {
+    const ms = new Date(p.expira_em) - Date.now();
+    if (ms <= 0) return '<span class="dead">encerrada</span>';
+    if (ms < 24 * 3600e3) return '<span class="live">no ar · vence em ' + Math.max(1, Math.ceil(ms / 3600e3)) + "h</span>";
+    return '<span class="live">no ar · vence em ' + Math.ceil(ms / 86400e3) + " dias</span>";
+  }
+  return '<span class="live">no ar · sem prazo</span>';
+}
+
+async function loadMinhasPromos(force) {
+  const list = $("mpList");
+  if (!force && list.dataset.loaded) return;
+  list.textContent = "Carregando...";
+  try {
+    const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,imagem,ativa,expira_em,created_at&order=created_at.desc&limit=50",
+      { headers: { apikey: SUPA_KEY } });
+    const rows = await res.json();
+    if (!res.ok) throw new Error();
+    list.dataset.loaded = "1";
+    const noAr = rows.filter((p) => p.ativa && (!p.expira_em || new Date(p.expira_em) > Date.now())).length;
+    $("mpCount").textContent = noAr + " no ar";
+    list.textContent = "";
+    if (!rows.length) { list.textContent = "Nenhuma promo publicada ainda."; return; }
+    rows.forEach((p) => {
+      const it = document.createElement("div"); it.className = "mp-item";
+      const im = document.createElement("img"); im.src = p.imagem; im.alt = ""; im.loading = "lazy";
+      const info = document.createElement("div"); info.className = "mp-info";
+      const t = document.createElement("div"); t.className = "mp-title"; t.textContent = p.titulo;
+      const st = document.createElement("div"); st.className = "mp-st"; st.innerHTML = mpStatus(p);
+      info.appendChild(t); info.appendChild(st);
+      const b = document.createElement("button"); b.className = "mp-btn";
+      b.textContent = p.ativa ? "Arquivar" : "Reativar";
+      b.addEventListener("click", () => toggleAtiva(p, b));
+      it.appendChild(im); it.appendChild(info); it.appendChild(b);
+      list.appendChild(it);
+    });
+  } catch {
+    list.textContent = "Não deu pra carregar. Abra e feche pra tentar de novo.";
+    delete list.dataset.loaded;
+  }
+}
+
+async function toggleAtiva(p, btn) {
+  const token = await supaToken();
+  if (!token) { openLogin(() => toggleAtiva(p, btn)); return; }
+  btn.disabled = true;
+  try {
+    const res = await fetch(SUPA + "/rest/v1/promos?id=eq." + p.id, {
+      method: "PATCH",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ ativa: !p.ativa }),
+    });
+    if (!res.ok) throw new Error();
+    loadMinhasPromos(true);
+  } catch {
+    btn.disabled = false;
+    pubError("Não deu pra atualizar essa promo. Tente de novo.");
+  }
+}
+$("mpBox").addEventListener("toggle", () => { if ($("mpBox").open) loadMinhasPromos(); });
 
 // ── PWA ──────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
