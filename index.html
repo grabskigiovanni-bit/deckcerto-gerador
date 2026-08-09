@@ -766,7 +766,7 @@ renderPiSources();
 // Cola o link -> resolve meli.la -> og:image/og:title -> selinho.
 const OG_WORKER = "https://dc-og.grabskigiovanni.workers.dev"; // worker dc-og (deploy 09/08/2026)
 let lastRawPost = null;
-let adImgBusy = false;
+let lastOfferLink = "";
 
 async function composePostFromDataUrl(dataUrl) {
   const im = await new Promise((res, rej) => {
@@ -791,14 +791,14 @@ async function composePostFromDataUrl(dataUrl) {
 }
 
 async function autoAdImage() {
-  if (!OG_WORKER || OG_WORKER.includes("SEU-SUBDOMINIO") || adImgBusy) return;
+  if (!OG_WORKER) return;
   const link = $("link").value.trim();
   if (!/^https?:\/\/\S+/i.test(link) || postImage) return;
   const hint = $("adImgStatus");
-  adImgBusy = true;
   hint.textContent = "Buscando a imagem do anúncio...";
   try {
     const meta = await (await fetch(OG_WORKER + "/resolve?url=" + encodeURIComponent(link))).json();
+    if ($("link").value.trim() !== link) return; // trocou de oferta no meio da busca
     if (!meta || !meta.image) throw new Error();
     if (meta.title && !$("pubTitulo").value.trim()) {
       // decodifica entidades HTML (&amp; etc.) que vem no og:title do ML
@@ -814,14 +814,37 @@ async function autoAdImage() {
       r.onerror = () => rej(new Error("leitura falhou"));
       r.readAsDataURL(blob);
     });
+    if ($("link").value.trim() !== link) return; // descarta resultado de link antigo
     lastRawPost = dataUrl;
     await composePostFromDataUrl(dataUrl);
     hint.textContent = "Imagem do anúncio aplicada com o selinho. Ajuste no card abaixo se quiser.";
   } catch {
-    hint.textContent = "Não achei a imagem desse link: recorte de um print como sempre.";
-  } finally { adImgBusy = false; }
+    if ($("link").value.trim() === link) hint.textContent = "Não achei a imagem desse link: recorte de um print como sempre.";
+  }
 }
-$("link").addEventListener("change", autoAdImage);
+
+// Link novo = OFERTA NOVA: limpa imagem/titulo/precos/frete da anterior
+// (cupom, loja e validade ficam: em rajada eles costumam repetir).
+function onLinkChange() {
+  const link = $("link").value.trim();
+  if (!/^https?:\/\/\S+/i.test(link)) return;
+  if (link !== lastOfferLink) {
+    lastOfferLink = link;
+    postImage = null;
+    lastRawPost = null;
+    renderPostImage();
+    $("pubTitulo").value = "";
+    $("pubDe").value = "";
+    $("pubPor").value = "";
+    $("pubFrete").checked = false;
+    $("pubErr").classList.add("hidden");
+    $("pubOk").classList.add("hidden");
+  }
+  autoAdImage();
+}
+let linkTimer = null;
+$("link").addEventListener("input", () => { clearTimeout(linkTimer); linkTimer = setTimeout(onLinkChange, 700); });
+$("link").addEventListener("change", onLinkChange);
 
 // ── Prompt ───────────────────────────────────────────────────
 function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto) {
