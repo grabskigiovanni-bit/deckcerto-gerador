@@ -320,7 +320,12 @@
         <span class="label">Por R$ (final, já com cupom)</span>
         <input type="text" id="pubPor" inputmode="decimal" placeholder="114,00" autocomplete="off">
       </div>
+      <div style="flex:0 0 74px">
+        <span class="label">Leve (un)</span>
+        <input type="text" id="pubQtd" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="1" autocomplete="off">
+      </div>
     </div>
+    <p class="pi-hint" style="margin-top:6px">Promo de "leve 2+": os preços De/Por são o TOTAL da compra mínima; o site calcula o "R$ X cada" sozinho.</p>
     <div style="margin-top:12px">
       <span class="label">Validade do cupom</span>
       <div class="seg seg-sm" id="segVal" role="tablist" aria-label="Validade do cupom">
@@ -508,6 +513,9 @@ const showDesconto = initSeg("segDesc");
 
 // % OFF: só dígitos (campo texto pra não acionar gerenciador de senha)
 $("cupomPct").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2);
+});
+$("pubQtd").addEventListener("input", (e) => {
   e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2);
 });
 
@@ -836,6 +844,7 @@ function onLinkChange() {
     $("pubTitulo").value = "";
     $("pubDe").value = "";
     $("pubPor").value = "";
+    $("pubQtd").value = "1";
     $("pubFrete").checked = false;
     $("pubErr").classList.add("hidden");
     $("pubOk").classList.add("hidden");
@@ -1247,6 +1256,7 @@ async function publicar() {
         loja: $("pubLoja").value.trim() || "Mercado Livre",
         preco_de: de,
         preco_por: por,
+        quantidade: Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1),
         cupom_codigo: cupom,
         cupom_beneficio: pct ? pct + "% OFF" : null,
         url_afiliado: link,
@@ -1287,6 +1297,11 @@ function prefillPublish(text) {
     if (lj) $("pubLoja").value = lj.replace(/\s*no ML\.?$/i, "").trim();
   }
   if (/frete gr[aá]tis/i.test(text)) $("pubFrete").checked = true;
+  // "Por R$54 os 2" ou titulo "2x ..." -> quantidade
+  if ($("pubQtd").value === "1" || !$("pubQtd").value) {
+    const q = text.match(/por:?\s*r?\$?\s*[\d.,]+\s*(?:os|as)\s*(\d{1,2})/i) || text.match(/🇧🇷\s*(\d{1,2})\s*x\s/iu);
+    if (q) $("pubQtd").value = q[1];
+  }
 }
 
 // ── Minhas promos no site ────────────────────────────────────
