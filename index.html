@@ -65,6 +65,14 @@
   .masked{-webkit-text-security:disc}
   .cupom-row{display:flex;gap:8px}
   .cupom-row input:last-child{width:104px;flex-shrink:0}
+  .saved-wrap{margin-top:8px}
+  .mini-link{background:none;border:0;color:var(--accent-hi);font-size:12px;font-weight:600;padding:2px 0;cursor:pointer}
+  .mini-link:disabled{opacity:.45;cursor:default}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 11px;font-size:11.5px;font-weight:600;color:var(--text);max-width:100%}
+  .chip .code{cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+  .chip .x{background:none;border:0;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;padding:0 2px}
+  .chip .x:hover{color:var(--danger)}
   .opt-row{display:flex;gap:10px;margin-top:12px}
   .opt-row>div{flex:1}
   .seg.seg-sm button{padding:8px 6px;font-size:13px}
@@ -177,6 +185,9 @@
     font-size:11.5px;padding:6px 11px;cursor:pointer;font-family:inherit;flex-shrink:0}
   .mp-btn:hover{border-color:var(--accent)}
   .mp-btn:disabled{opacity:.5;cursor:wait}
+  .mp-btn.del{color:var(--danger)}
+  .mp-btn.del:hover{border-color:var(--danger)}
+  .mp-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
   summary.label{cursor:pointer;list-style:none;margin:0}
   summary.label::-webkit-details-marker{display:none}
 
@@ -229,6 +240,10 @@
       <div class="cupom-row">
         <input type="text" id="cupom" placeholder="Código · ex.: AMOCUPOM" autocapitalize="characters" autocomplete="off" spellcheck="false">
         <input type="text" id="cupomPct" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="% OFF" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="saved-wrap">
+        <button type="button" class="mini-link" id="btnSaveCupom">salvar este cupom</button>
+        <div class="chips" id="cupomChips" aria-label="Cupons salvos"></div>
       </div>
     </div>
 
@@ -1277,6 +1292,39 @@ async function publicar() {
 }
 $("btnPub").addEventListener("click", publicar);
 
+// ── Cupons salvos (localStorage: sobrevive fechar/abrir o app) ─
+const CUPONS_STORE = "dc_cupons";
+function getCupons() { try { return JSON.parse(localStorage.getItem(CUPONS_STORE) || "[]"); } catch { return []; } }
+function setCupons(a) { try { localStorage.setItem(CUPONS_STORE, JSON.stringify(a.slice(0, 30))); } catch {} }
+function renderCupons() {
+  const wrap = $("cupomChips"); if (!wrap) return;
+  wrap.innerHTML = "";
+  getCupons().forEach((cp) => {
+    const chip = document.createElement("span"); chip.className = "chip";
+    const code = document.createElement("span"); code.className = "code";
+    code.textContent = cp.p ? cp.c + " · " + cp.p + "%" : cp.c;
+    code.title = "Usar este cupom";
+    code.addEventListener("click", () => { $("cupom").value = cp.c; $("cupomPct").value = cp.p || ""; });
+    const x = document.createElement("button"); x.type = "button"; x.className = "x";
+    x.setAttribute("aria-label", "Excluir cupom salvo"); x.textContent = "×";
+    x.addEventListener("click", () => { setCupons(getCupons().filter((o) => o.c !== cp.c)); renderCupons(); });
+    chip.appendChild(code); chip.appendChild(x); wrap.appendChild(chip);
+  });
+}
+function salvarCupomAtual() {
+  const c = $("cupom").value.trim().toUpperCase();
+  if (!c) { $("cupom").focus(); return; }
+  const p = $("cupomPct").value.trim();
+  const list = getCupons().filter((o) => o.c !== c);
+  list.unshift({ c, p });
+  setCupons(list); renderCupons();
+  const btn = $("btnSaveCupom"), prev = btn.textContent;
+  btn.textContent = "salvo ✓"; btn.disabled = true;
+  setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1200);
+}
+$("btnSaveCupom").addEventListener("click", salvarCupomAtual);
+renderCupons();
+
 // Preenche o card de publicacao com o que a mensagem gerada ja revelou
 function prefillPublish(text) {
   const lines = text.split("\n").map((l) => l.trim());
@@ -1301,6 +1349,15 @@ function prefillPublish(text) {
   if ($("pubQtd").value === "1" || !$("pubQtd").value) {
     const q = text.match(/por:?\s*r?\$?\s*[\d.,]+\s*(?:os|as)\s*(\d{1,2})/i) || text.match(/🇧🇷\s*(\d{1,2})\s*x\s/iu);
     if (q) $("pubQtd").value = q[1];
+  }
+  // cupom detectado na mensagem -> preenche o campo que vai pro site (se estiver vazio)
+  if (!$("cupom").value.trim()) {
+    const mc = text.match(/Cupom:\s*([A-Z0-9][A-Z0-9._-]{2,24})/i);
+    if (mc) $("cupom").value = mc[1].toUpperCase();
+  }
+  if ($("cupom").value.trim() && !$("cupomPct").value.trim()) {
+    const mpct = text.match(/cupom[^\n]*?(\d{1,2})\s*%\s*OFF/i);
+    if (mpct) $("cupomPct").value = mpct[1];
   }
 }
 
@@ -1340,7 +1397,12 @@ async function loadMinhasPromos(force) {
       const b = document.createElement("button"); b.className = "mp-btn";
       b.textContent = p.ativa ? "Arquivar" : "Reativar";
       b.addEventListener("click", () => toggleAtiva(p, b));
-      it.appendChild(im); it.appendChild(info); it.appendChild(b);
+      const del = document.createElement("button"); del.className = "mp-btn del";
+      del.textContent = "Excluir";
+      del.addEventListener("click", () => excluirPromo(p, del));
+      const acts = document.createElement("div"); acts.className = "mp-actions";
+      acts.appendChild(b); acts.appendChild(del);
+      it.appendChild(im); it.appendChild(info); it.appendChild(acts);
       list.appendChild(it);
     });
   } catch {
@@ -1366,6 +1428,36 @@ async function toggleAtiva(p, btn) {
     pubError("Não deu pra atualizar essa promo. Tente de novo.");
   }
 }
+// Excluir de vez (2 toques pra confirmar, sem dialog): apaga a linha + a imagem do storage
+async function excluirPromo(p, btn) {
+  if (btn.dataset.confirm !== "1") {
+    btn.dataset.confirm = "1"; btn._prev = btn.textContent; btn.textContent = "Confirmar?";
+    btn._revert = setTimeout(() => { btn.dataset.confirm = ""; btn.textContent = btn._prev; }, 3000);
+    return;
+  }
+  clearTimeout(btn._revert); btn.dataset.confirm = "";
+  const token = await supaToken();
+  if (!token) { openLogin(() => excluirPromo(p, btn)); return; }
+  btn.disabled = true; btn.textContent = "Excluindo...";
+  try {
+    const res = await fetch(SUPA + "/rest/v1/promos?id=eq." + p.id, {
+      method: "DELETE",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token },
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(/row-level security/i.test(d.message || "") ? "Sem permissão pra excluir (a conta não é a admin)." : (d.message || "Falha ao excluir."));
+    }
+    // imagem do storage: best-effort (se a promo saiu do feed, imagem orfa nao atrapalha)
+    const fn = (p.imagem || "").split("/promos/").pop();
+    if (fn) fetch(SUPA + "/storage/v1/object/promos/" + fn, { method: "DELETE", headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } }).catch(() => {});
+    loadMinhasPromos(true);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Excluir";
+    pubError(e.message || "Não deu pra excluir. Tente de novo.");
+  }
+}
+
 $("mpBox").addEventListener("toggle", () => { if ($("mpBox").open) loadMinhasPromos(); });
 
 // ── PWA ──────────────────────────────────────────────────────
