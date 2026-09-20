@@ -424,39 +424,45 @@ const MAX_IMAGES = 3;
 // Mensagens reais de canais de oferta que o Giovanni aprovou como
 // referência de estilo (27/07/2026). Use LINK no lugar do link.
 const EXEMPLOS = [
-`loja oficial + frete grátis
-
-🇧🇷 18 Boosters Escuridão Absoluta Darkrai
+`🇧🇷 18 Boosters Escuridão Absoluta Darkrai
+loja oficial · frete grátis
 
 De: 300 | Por: R$179 👑
 ⚠️ resgate o cupom de 10% OFF
 
-Link: LINK`,
-`loja oficial + frete grátis
+Link: LINK
 
-🇧🇷 Equilíbrio Perfeito Makuhita 19 Cards Copag
+🧙‍♂️ Deck Certo | Promoções`,
+`🇧🇷 Equilíbrio Perfeito Makuhita 19 Cards Copag
+loja oficial · frete grátis
 
 Por: R$27 pix 👑
 
-Link: LINK`,
+Link: LINK
+
+🧙‍♂️ Deck Certo | Promoções`,
 `🇧🇷 Box Pokemon Mega Lucario Ex Copag
 
 De R$199,00 ❌
 Por R$114,00 ✅
 
-🧙‍♂️🎟️ Cupom: AMOCUPOM
+🎟️ Cupom: AMOCUPOM
 
 Loja Oficial no ML
-🔗 LINK`,
+🔗 LINK
+
+🧙‍♂️ Deck Certo | Promoções`,
 `🇧🇷 Kit Mega Clefable + Mega Gengar Pokemon Copag
 
 De R$369,00 ❌
 Por R$222,00 (R$111 CADA) ✅
 
-🧙‍♂️🎟️ Cupom: AMOCUPOM
+🎟️ Cupom: AMOCUPOM
 
 Loja Oficial TRP no ML
-🔗 LINK`,
+🔗 LINK
+
+🧙‍♂️ Deck Certo | Promoções`,
 ];
 
 const STYLE_HINTS = [
@@ -888,16 +894,16 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
 Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 
 FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
-1. "loja oficial + frete grátis" (ou o que valer) na primeira linha, SÓ se estiver visível no print/observações.
-2. 🇧🇷 + nome completo do produto (🇺🇸 se for importado).
-3. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
-4. Cupom: linha "🧙‍♂️🎟️ Cupom: CODIGO" (mago + ticket juntos, é a assinatura do canal), só se houver cupom.
+1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "loja oficial" e/ou "frete grátis" visível, põe numa linha LOGO ABAIXO do produto (ex.: "Loja oficial · frete grátis acima de R$19"), nunca como linha solta no topo.
+2. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
+3. Cupom: linha "🎟️ Cupom: CODIGO", só se houver cupom.
 ${comLoja
-    ? '5. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.'
-    : "5. NÃO cite o nome da loja/vendedor em nenhuma linha (pule esse bloco)."}
-6. Última linha: o link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
-- NÃO comece com manchete nem gancho em maiúsculas: a mensagem abre direto no produto (ou na linha "loja oficial", quando houver).
-- Emojis SÓ desta lista: 🇧🇷 🇺🇸 👑 ❌ ✅ 🎟️ ⚠️ 🔗 🔥 👀 💰 🧙‍♂️ (o 🧙‍♂️ é a logo do canal, pode fechar a manchete de vez em quando). Máximo 1 por linha, com uma exceção: a linha do cupom leva 🧙‍♂️🎟️ juntos.
+    ? '4. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.'
+    : "4. NÃO cite o nome da loja/vendedor em nenhuma linha (pule esse bloco)."}
+5. Link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
+6. Última linha, assinatura fixa do canal: "🧙‍♂️ Deck Certo | Promoções".
+- NÃO use manchete nem gancho em maiúsculas: a mensagem abre direto no produto.
+- Emojis SÓ desta lista: 🇧🇷 🇺🇸 👑 ❌ ✅ 🎟️ ⚠️ 🔗 🔥 👀 💰 🧙‍♂️ (o 🧙‍♂️ é a assinatura do canal, fecha a mensagem na última linha). Máximo 1 por linha.
 - PROIBIDO travessão (—/–) e hashtag.
 ${richRules}
 - Produto de TCG/Pokémon: escreva como quem entende (coleção, pré-venda, "Copag oficial" quando couber).
