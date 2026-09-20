@@ -1211,6 +1211,32 @@ function postImageWebp() {
 
 function pubError(m) { const e = $("pubErr"); e.textContent = m; e.classList.remove("hidden"); $("pubOk").classList.add("hidden"); }
 function pubDone(m) { const e = $("pubOk"); e.textContent = m; e.classList.remove("hidden"); $("pubErr").classList.add("hidden"); }
+// Igual ao pubDone, mas com o link pro grupo (previa com a imagem do selo) + copiar.
+function pubDoneLink(m, link) {
+  const e = $("pubOk");
+  e.classList.remove("hidden"); $("pubErr").classList.add("hidden");
+  if (!link) { e.textContent = m; return; }
+  e.innerHTML = "";
+  const p = document.createElement("div");
+  p.textContent = m + " Manda este link no grupo (a previa sai com a imagem do selo):";
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:6px;margin-top:6px;align-items:center";
+  const inp = document.createElement("input");
+  inp.type = "text"; inp.readOnly = true; inp.value = link;
+  inp.style.cssText = "flex:1;min-width:0;font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid #2a3a44;background:#0e1a20;color:#cfe;";
+  inp.addEventListener("focus", () => inp.select());
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = "copiar";
+  b.style.cssText = "padding:7px 13px;border-radius:8px;border:0;background:var(--accent-hi,#7cc);color:#04222b;font-weight:700;cursor:pointer;white-space:nowrap";
+  b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(link); }
+    catch { inp.select(); try { document.execCommand("copy"); } catch (_) {} }
+    const prev = b.textContent; b.textContent = "copiado ✓";
+    setTimeout(() => { b.textContent = prev; }, 1200);
+  });
+  row.appendChild(inp); row.appendChild(b);
+  e.appendChild(p); e.appendChild(row);
+}
 function setPubLoading(on) {
   $("btnPub").disabled = on;
   $("pubIcon").innerHTML = on ? '<span class="spin">↻</span>' : "🚀";
@@ -1256,7 +1282,7 @@ async function publicar() {
 
     const ins = await fetch(SUPA + "/rest/v1/promos", {
       method: "POST",
-      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=minimal" },
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
       body: JSON.stringify({
         titulo,
         categoria: $("pubCat").value,
@@ -1277,7 +1303,10 @@ async function publicar() {
       const msg = d && d.message ? d.message : "Falha ao salvar a promo.";
       throw new Error(/row-level security/i.test(msg) ? "Essa conta não tem permissão de publicar (não é a admin)." : msg);
     }
-    pubDone("Promo publicada! Já está no feed do site.");
+    const rows = await ins.json().catch(() => []);
+    const promoId = Array.isArray(rows) && rows[0] ? rows[0].id : null;
+    const grupoLink = promoId ? OG_WORKER + "/l?id=" + promoId : null;
+    pubDoneLink("Promo publicada e no feed do site.", grupoLink);
     loadMinhasPromos(true);
   } catch (e) {
     pubError(e.message || "Algo falhou ao publicar. Tente de novo.");
