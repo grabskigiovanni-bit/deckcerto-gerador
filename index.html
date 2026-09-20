@@ -894,7 +894,7 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
 Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 
 FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
-1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "loja oficial" e/ou "frete grátis" visível, põe numa linha LOGO ABAIXO do produto (ex.: "Loja oficial · frete grátis acima de R$19"), nunca como linha solta no topo.
+1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "loja oficial" e/ou "frete grátis" visível, põe numa linha LOGO ABAIXO do produto (ex.: "Loja oficial · frete grátis"), nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis).
 2. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
 3. Cupom: linha "🎟️ Cupom: CODIGO", só se houver cupom.
 ${comLoja
