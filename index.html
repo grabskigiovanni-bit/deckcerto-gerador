@@ -381,7 +381,7 @@
       <span class="switch" aria-hidden="true"></span>
       <span class="t">Frete grátis</span>
     </label>
-    <p class="pi-hint">Usa o cupom e o link preenchidos lá em cima. A imagem do post (com o selinho) é a foto do card no site, obrigatória.</p>
+    <p class="pi-hint">Usa o link e o cupom preenchidos lá em cima (sem cupom também publica: o site mostra "preço já aplicado"). A imagem do post (com o selinho) é a foto do card no site, obrigatória; link do Mercado Livre e da Amazon puxam a foto sozinhos.</p>
     <button class="go" id="btnPub" style="margin-top:10px"><span id="pubIcon">🚀</span><span id="pubText">Publicar no site</span></button>
     <div class="error hidden" id="pubErr" role="alert"></div>
     <div class="pub-ok hidden" id="pubOk"></div>
@@ -1282,7 +1282,6 @@ async function publicar() {
   if (!postImage) return pubError("Monte a imagem do post primeiro (card acima): ela é a foto do card no site.");
   if (!titulo) return pubError("Preencha o título do produto.");
   if (!/^https?:\/\/\S+/i.test(link)) return pubError("Cole o link de afiliado no campo lá em cima.");
-  if (!cupom) return pubError("Toda promo do site tem cupom: preencha o código no campo Cupom lá em cima.");
   if (!por) return pubError('Preencha o preço "Por R$" (o final, já com o cupom aplicado).');
   if (de !== null && de <= por) return pubError('O preço "De" precisa ser maior que o "Por".');
   const exp = expiraISO();
@@ -1319,8 +1318,8 @@ async function publicar() {
         preco_de: de,
         preco_por: por,
         quantidade: Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1),
-        cupom_codigo: cupom,
-        cupom_beneficio: pct ? pct + "% OFF" : null,
+        cupom_codigo: cupom, // vazio = sem cupom (site e app mostram "preço já aplicado")
+        cupom_beneficio: cupom && pct ? pct + "% OFF" : null,
         url_afiliado: link,
         frete_gratis: $("pubFrete").checked,
         expira_em: exp,
