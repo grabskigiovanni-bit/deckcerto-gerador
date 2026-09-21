@@ -170,6 +170,18 @@
     color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;color-scheme:dark}
   .row2{display:flex;gap:8px}
   .row2>div{flex:1;min-width:0}
+  .set-lista{position:absolute;left:0;right:0;z-index:20;margin-top:4px;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:11px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-height:280px;overflow-y:auto}
+  .set-lista button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);
+    color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;cursor:pointer}
+  .set-lista button:last-child{border-bottom:0}
+  .set-lista button:hover,.set-lista button:focus{background:rgba(255,255,255,.06);outline:0}
+  .set-lista button small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .set-lista .vazio{padding:11px 12px;color:var(--muted);font-size:13px}
+  .set-chip{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--accent);border-radius:11px;
+    padding:9px 12px;font-size:14px}
+  .set-chip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .set-chip button{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
   .pub-ok{margin-top:11px;font-size:13px;color:#86efac;background:rgba(134,239,172,.08);
     border:1px solid rgba(134,239,172,.25);border-radius:10px;padding:9px 12px}
   .mp-item{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}
@@ -326,12 +338,17 @@
         <input type="text" id="pubLoja" value="Mercado Livre" autocomplete="off">
       </div>
     </div>
-    <div style="margin-top:12px">
+    <div style="margin-top:12px;position:relative">
       <span class="label">Coleção do produto (dispara o aviso no app)</span>
-      <select id="pubSet" aria-label="Coleção do produto">
-        <option value="">Sem coleção · ninguém é avisado</option>
-      </select>
-      <p class="pi-hint" style="margin-top:6px">Quem ligou o sino dessa coleção no app Deck Certo recebe a notificação na hora que você publicar. Volta pra "Sem coleção" a cada promo, de propósito.</p>
+      <input type="hidden" id="pubSet" value="">
+      <div class="set-chip hidden" id="pubSetChip">
+        <span aria-hidden="true">🔔</span>
+        <b id="pubSetNome"></b>
+        <button type="button" id="pubSetLimpar" aria-label="Tirar coleção">×</button>
+      </div>
+      <input type="text" id="pubSetBusca" placeholder="Digite o nome da coleção e toque na certa" autocomplete="off" aria-label="Buscar coleção" aria-autocomplete="list" aria-controls="pubSetLista">
+      <div class="set-lista hidden" id="pubSetLista" role="listbox"></div>
+      <p class="pi-hint" style="margin-top:6px">Quem ligou o sino dessa coleção no app Deck Certo recebe a notificação na hora que você publicar. Sem coleção escolhida, ninguém é avisado. Zera a cada promo, de propósito.</p>
     </div>
     <div class="row2" style="margin-top:12px">
       <div>
@@ -1318,12 +1335,12 @@ async function publicar() {
     const rows = await ins.json().catch(() => []);
     const promoId = Array.isArray(rows) && rows[0] ? rows[0].id : null;
     const grupoLink = promoId ? OG_WORKER + "/l?id=" + promoId : null;
-    const setSel = $("pubSet");
-    const setNome = setSel.value ? (setSel.options[setSel.selectedIndex] || {}).textContent : "";
-    pubDoneLink("Promo publicada e no feed do site." + (setSel.value
+    const setSlug = $("pubSet").value;
+    const setNome = $("pubSetNome").textContent;
+    pubDoneLink("Promo publicada e no feed do site." + (setSlug
       ? " Aviso enviado pra quem segue " + setNome + " no app."
       : " Sem coleção: ninguém foi avisado no app."), grupoLink);
-    setSel.value = "";
+    escolherSet("", "");
     loadMinhasPromos(true);
   } catch (e) {
     pubError(e.message || "Algo falhou ao publicar. Tente de novo.");
@@ -1333,7 +1350,8 @@ $("btnPub").addEventListener("click", publicar);
 
 // ── Coleção da promo: alimenta o push por coleção do app ─────────────────────
 // Lista vem da tabela pública `sets` (a mesma do app), filtrada pelo Jogo escolhido.
-// Sem memória entre promos: mandar aviso pra coleção errada é pior que não mandar.
+// Busca por digitação (ignora acento), toque escolhe. Sem memória entre promos:
+// mandar aviso pra coleção errada é pior que não mandar.
 let setsCache = null;
 async function loadSets() {
   if (setsCache) return setsCache;
@@ -1345,28 +1363,56 @@ async function loadSets() {
   } catch { setsCache = []; }
   return setsCache;
 }
-async function renderSets() {
-  const sel = $("pubSet"); if (!sel) return;
-  const game = $("pubCat").value;
-  const rows = (await loadSets()).filter((x) => x.game === game);
-  sel.innerHTML = "";
-  const o0 = document.createElement("option"); o0.value = "";
-  o0.textContent = rows.length ? "Sem coleção · ninguém é avisado" : "Sem coleções cadastradas pra este jogo";
-  sel.appendChild(o0);
-  rows.forEach((x) => {
-    const o = document.createElement("option"); o.value = x.slug; o.textContent = x.name_br || x.slug;
-    sel.appendChild(o);
-  });
-  sel.value = "";
+function semAcento(t) { return (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+function escolherSet(slug, nome) {
+  $("pubSet").value = slug || "";
+  $("pubSetNome").textContent = nome || "";
+  $("pubSetChip").classList.toggle("hidden", !slug);
+  $("pubSetBusca").classList.toggle("hidden", !!slug);
+  $("pubSetLista").classList.add("hidden");
+  $("pubSetBusca").value = "";
 }
+async function filtrarSets() {
+  const q = semAcento($("pubSetBusca").value.trim());
+  const game = $("pubCat").value;
+  const lista = $("pubSetLista");
+  const rows = (await loadSets()).filter((x) => x.game === game);
+  const hits = (q ? rows.filter((x) => semAcento(x.name_br || x.slug).includes(q) || semAcento(x.slug).includes(q)) : rows).slice(0, 8);
+  lista.innerHTML = "";
+  if (!rows.length) {
+    const v = document.createElement("div"); v.className = "vazio"; v.textContent = "Sem coleções cadastradas pra este jogo."; lista.appendChild(v);
+  } else if (!hits.length) {
+    const v = document.createElement("div"); v.className = "vazio"; v.textContent = "Nenhuma coleção com esse nome."; lista.appendChild(v);
+  } else {
+    hits.forEach((x) => {
+      const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "option");
+      b.textContent = x.name_br || x.slug;
+      const sm = document.createElement("small");
+      sm.textContent = x.slug + (x.release_date ? " · " + String(x.release_date).slice(0, 4) : "");
+      b.appendChild(sm);
+      b.addEventListener("mousedown", (e) => e.preventDefault()); // não tira o foco do campo antes do click
+      b.addEventListener("click", () => escolherSet(x.slug, x.name_br || x.slug));
+      lista.appendChild(b);
+    });
+  }
+  lista.classList.remove("hidden");
+}
+$("pubSetBusca").addEventListener("input", filtrarSets);
+$("pubSetBusca").addEventListener("focus", filtrarSets);
+$("pubSetBusca").addEventListener("blur", () => setTimeout(() => $("pubSetLista").classList.add("hidden"), 150));
+$("pubSetBusca").addEventListener("keydown", (e) => {
+  if (e.key === "Escape") $("pubSetLista").classList.add("hidden");
+  if (e.key === "Enter") { e.preventDefault(); const primeiro = $("pubSetLista").querySelector("button"); if (primeiro) primeiro.click(); }
+});
+$("pubSetLimpar").addEventListener("click", () => { escolherSet("", ""); $("pubSetBusca").focus(); });
+$("pubCat").addEventListener("change", () => escolherSet("", ""));
 function mpSet(p, setsAll) {
   if (!p.set_slug) return "";
   const hit = (setsAll || []).find((x) => x.slug === p.set_slug);
   const nome = hit ? (hit.name_br || hit.slug) : p.set_slug;
   return " · 🔔 " + nome + (p.push_enviado_em ? " (aviso enviado)" : " (aviso pendente)");
 }
-$("pubCat").addEventListener("change", renderSets);
-renderSets();
+loadSets();
 
 // ── Cupons salvos (localStorage: sobrevive fechar/abrir o app) ─
 const CUPONS_STORE = "dc_cupons";
