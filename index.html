@@ -261,13 +261,6 @@
 
     <div class="opt-row">
       <div>
-        <span class="label">Mostrar nome da loja?</span>
-        <div class="seg seg-sm" id="segLoja" role="tablist" aria-label="Mostrar nome da loja">
-          <button type="button" class="on" data-v="sim" role="tab" aria-selected="true">Sim</button>
-          <button type="button" data-v="nao" role="tab" aria-selected="false">Não</button>
-        </div>
-      </div>
-      <div>
         <span class="label">Mostrar total do desconto?</span>
         <div class="seg seg-sm" id="segDesc" role="tablist" aria-label="Mostrar total do desconto">
           <button type="button" class="on" data-v="sim" role="tab" aria-selected="true">Sim</button>
@@ -333,10 +326,6 @@
           <option value="lorcana">Lorcana</option>
         </select>
       </div>
-      <div>
-        <span class="label">Loja</span>
-        <input type="text" id="pubLoja" value="Mercado Livre" autocomplete="off">
-      </div>
     </div>
     <div style="margin-top:12px;position:relative">
       <span class="label">Coleção do produto (dispara o aviso no app)</span>
@@ -352,11 +341,11 @@
     </div>
     <div class="row2" style="margin-top:12px">
       <div>
-        <span class="label">De R$ (opcional)</span>
+        <span class="label">De R$ cada (opcional)</span>
         <input type="text" id="pubDe" inputmode="decimal" placeholder="199,00" autocomplete="off">
       </div>
       <div>
-        <span class="label">Por R$ (final, já com cupom)</span>
+        <span class="label">Por R$ cada (já com cupom)</span>
         <input type="text" id="pubPor" inputmode="decimal" placeholder="114,00" autocomplete="off">
       </div>
       <div style="flex:0 0 74px">
@@ -364,7 +353,8 @@
         <input type="text" id="pubQtd" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="1" autocomplete="off">
       </div>
     </div>
-    <p class="pi-hint" style="margin-top:6px">Promo de "leve 2+": os preços De/Por são o TOTAL da compra mínima; o site calcula o "R$ X cada" sozinho.</p>
+    <p class="pi-hint" style="margin-top:6px">Preço sempre de CADA unidade. Se o cupom só vale levando 2 ou mais, põe o preço de um e a quantidade em "Leve": o total sai sozinho.</p>
+    <p class="pi-hint hidden" id="pubResumoQtd" style="margin-top:4px;font-weight:700;color:#ffd34d"></p>
     <div style="margin-top:12px">
       <span class="label">Validade do cupom</span>
       <div class="seg seg-sm" id="segVal" role="tablist" aria-label="Validade do cupom">
@@ -449,7 +439,7 @@ const MAX_IMAGES = 3;
 // referência de estilo (27/07/2026). Use LINK no lugar do link.
 const EXEMPLOS = [
 `🇧🇷 18 Boosters Escuridão Absoluta Darkrai
-loja oficial · frete grátis
+frete grátis
 
 De: 300 | Por: R$179 👑
 ⚠️ resgate o cupom de 10% OFF
@@ -458,7 +448,7 @@ Link: LINK
 
 🧙‍♂️ Deck Certo | Promoções`,
 `🇧🇷 Equilíbrio Perfeito Makuhita 19 Cards Copag
-loja oficial · frete grátis
+frete grátis
 
 Por: R$27 pix 👑
 
@@ -472,7 +462,6 @@ Por R$114,00 ✅
 
 🎟️ Cupom: AMOCUPOM
 
-Loja Oficial no ML
 🔗 LINK
 
 🧙‍♂️ Deck Certo | Promoções`,
@@ -483,7 +472,6 @@ Por R$222,00 (R$111 CADA) ✅
 
 🎟️ Cupom: AMOCUPOM
 
-Loja Oficial TRP no ML
 🔗 LINK
 
 🧙‍♂️ Deck Certo | Promoções`,
@@ -546,7 +534,8 @@ function initSeg(id) {
   );
   return () => seg.querySelector("button.on").dataset.v === "sim";
 }
-const showLoja = initSeg("segLoja");
+// nome de loja NUNCA entra na mensagem (decisao do dono, 22/09/2026); o toggle saiu do formulario
+const showLoja = () => false;
 const showDesconto = initSeg("segDesc");
 
 // % OFF: só dígitos (campo texto pra não acionar gerenciador de senha)
@@ -894,6 +883,7 @@ function onLinkChange() {
     $("pubFrete").checked = false;
     $("pubErr").classList.add("hidden");
     $("pubOk").classList.add("hidden");
+    atualizarResumoQtd();
   }
   autoAdImage();
 }
@@ -926,12 +916,10 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
 Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 
 FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
-1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "loja oficial" e/ou "frete grátis" visível, põe numa linha LOGO ABAIXO do produto (ex.: "Loja oficial · frete grátis"), nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis).
+1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "frete grátis" visível, põe "frete grátis" numa linha LOGO ABAIXO do produto, nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis). NUNCA escreva "loja oficial" (quase sempre está errado).
 2. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
 3. Cupom: linha "🎟️ Cupom: CODIGO", só se houver cupom.
-${comLoja
-    ? '4. Nome da loja (ex.: "Loja Oficial Copag no ML"), se der pra identificar.'
-    : "4. NÃO cite o nome da loja/vendedor em nenhuma linha (pule esse bloco)."}
+4. NÃO cite o nome da loja/vendedor em nenhuma linha, nem "loja oficial" (pule esse bloco).
 5. Link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
 6. Última linha, assinatura fixa do canal: "🧙‍♂️ Deck Certo | Promoções".
 - NÃO use manchete nem gancho em maiúsculas: a mensagem abre direto no produto.
@@ -1219,6 +1207,26 @@ function parseMoney(v) {
   const n = Number(v);
   return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
 }
+// A loja que vai pro site e pro app ("Comprar no Mercado Livre") sai do link, sem campo no formulario.
+function lojaDoLink(link) {
+  if (/amzn\.to|amazon\.com/i.test(link)) return "Amazon";
+  if (/shopee\./i.test(link)) return "Shopee";
+  return "Mercado Livre";
+}
+
+// "Levando 2: R$ 60,00 no total (de R$ 72,00) · R$ 30,00 cada": o que o site e o app vao mostrar.
+function atualizarResumoQtd() {
+  const el = $("pubResumoQtd");
+  if (!el) return;
+  const n = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
+  const por = parseMoney($("pubPor").value), de = parseMoney($("pubDe").value);
+  if (n <= 1 || !por) { el.classList.add("hidden"); return; }
+  const f = (v) => "R$ " + v.toFixed(2).replace(".", ",");
+  el.textContent = "Levando " + n + ": " + f(por * n) + " no total" + (de ? " (de " + f(de * n) + ")" : "") + " · " + f(por) + " cada. É assim que vai pro site e pro app.";
+  el.classList.remove("hidden");
+}
+["pubQtd", "pubPor", "pubDe"].forEach((id) => $(id).addEventListener("input", atualizarResumoQtd));
+
 function expiraISO() {
   if (valSel === "0") return null;
   if (valSel === "data") {
@@ -1401,13 +1409,17 @@ async function publicar() {
   const link = $("link").value.trim();
   const cupom = $("cupom").value.trim().toUpperCase();
   const pct = $("cupomPct").value.trim();
-  const de = parseMoney($("pubDe").value);
-  const por = parseMoney($("pubPor").value);
+  // o formulario e por UNIDADE; o banco guarda o TOTAL da compra minima (site e app mostram o "cada")
+  const qtd = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
+  const deUn = parseMoney($("pubDe").value);
+  const porUn = parseMoney($("pubPor").value);
   if (!postImage) return pubError("Monte a imagem do post primeiro (card acima): ela é a foto do card no site.");
   if (!titulo) return pubError("Preencha o título do produto.");
   if (!/^https?:\/\/\S+/i.test(link)) return pubError("Cole o link de afiliado no campo lá em cima.");
-  if (!por) return pubError('Preencha o preço "Por R$" (o final, já com o cupom aplicado).');
-  if (de !== null && de <= por) return pubError('O preço "De" precisa ser maior que o "Por".');
+  if (!porUn) return pubError('Preencha o preço "Por R$" de CADA unidade (o final, já com o cupom aplicado).');
+  if (deUn !== null && deUn <= porUn) return pubError('O preço "De" precisa ser maior que o "Por" (os dois de cada unidade).');
+  const por = Math.round(porUn * qtd * 100) / 100;
+  const de = deUn === null ? null : Math.round(deUn * qtd * 100) / 100;
   const exp = expiraISO();
   if (exp === undefined) return pubError("Escolha a data de validade (ou troque pra Sem prazo).");
 
@@ -1441,10 +1453,10 @@ async function publicar() {
         titulo,
         categoria: $("pubCat").value,
         imagem,
-        loja: $("pubLoja").value.trim() || "Mercado Livre",
+        loja: lojaDoLink(link),
         preco_de: de,
         preco_por: por,
-        quantidade: Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1),
+        quantidade: qtd,
         cupom_codigo: cupom, // vazio = sem cupom (site e app mostram "preço já aplicado")
         cupom_beneficio: cupom && pct ? pct + "% OFF" : null,
         url_afiliado: link,
@@ -1474,7 +1486,10 @@ async function publicar() {
     const grupoLink = promoId ? OG_WORKER + "/l?id=" + promoId : null;
     const setSlug = $("pubSet").value;
     const setNome = $("pubSetNome").textContent;
-    pubDoneLink("Promo publicada e no feed do site." + (setSlug
+    const fmtR = (v) => "R$ " + v.toFixed(2).replace(".", ",");
+    pubDoneLink("Promo publicada e no feed do site." + (qtd > 1
+      ? " Levando " + qtd + ": " + fmtR(por) + " no total, " + fmtR(porUn) + " cada."
+      : "") + (setSlug
       ? " Aviso enviado pra quem segue " + setNome + " no app."
       : " Sem coleção: ninguém foi avisado no app.") + avisoVar, grupoLink);
     escolherSet("", "");
@@ -1591,24 +1606,32 @@ function prefillPublish(text) {
     const t = lines.find((l) => l.startsWith("🇧🇷") || l.startsWith("🇺🇸"));
     if (t) $("pubTitulo").value = t.replace(/^[🇧🇷🇺🇸]+\s*/u, "").trim();
   }
+  // O formulario e SEMPRE por unidade. "Por R$222,00 (R$111 cada)" -> Por = 111, Leve = 222/111.
+  const mPor = text.match(/Por:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
+  const mCada = text.match(/\(\s*R?\$?\s*([\d.]+(?:,\d{2})?)\s*cada\s*\)/i);
+  const tot = mPor ? parseMoney(mPor[1]) : null, un = mCada ? parseMoney(mCada[1]) : null;
+  const nMsg = tot && un && tot > un && Math.abs(Math.round(tot / un) * un - tot) < 0.05 * tot ? Math.round(tot / un) : 1;
   if (!$("pubPor").value.trim()) {
-    const m = text.match(/Por:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
-    if (m) $("pubPor").value = m[1];
+    if (mCada) $("pubPor").value = mCada[1];
+    else if (mPor) $("pubPor").value = mPor[1];
   }
   if (!$("pubDe").value.trim()) {
     const m = text.match(/De:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
-    if (m) $("pubDe").value = m[1];
+    if (m) {
+      const de = parseMoney(m[1]);
+      // com "(R$X cada)" o De da mensagem e o total do kit: divide pela quantidade
+      $("pubDe").value = de !== null && nMsg > 1 ? (Math.round(de / nMsg * 100) / 100).toFixed(2).replace(".", ",") : m[1];
+    }
   }
-  if ($("pubLoja").value.trim() === "Mercado Livre") {
-    const lj = lines.find((l) => /^loja oficial/i.test(l));
-    if (lj) $("pubLoja").value = lj.replace(/\s*no ML\.?$/i, "").trim();
-  }
+  // (o nome da loja NAO vem mais da mensagem: "loja oficial" quase sempre estava errado)
   if (/frete gr[aá]tis/i.test(text)) $("pubFrete").checked = true;
-  // "Por R$54 os 2" ou titulo "2x ..." -> quantidade
+  // "Por R$54 os 2", titulo "2x ..." ou "(R$111 cada)" junto do total -> quantidade
   if ($("pubQtd").value === "1" || !$("pubQtd").value) {
     const q = text.match(/por:?\s*r?\$?\s*[\d.,]+\s*(?:os|as)\s*(\d{1,2})/i) || text.match(/🇧🇷\s*(\d{1,2})\s*x\s/iu);
     if (q) $("pubQtd").value = q[1];
+    else if (nMsg > 1 && nMsg <= 99) $("pubQtd").value = String(nMsg);
   }
+  atualizarResumoQtd();
   // cupom detectado na mensagem -> preenche o campo que vai pro site (se estiver vazio)
   if (!$("cupom").value.trim()) {
     const mc = text.match(/Cupom:\s*([A-Z0-9][A-Z0-9._-]{2,24})/i);
