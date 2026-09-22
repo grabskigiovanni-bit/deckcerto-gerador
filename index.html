@@ -804,6 +804,9 @@ renderPiSources();
 const OG_WORKER = "https://dc-og.grabskigiovanni.workers.dev"; // worker dc-og (deploy 09/08/2026)
 let lastRawPost = null;
 let lastOfferLink = "";
+// titulo preenchido pelo anuncio (nao digitado pelo dono): a linha do produto
+// da mensagem gerada, que e mais limpa, pode substituir
+let tituloAuto = false;
 
 async function composePostFromDataUrl(dataUrl) {
   const im = await carregarImg(dataUrl);
@@ -836,7 +839,8 @@ async function autoAdImage() {
     if (meta.title && !$("pubTitulo").value.trim()) {
       // decodifica entidades HTML (&amp; etc.) que vem no og:title do ML
       const dec = new DOMParser().parseFromString(meta.title, "text/html").documentElement.textContent || meta.title;
-      $("pubTitulo").value = dec.replace(/\s*\|\s*(Mercado ?Livre|MercadoLivre).*$/i, "").trim();
+      $("pubTitulo").value = limparTitulo(dec);
+      tituloAuto = true; // veio do anuncio: a mensagem gerada pode melhorar
     }
     // ML serve variantes pelo sufixo do arquivo (-I, -V, -F...): -O e o original, em
     // resolucao cheia. Tenta ele primeiro; se nao existir, fica com a og:image.
@@ -882,6 +886,7 @@ function onLinkChange() {
     lastRawPost = null;
     renderPostImage();
     $("pubTitulo").value = "";
+    tituloAuto = false;
     $("pubDe").value = "";
     $("pubPor").value = "";
     $("pubQtd").value = "1";
@@ -921,7 +926,7 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
 Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 
 FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
-1. 🇧🇷 + nome completo do produto (🇺🇸 se for importado), já na PRIMEIRA linha. Se houver "frete grátis" visível, põe "frete grátis" numa linha LOGO ABAIXO do produto, nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis). NUNCA escreva "loja oficial" (quase sempre está errado).
+1. 🇧🇷 + nome do produto LIMPO e CURTO (no máximo 60 caracteres), já na PRIMEIRA linha (🇺🇸 se for importado). Mantém o que identifica o produto (tipo, coleção, personagem, quantidade de boosters) e JOGA FORA o resto do título do anúncio: "original", "lacrado", "pronta entrega", "envio imediato", "nota fiscal", "12x sem juros", marca repetida e palavra solta de busca. Esse mesmo nome vai pro card do app, então tem que caber em duas linhas. Se houver "frete grátis" visível, põe "frete grátis" numa linha LOGO ABAIXO do produto, nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis). NUNCA escreva "loja oficial" (quase sempre está errado).
 2. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
 3. Cupom: linha "🎟️ Cupom: CODIGO", só se houver cupom.
 4. NÃO cite o nome da loja/vendedor em nenhuma linha, nem "loja oficial" (pule esse bloco).
@@ -1265,6 +1270,28 @@ function postImageWebp() {
 // usa object-fit cover e nada corta, porque a imagem ja tem a proporcao do container.
 const FIT = { TAMANHO: 1200, MARGEM: 0.08, BORDA: 0.03, DESVIO_MAX: 10, TOL: 22, LIMIAR: 235, ANALISE: 640 };
 
+// O titulo do anuncio do ML e sopa de palavra-chave ("... 8 Boosters Copag
+// Portugues Original Lacrado Envio Imediato"). No card do app isso vira tres
+// linhas cortadas. Corta o ruido e o tamanho; o nome bom mesmo vem da
+// mensagem que a IA escreve (a linha do produto), este e o plano B.
+const LIXO_TITULO = /\b(original|lacrad[oa]s?|novo|nova|pronta\s+entrega|envio\s+imediato|entrega\s+r[aá]pida|nota\s+fiscal|nf[- ]?e?|com\s+nf|frete\s+gr[aá]tis|promo[cç][aã]o|oferta|imperd[ií]vel|barato|melhor\s+pre[cç]o|12x|sem\s+juros|parcelad[oa])\b/gi;
+
+function limparTitulo(t) {
+  let s = (t || "")
+    .replace(/\s*\|\s*(Mercado ?Livre|MercadoLivre|Amazon(\.com)?(\.br)?).*$/i, "")
+    .replace(LIXO_TITULO, " ")
+    .replace(/\s*[-–,]\s*(?=\s*$)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (s.length > 68) {
+    // corta na ultima palavra inteira antes do limite, sem reticencias no banco
+    const corte = s.slice(0, 68);
+    const esp = corte.lastIndexOf(" ");
+    s = (esp > 40 ? corte.slice(0, esp) : corte).replace(/[\s\-–,]+$/, "");
+  }
+  return s;
+}
+
 function mlOriginal(url) {
   // og:image do ML vem em 1x (D_Q_NP_ / D_NQ_NP_, ~500 px) e as vezes com o sufixo
   // quebrado (-AB{sanitized_title}): pede D_NQ_NP_2X_<id>-O = 2x, original.
@@ -1607,9 +1634,14 @@ renderCupons();
 // Preenche o card de publicacao com o que a mensagem gerada ja revelou
 function prefillPublish(text) {
   const lines = text.split("\n").map((l) => l.trim());
-  if (!$("pubTitulo").value.trim()) {
+  // a linha do produto da mensagem e o nome limpo: substitui o titulo cru do
+  // anuncio, mas nunca o que o dono digitou a mao
+  if (!$("pubTitulo").value.trim() || tituloAuto) {
     const t = lines.find((l) => l.startsWith("🇧🇷") || l.startsWith("🇺🇸"));
-    if (t) $("pubTitulo").value = t.replace(/^[🇧🇷🇺🇸]+\s*/u, "").trim();
+    if (t) {
+      $("pubTitulo").value = limparTitulo(t.replace(/^[🇧🇷🇺🇸]+\s*/u, "").trim());
+      tituloAuto = false; // ja veio da mensagem: nao troca de novo
+    }
   }
   // O formulario e SEMPRE por unidade. "Por R$222,00 (R$111 cada)" -> Por = 111, Leve = 222/111.
   const mPor = text.match(/Por:?\s*R?\$?\s*([\d.]+(?:,\d{2})?)/i);
