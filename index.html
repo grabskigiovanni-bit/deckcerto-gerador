@@ -259,6 +259,12 @@
       </div>
     </div>
 
+    <div style="margin-top:12px">
+      <span class="label">Restam em estoque (opcional)</span>
+      <input type="text" id="estoque" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="ex.: 2" autocomplete="off" spellcheck="false" style="max-width:120px">
+      <p class="pi-hint" style="margin-top:6px">Só preenche quando o anúncio mostrar. Em branco, a mensagem não fala de estoque.</p>
+    </div>
+
     <div class="opt-row">
       <div>
         <span class="label">Mostrar total do desconto?</span>
@@ -544,6 +550,9 @@ $("cupomPct").addEventListener("input", (e) => {
 });
 $("pubQtd").addEventListener("input", (e) => {
   e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2);
+});
+$("estoque").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 3);
 });
 
 // ── Imagens (prints) ─────────────────────────────────────────
@@ -890,6 +899,7 @@ function onLinkChange() {
     $("pubDe").value = "";
     $("pubPor").value = "";
     $("pubQtd").value = "1";
+    $("estoque").value = "";
     $("pubFrete").checked = false;
     $("pubErr").classList.add("hidden");
     $("pubOk").classList.add("hidden");
@@ -902,7 +912,14 @@ $("link").addEventListener("input", () => { clearTimeout(linkTimer); linkTimer =
 $("link").addEventListener("change", onLinkChange);
 
 // ── Prompt ───────────────────────────────────────────────────
-function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto) {
+function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto, estoque) {
+  // estoque = quantas unidades restam, so quando o dono digita; vazio = nao citar
+  const n = parseInt(estoque || "", 10);
+  const estoqueInfo = n > 0
+    ? "- ESTOQUE confirmado pelo usuário: " + (n === 1 ? "resta 1 unidade" : "restam " + n + " unidades") +
+      ". Cite numa linha curta e sem drama (ex.: \"⚠️ " + (n === 1 ? "última unidade" : "restam só " + n) +
+      "\"). Não invente urgência além disso nem diga que vai acabar."
+    : "- Estoque NÃO informado: não cite estoque, quantidade restante nem escassez em lugar nenhum.";
   const cupomInfo = (cupom || cupomPct)
     ? "- CUPOM confirmado pelo usuário, inclua na mensagem: " +
       (cupom ? "código " + cupom : "") + (cupom && cupomPct ? ", " : "") +
@@ -941,7 +958,8 @@ ${richRules}
 DADOS:
 - Use SÓ o que estiver legível no print ou nas observações. Nunca invente preço, desconto, validade, frete, cupom ou condição. Preço ilegível = escreva [PREÇO].
 ${cupomInfo}
-- Não afirme "voltou ao estoque", "adm garantiu", "tá acabando" nem nada de estoque a menos que esteja nas observações.
+${estoqueInfo}
+- Não afirme "voltou ao estoque", "adm garantiu" nem nada de escassez que não esteja no campo de estoque ou nas observações.
 ${comDesconto
     ? "- Com preço antigo e novo visíveis, pode calcular e mostrar o % OFF arredondado (total do desconto)."
     : "- NÃO calcule nem mostre % OFF, economia em R$ nem \"total de desconto\": apresente só os preços (e o % do cupom, se o usuário informou)."}
@@ -982,7 +1000,7 @@ async function generate() {
   try {
     const ok = offerKey(link);
     const avoid = history.filter((h) => h.offerKey === ok).slice(0, 3).map((h) => h.text);
-    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim(), showLoja(), showDesconto());
+    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim(), showLoja(), showDesconto(), $("estoque").value.trim());
     const content = images.map((img) => ({
       type: "image",
       source: { type: "base64", media_type: img.media_type, data: img.data },
