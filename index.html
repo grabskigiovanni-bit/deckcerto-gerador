@@ -1660,7 +1660,8 @@ async function loadMinhasPromos(force) {
   if (!force && list.dataset.loaded) return;
   list.textContent = "Carregando...";
   try {
-    const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,imagem,imagem_1x1,imagem_3x2,ativa,expira_em,created_at,set_slug,push_enviado_em&order=created_at.desc&limit=50",
+    // select=* : a lista nao quebra quando o banco ainda nao tem uma coluna nova (ex.: imagem_1x1)
+    const res = await fetch(SUPA + "/rest/v1/promos?select=*&order=created_at.desc&limit=50",
       { headers: { apikey: SUPA_KEY } });
     const setsAll = await loadSets();
     const rows = await res.json();
