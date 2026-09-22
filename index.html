@@ -845,12 +845,22 @@ async function autoAdImage() {
     }
     // ML serve variantes pelo sufixo do arquivo (-I, -V, -F...): -O e o original, em
     // resolucao cheia. Tenta ele primeiro; se nao existir, fica com a og:image.
-    let ir = null;
+    let blob = null;
     const orig = mlOriginal(meta.image);
-    if (orig) ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(orig)).catch(() => null);
-    if (!ir || !ir.ok) ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(meta.image));
-    if (!ir.ok) throw new Error();
-    const blob = await ir.blob();
+    if (orig) {
+      const r2 = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(orig)).catch(() => null);
+      if (r2 && r2.ok) {
+        const b2 = await r2.blob().catch(() => null);
+        // o mlstatic responde 200 com placeholder minusculo quando a variante
+        // nao existe: so aceita se vier foto de verdade
+        if (b2 && b2.size > 8000) blob = b2;
+      }
+    }
+    if (!blob) {
+      const ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(meta.image));
+      if (!ir.ok) throw new Error();
+      blob = await ir.blob();
+    }
     const dataUrl = await new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(r.result);
