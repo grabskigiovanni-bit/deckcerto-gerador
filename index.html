@@ -787,8 +787,10 @@ async function finishCrop() {
   ctx.fillStyle = "#0d0918";
   ctx.fillRect(0, 0, OUT, OUT);
   ctx.drawImage(crop.img, crop.ox * f, crop.oy * f, crop.img.width * crop.scale * f, crop.img.height * crop.scale * f);
+  // o recorte SEM selo e a fonte das variantes do app (o app nao mostra marca d'agua)
+  const clean = c.toDataURL("image/jpeg", 0.92);
   await drawBadge(ctx, OUT);
-  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88) };
+  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88), clean };
   $("cropModal").classList.add("hidden");
   crop = null;
   renderPostImage();
@@ -831,7 +833,8 @@ async function composePostFromDataUrl(dataUrl) {
   const w = im.width * s, h = im.height * s;
   ctx.drawImage(im, (OUT - w) / 2, (OUT - h) / 2, w, h);
   await drawBadge(ctx, OUT);
-  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88) };
+  // clean = a foto crua do anuncio (resolucao cheia, sem cover nem selo): dela saem as variantes do app
+  postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88), clean: dataUrl };
   renderPostImage();
   if (history.length) renderHistory(history[0].offerKey);
 }
@@ -851,7 +854,12 @@ async function autoAdImage() {
       const dec = new DOMParser().parseFromString(meta.title, "text/html").documentElement.textContent || meta.title;
       $("pubTitulo").value = dec.replace(/\s*\|\s*(Mercado ?Livre|MercadoLivre).*$/i, "").trim();
     }
-    const ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(meta.image));
+    // ML serve variantes pelo sufixo do arquivo (-I, -V, -F...): -O e o original, em
+    // resolucao cheia. Tenta ele primeiro; se nao existir, fica com a og:image.
+    let ir = null;
+    const orig = mlOriginal(meta.image);
+    if (orig) ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(orig)).catch(() => null);
+    if (!ir || !ir.ok) ir = await fetch(OG_WORKER + "/img?u=" + encodeURIComponent(meta.image));
     if (!ir.ok) throw new Error();
     const blob = await ir.blob();
     const dataUrl = await new Promise((res, rej) => {
@@ -1237,6 +1245,122 @@ function postImageWebp() {
   });
 }
 
+// ── Variantes SEM selo pro app (1:1 = card da listagem, 3:2 = hero da oferta) ──
+// Porta do ml_image_fit.py (guia "Pre-processamento de imagens do ML", 22/09/2026):
+// detecta a cor do fundo pela borda (branco, cinza do ML...), recorta o produto e
+// recoloca centralizado numa tela da mesma cor com margem fixa de 8%. Assim o app
+// usa object-fit cover e nada corta, porque a imagem ja tem a proporcao do container.
+const FIT = { TAMANHO: 1200, MARGEM: 0.08, BORDA: 0.03, DESVIO_MAX: 10, TOL: 22, LIMIAR: 235, ANALISE: 640 };
+
+function mlOriginal(url) {
+  // og:image do ML vem em 1x (D_Q_NP_ / D_NQ_NP_, ~500 px) e as vezes com o sufixo
+  // quebrado (-AB{sanitized_title}): pede D_NQ_NP_2X_<id>-O = 2x, original.
+  const m = /^(https:\/\/[a-z0-9.-]*\.mlstatic\.com\/)D_(?:Q|NQ)_NP_(?:2X_)?(\d+-ML[A-Z]\d+_\d+)-[^./]*\.(webp|jpe?g|png)$/i.exec(url || "");
+  if (!m) return null;
+  const o = m[1] + "D_NQ_NP_2X_" + m[2] + "-O." + m[3];
+  return o === url ? null : o;
+}
+
+function carregarImg(src) {
+  return new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error("imagem inválida"));
+    i.src = src;
+  });
+}
+
+// Cor do fundo + caixa do produto, medidas numa copia pequena (a foto pode ter 12 MP).
+function analisarFundo(img) {
+  const s = Math.min(1, FIT.ANALISE / Math.max(img.width, img.height));
+  const w = Math.max(2, Math.round(img.width * s)), h = Math.max(2, Math.round(img.height * s));
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); // PNG/WebP com transparencia vira branco
+  ctx.drawImage(img, 0, 0, w, h);
+  const px = ctx.getImageData(0, 0, w, h).data;
+  const faixa = Math.max(2, Math.round(Math.min(w, h) * FIT.BORDA));
+  const R = [], G = [], B = [];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (y < faixa || y >= h - faixa || x < faixa || x >= w - faixa) {
+        const i = (y * w + x) * 4;
+        R.push(px[i]); G.push(px[i + 1]); B.push(px[i + 2]);
+      }
+    }
+  }
+  const mediana = (a) => { a.sort((p, q) => p - q); return a[a.length >> 1]; };
+  const desvio = (a) => {
+    const m = a.reduce((t, v) => t + v, 0) / a.length;
+    return Math.sqrt(a.reduce((t, v) => t + (v - m) * (v - m), 0) / a.length);
+  };
+  const dmax = Math.max(desvio(R), desvio(G), desvio(B));
+  // borda lisa = a mediana e a cor da tela; borda com cenario/gradiente = cai pra branco
+  const cor = dmax <= FIT.DESVIO_MAX ? [mediana(R), mediana(G), mediana(B)] : null;
+  const ref = cor || [255, 255, 255];
+  const tol = cor ? FIT.TOL : 255 - FIT.LIMIAR; // sem cor lisa: modo branco por limiar
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const d = Math.max(Math.abs(px[i] - ref[0]), Math.abs(px[i + 1] - ref[1]), Math.abs(px[i + 2] - ref[2]));
+      if (d > tol) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+  }
+  let caixa = null; // so recorta se o produto ocupar >= 2% da imagem (evita recortar ruido)
+  if (x1 >= x0 && y1 >= y0 && (x1 - x0 + 1) * (y1 - y0 + 1) >= 0.02 * w * h) {
+    caixa = { x: x0 / s, y: y0 / s, w: (x1 - x0 + 1) / s, h: (y1 - y0 + 1) / s };
+  }
+  return { cor, caixa };
+}
+
+function enquadrar(img, an, proporcao) {
+  const W = FIT.TAMANHO, H = Math.round(W / proporcao);
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+  const cor = an.cor || [255, 255, 255];
+  ctx.fillStyle = "rgb(" + cor.join(",") + ")"; ctx.fillRect(0, 0, W, H);
+  const cx = an.caixa || { x: 0, y: 0, w: img.width, h: img.height };
+  const areaW = W * (1 - 2 * FIT.MARGEM), areaH = H * (1 - 2 * FIT.MARGEM);
+  const esc = Math.min(areaW / cx.w, areaH / cx.h);
+  const dw = Math.max(1, cx.w * esc), dh = Math.max(1, cx.h * esc);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, cx.x, cx.y, cx.w, cx.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  return c;
+}
+
+function canvasBlob(c, tipo, q) { return new Promise((res) => c.toBlob(res, tipo, q)); }
+
+// Devolve { b1 (1:1), b3 (3:2), cor "#RRGGBB" }. webp; jpeg se o navegador nao codificar webp.
+async function variantesPromo(cleanDataUrl) {
+  const img = await carregarImg(cleanDataUrl);
+  const an = analisarFundo(img);
+  const cor = "#" + (an.cor || [255, 255, 255]).map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+  const saida = async (prop) => {
+    const c = enquadrar(img, an, prop);
+    let b = await canvasBlob(c, "image/webp", 0.86);
+    if (!b || b.type !== "image/webp") b = await canvasBlob(c, "image/jpeg", 0.88);
+    if (!b) throw new Error("Falha ao gerar a variante da imagem.");
+    return b;
+  };
+  return { b1: await saida(1), b3: await saida(1.56), cor };
+}
+
+async function uploadPromo(fname, blob, token) {
+  const up = await fetch(SUPA + "/storage/v1/object/promos/" + fname, {
+    method: "POST",
+    headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": blob.type, "cache-control": "31536000" },
+    body: blob,
+  });
+  if (!up.ok) {
+    const d = await up.json().catch(() => ({}));
+    throw new Error(up.status === 401 || up.status === 403
+      ? "Essa conta não tem permissão de publicar (não é a admin)."
+      : d.message || "Falha no upload da imagem.");
+  }
+  return SUPA + "/storage/v1/object/public/promos/" + fname;
+}
+
 function pubError(m) { const e = $("pubErr"); e.textContent = m; e.classList.remove("hidden"); $("pubOk").classList.add("hidden"); }
 function pubDone(m) { const e = $("pubOk"); e.textContent = m; e.classList.remove("hidden"); $("pubErr").classList.add("hidden"); }
 // Igual ao pubDone, mas com o link pro grupo (previa com a imagem do selo) + copiar.
@@ -1293,24 +1417,27 @@ async function publicar() {
   setPubLoading(true);
   try {
     const { blob, ext } = await postImageWebp();
-    const fname = "promo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7) + "." + ext;
-    const up = await fetch(SUPA + "/storage/v1/object/promos/" + fname, {
-      method: "POST",
-      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": blob.type, "cache-control": "31536000" },
-      body: blob,
-    });
-    if (!up.ok) {
-      const d = await up.json().catch(() => ({}));
-      throw new Error(up.status === 401 || up.status === 403
-        ? "Essa conta não tem permissão de publicar (não é a admin)."
-        : d.message || "Falha no upload da imagem.");
-    }
-    const imagem = SUPA + "/storage/v1/object/public/promos/" + fname;
+    const base = "promo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+    const imagem = await uploadPromo(base + "." + ext, blob, token);
 
-    const ins = await fetch(SUPA + "/rest/v1/promos", {
+    // variantes sem selo pro app: best-effort (sem elas o app cai na imagem com selo)
+    let imagem_1x1 = null, imagem_3x2 = null, cor_fundo = null, avisoVar = "";
+    try {
+      const v = await variantesPromo(postImage.clean || postImage.dataUrl);
+      const e1 = v.b1.type === "image/webp" ? "webp" : "jpg";
+      imagem_1x1 = await uploadPromo(base + "_1x1." + e1, v.b1, token);
+      imagem_3x2 = await uploadPromo(base + "_3x2." + e1, v.b3, token);
+      cor_fundo = v.cor;
+    } catch (e) {
+      avisoVar = " (as variantes da imagem pro app falharam: " + (e.message || "erro") + "; o app usa a imagem com selo.)";
+    }
+
+    const inserir = (corpo) => fetch(SUPA + "/rest/v1/promos", {
       method: "POST",
       headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
-      body: JSON.stringify({
+      body: JSON.stringify(corpo),
+    });
+    const corpoPromo = {
         titulo,
         categoria: $("pubCat").value,
         imagem,
@@ -1324,12 +1451,23 @@ async function publicar() {
         frete_gratis: $("pubFrete").checked,
         expira_em: exp,
         set_slug: $("pubSet").value || null,
-      }),
-    });
+        imagem_1x1,
+        imagem_3x2,
+        cor_fundo,
+    };
+    let ins = await inserir(corpoPromo);
     if (!ins.ok) {
       const d = await ins.json().catch(() => ({}));
       const msg = d && d.message ? d.message : "Falha ao salvar a promo.";
-      throw new Error(/row-level security/i.test(msg) ? "Essa conta não tem permissão de publicar (não é a admin)." : msg);
+      // banco ainda sem as colunas das variantes (promos_imagens_variantes.sql): publica sem elas
+      if (/imagem_1x1|imagem_3x2|cor_fundo/i.test(msg)) {
+        const { imagem_1x1: _a, imagem_3x2: _b, cor_fundo: _c, ...semVariantes } = corpoPromo;
+        ins = await inserir(semVariantes);
+        if (ins.ok) avisoVar = " (o banco ainda não tem as colunas das variantes; o app usa a imagem com selo.)";
+      }
+      if (!ins.ok) {
+        throw new Error(/row-level security/i.test(msg) ? "Essa conta não tem permissão de publicar (não é a admin)." : msg);
+      }
     }
     const rows = await ins.json().catch(() => []);
     const promoId = Array.isArray(rows) && rows[0] ? rows[0].id : null;
@@ -1338,7 +1476,7 @@ async function publicar() {
     const setNome = $("pubSetNome").textContent;
     pubDoneLink("Promo publicada e no feed do site." + (setSlug
       ? " Aviso enviado pra quem segue " + setNome + " no app."
-      : " Sem coleção: ninguém foi avisado no app."), grupoLink);
+      : " Sem coleção: ninguém foi avisado no app.") + avisoVar, grupoLink);
     escolherSet("", "");
     loadMinhasPromos(true);
   } catch (e) {
@@ -1499,7 +1637,7 @@ async function loadMinhasPromos(force) {
   if (!force && list.dataset.loaded) return;
   list.textContent = "Carregando...";
   try {
-    const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,imagem,ativa,expira_em,created_at,set_slug,push_enviado_em&order=created_at.desc&limit=50",
+    const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,imagem,imagem_1x1,imagem_3x2,ativa,expira_em,created_at,set_slug,push_enviado_em&order=created_at.desc&limit=50",
       { headers: { apikey: SUPA_KEY } });
     const setsAll = await loadSets();
     const rows = await res.json();
@@ -1570,9 +1708,12 @@ async function excluirPromo(p, btn) {
       const d = await res.json().catch(() => ({}));
       throw new Error(/row-level security/i.test(d.message || "") ? "Sem permissão pra excluir (a conta não é a admin)." : (d.message || "Falha ao excluir."));
     }
-    // imagem do storage: best-effort (se a promo saiu do feed, imagem orfa nao atrapalha)
-    const fn = (p.imagem || "").split("/promos/").pop();
-    if (fn) fetch(SUPA + "/storage/v1/object/promos/" + fn, { method: "DELETE", headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } }).catch(() => {});
+    // imagens do storage (com selo + as variantes do app): best-effort (se a promo
+    // saiu do feed, imagem orfa nao atrapalha)
+    for (const u of [p.imagem, p.imagem_1x1, p.imagem_3x2]) {
+      const fn = (u || "").split("/promos/").pop();
+      if (fn) fetch(SUPA + "/storage/v1/object/promos/" + fn, { method: "DELETE", headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } }).catch(() => {});
+    }
     loadMinhasPromos(true);
   } catch (e) {
     btn.disabled = false; btn.textContent = "Excluir";
