@@ -806,23 +806,18 @@ let lastRawPost = null;
 let lastOfferLink = "";
 
 async function composePostFromDataUrl(dataUrl) {
-  const im = await new Promise((res, rej) => {
-    const i = new Image();
-    i.onload = () => res(i);
-    i.onerror = () => rej(new Error("imagem inválida"));
-    i.src = dataUrl;
-  });
+  const im = await carregarImg(dataUrl);
   const OUT = 1080;
   const c = document.createElement("canvas");
   c.width = OUT; c.height = OUT;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, OUT, OUT);
-  const s = Math.max(OUT / im.width, OUT / im.height); // cover centralizado
-  const w = im.width * s, h = im.height * s;
-  ctx.drawImage(im, (OUT - w) / 2, (OUT - h) / 2, w, h);
+  // Mesmo enquadramento das variantes do app: detecta a cor do fundo do
+  // anúncio, recorta o produto e recoloca centralizado com margem de 8%.
+  // Era aqui que o booster (retrato) perdia topo e base no cover quadrado.
+  const an = analisarFundo(im);
+  ctx.drawImage(enquadrar(im, an, 1), 0, 0, OUT, OUT);
   await drawBadge(ctx, OUT);
-  // clean = a foto crua do anuncio (resolucao cheia, sem cover nem selo): dela saem as variantes do app
+  // clean = a foto crua do anuncio (resolucao cheia, sem selo): dela saem as variantes do app
   postImage = { dataUrl: c.toDataURL("image/jpeg", 0.88), clean: dataUrl };
   renderPostImage();
   if (history.length) renderHistory(history[0].offerKey);
