@@ -1274,17 +1274,45 @@ const FIT = { TAMANHO: 1200, MARGEM: 0.08, BORDA: 0.03, DESVIO_MAX: 10, TOL: 22,
 // Portugues Original Lacrado Envio Imediato"). No card do app isso vira tres
 // linhas cortadas. Corta o ruido e o tamanho; o nome bom mesmo vem da
 // mensagem que a IA escreve (a linha do produto), este e o plano B.
-const LIXO_TITULO = /\b(original|lacrad[oa]s?|novo|nova|pronta\s+entrega|envio\s+imediato|entrega\s+r[aá]pida|nota\s+fiscal|nf[- ]?e?|com\s+nf|frete\s+gr[aá]tis|promo[cç][aã]o|oferta|imperd[ií]vel|barato|melhor\s+pre[cç]o|12x|sem\s+juros|parcelad[oa])\b/gi;
+const LIXO_TITULO = /\b(original|lacrad[oa]s?|novo|nova|pronta\s+entrega|envio\s+imediato|entrega\s+r[aá]pida|nota\s+fiscal|nf[- ]?e?|com\s+nf|frete\s+gr[aá]tis|promo[cç][aã]o|oferta|imperd[ií]vel|barato|melhor\s+pre[cç]o|12x|sem\s+juros|parcelad[oa]|portugu[eê]s|estampas\s+ilustradas)\b/gi;
+
+const semAcentoTit = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// "Parceiro Inicial - Serie 2 Copag Parceiro Inicial Serie 2": o ML repete a
+// mesma frase pra ganhar busca. Tira a segunda aparicao de qualquer sequencia
+// de 2+ palavras que ja apareceu (palavra solta repetida fica, "Mega Mega X"
+// as vezes e o nome do produto).
+function tiraFraseRepetida(txt) {
+  let p = txt.split(/\s+/).filter(Boolean);
+  for (let volta = 0; volta < 4; volta++) {
+    const n = p.map(semAcentoTit);
+    let mexeu = false;
+    for (let tam = Math.floor(p.length / 2); tam >= 2 && !mexeu; tam--) {
+      for (let i = 0; i + tam <= p.length && !mexeu; i++) {
+        const alvo = n.slice(i, i + tam).join(" ");
+        for (let j = i + tam; j + tam <= p.length; j++) {
+          if (n.slice(j, j + tam).join(" ") === alvo) { p.splice(j, tam); mexeu = true; break; }
+        }
+      }
+    }
+    if (!mexeu) break;
+  }
+  return p.join(" ");
+}
 
 function limparTitulo(t) {
   let s = (t || "")
     .replace(/\s*\|\s*(Mercado ?Livre|MercadoLivre|Amazon(\.com)?(\.br)?).*$/i, "")
     .replace(LIXO_TITULO, " ")
-    .replace(/\s*[-–,]\s*(?=\s*$)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  s = tiraFraseRepetida(s)
+    .replace(/\btcg\b/gi, "TCG")
+    .replace(/\s*[-–,]\s*$/, "")
     .replace(/\s{2,}/g, " ")
     .trim();
   if (s.length > 68) {
-    // corta na ultima palavra inteira antes do limite, sem reticencias no banco
+    // corta na ultima palavra inteira antes do limite, sem deixar conectivo solto
     const corte = s.slice(0, 68);
     const esp = corte.lastIndexOf(" ");
     s = (esp > 40 ? corte.slice(0, esp) : corte).replace(/[\s\-–,]+$/, "");
