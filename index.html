@@ -417,8 +417,8 @@
     <div style="margin-top:12px">
       <span class="label">Validade do cupom</span>
       <div class="seg seg-sm" id="segVal" role="tablist" aria-label="Validade do cupom">
-        <button type="button" class="on" data-v="0" role="tab" aria-selected="true">Sem prazo</button>
-        <button type="button" data-v="24" role="tab" aria-selected="false">24h</button>
+        <button type="button" data-v="0" role="tab" aria-selected="false">Sem prazo</button>
+        <button type="button" class="on" data-v="24" role="tab" aria-selected="true">24h</button>
         <button type="button" data-v="72" role="tab" aria-selected="false">3 dias</button>
         <button type="button" data-v="168" role="tab" aria-selected="false">7 dias</button>
         <button type="button" data-v="data" role="tab" aria-selected="false">Data</button>
@@ -1288,7 +1288,7 @@ $("btnSupaCancel").addEventListener("click", () => {
 });
 
 // Validade do cupom (seg + data)
-let valSel = "0";
+let valSel = "24"; // padrao 24h (pedido do dono 24/09): promo sem prazo ficava no ar ate alguem arquivar
 (function () {
   const seg = $("segVal"), btns = seg.querySelectorAll("button");
   btns.forEach((b) =>
