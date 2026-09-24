@@ -200,6 +200,44 @@
   .mp-btn.del{color:var(--danger)}
   .mp-btn.del:hover{border-color:var(--danger)}
   .mp-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+  /* Cupons no ar (aba Cupons) */
+  #segTela button{min-height:44px}
+  .cp-head{display:flex;align-items:flex-start;gap:10px}
+  .cp-h{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;line-height:1.2;margin:0}
+  .cp-sub{font-size:12.5px;color:var(--muted);margin:5px 0 0;line-height:1.45}
+  .cp-refresh{margin-left:auto;flex-shrink:0;width:44px;height:44px;border-radius:11px;background:var(--panel-2);
+    border:1px solid var(--border);color:var(--muted);font-size:18px;cursor:pointer;font-family:inherit}
+  .cp-refresh:hover{border-color:var(--accent);color:var(--accent-hi)}
+  .cp-refresh:focus-visible{outline:2px solid var(--accent-hi)}
+  .cp-refresh:disabled{opacity:.5;cursor:wait}
+  .cp-list{margin-top:12px}
+  .cp-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--border)}
+  .cp-item:first-child{border-top:0;padding-top:4px}
+  .cp-info{flex:1;min-width:0}
+  .cp-code{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Roboto Mono',monospace;font-size:16px;font-weight:700;letter-spacing:.04em;
+    color:var(--text);background:var(--panel-2);border:1px dashed var(--accent);border-radius:8px;padding:3px 9px}
+  .cp-n{font-size:12px;color:var(--accent-hi);font-weight:600;margin-top:7px}
+  .cp-tits{list-style:none;margin:3px 0 0;padding:0}
+  .cp-tits li{font-size:12px;color:var(--muted);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cp-tits li.cp-mais{opacity:.75}
+  .cp-btn{flex-shrink:0;min-height:44px;min-width:104px;padding:0 14px;border-radius:999px;background:var(--panel-2);
+    color:var(--danger);border:1px solid rgba(252,165,165,.45);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .cp-btn:hover:not(:disabled){border-color:var(--danger)}
+  .cp-btn.armed{background:var(--danger);border-color:var(--danger);color:#2a0f14}
+  .cp-btn:disabled{opacity:.6;cursor:wait}
+  .cp-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+  .cp-msg{font-size:13px;color:var(--muted);line-height:1.5;padding:4px 0}
+  .cp-msg .go{margin-top:10px}
+  .cp-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;
+    width:calc(100% - 28px);max-width:532px;display:flex;align-items:center;gap:10px;background:#2d1f52;
+    border:1px solid var(--accent);border-radius:14px;padding:8px 8px 8px 14px;box-shadow:0 10px 30px rgba(0,0,0,.45);
+    font-size:13px;line-height:1.4;min-height:60px}
+  .cp-toast span{flex:1;min-width:0}
+  .cp-toast button{flex-shrink:0;min-height:44px;padding:0 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;
+    font-weight:700;font-size:13.5px;font-family:inherit;cursor:pointer}
+  .cp-toast button:disabled{opacity:.6;cursor:wait}
+  .cp-toast button:focus-visible{outline:2px solid #fff;outline-offset:2px}
   summary.label{cursor:pointer;list-style:none;margin:0}
   summary.label::-webkit-details-marker{display:none}
 
@@ -224,13 +262,28 @@
   </header>
 
   <div class="card">
-    <span class="label">Tipo de mensagem</span>
-    <div class="seg" role="tablist" aria-label="Tipo de mensagem">
-      <button id="modePromo" class="on" role="tab" aria-selected="true">🔥 Promoção</button>
-      <button id="modeCupom" role="tab" aria-selected="false">🎫 Cupom</button>
+    <span class="label">O que você vai fazer</span>
+    <div class="seg" id="segTela" role="tablist" aria-label="Telas do gerador">
+      <button type="button" id="modePromo" class="on" role="tab" aria-selected="true" aria-controls="viewPromo">🔥 Promoção</button>
+      <button type="button" id="modeCupom" role="tab" aria-selected="false" aria-controls="viewCupons">🎫 Cupons</button>
     </div>
   </div>
 
+  <!-- Aba Cupons: gestao dos cupons que estao no ar (encerrar em lote quando esgota) -->
+  <section id="viewCupons" class="hidden" role="tabpanel" aria-labelledby="cpTitulo">
+    <div class="card">
+      <div class="cp-head">
+        <div>
+          <h2 class="cp-h" id="cpTitulo">Cupons no ar</h2>
+          <p class="cp-sub">Cupom esgotou? Toque em Esgotou e todas as promos com ele saem do app e do site.</p>
+        </div>
+        <button type="button" class="cp-refresh" id="cpRefresh" aria-label="Atualizar a lista de cupons">↻</button>
+      </div>
+      <div class="cp-list" id="cpList" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <div id="viewPromo" role="tabpanel" aria-labelledby="modePromo">
   <div class="card">
     <span class="label">Print da oferta</span>
     <button type="button" class="drop" id="drop">
@@ -390,6 +443,13 @@
       <div id="mpList" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
     </details>
   </div>
+  </div><!-- /viewPromo -->
+</div>
+
+<!-- Aviso de cupom encerrado (com Desfazer) -->
+<div class="cp-toast hidden" id="cpToast" role="status" aria-live="polite">
+  <span id="cpToastMsg"></span>
+  <button type="button" id="cpDesfazer">Desfazer</button>
 </div>
 
 <!-- Editor de recorte da imagem do post -->
@@ -412,8 +472,8 @@
 <!-- Login Supabase (conta admin do site) -->
 <div class="gate hidden" id="supaGate">
   <div class="gate-card">
-    <h2>🔑 Entrar pra publicar</h2>
-    <p>Entre com a conta admin do site (a mesma do app Minha Coleção). A sessão fica salva <b>somente neste aparelho</b>.</p>
+    <h2>🔑 Entrar na conta admin</h2>
+    <p>Use a conta admin do site (a mesma do app Minha Coleção). A sessão fica salva <b>somente neste aparelho</b>.</p>
     <input type="text" id="supaEmail" inputmode="email" placeholder="email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     <input type="text" class="masked" id="supaPass" placeholder="senha" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-top:8px">
     <button class="go" id="btnSupaLogin">Entrar</button>
@@ -491,7 +551,7 @@ const STYLE_HINTS = [
   "um toque leve de empolgação de colecionador, sem forçar",
 ];
 
-let mode = "promo";
+const mode = "promo"; // único modo de geração (o de cupom saiu em 24/09/2026)
 let images = []; // {data, media_type, preview, id}
 let history = []; // {id, text, mode, offerKey, time}
 let loading = false;
@@ -515,16 +575,23 @@ $("btnGear").addEventListener("click", () => {
 });
 ensureKey();
 
-// ── Modo ─────────────────────────────────────────────────────
-function setMode(m) {
-  mode = m;
-  $("modePromo").classList.toggle("on", m === "promo");
-  $("modeCupom").classList.toggle("on", m === "cupom");
-  $("modePromo").setAttribute("aria-selected", m === "promo");
-  $("modeCupom").setAttribute("aria-selected", m === "cupom");
+// ── Telas: Promoção (gerar + publicar) · Cupons (gestão) ─────
+// A aba Cupons era um modo de gerar mensagem de divulgação de cupom que nunca
+// foi usado (24/09/2026): virou a gestão dos cupons no ar. Só existe um modo de
+// geração agora, "promo"; itens antigos do histórico com mode "cupom" continuam
+// mostrando a etiqueta "cupom" (renderHistory).
+function setTela(t) {
+  const cupons = t === "cupons";
+  $("modePromo").classList.toggle("on", !cupons);
+  $("modeCupom").classList.toggle("on", cupons);
+  $("modePromo").setAttribute("aria-selected", String(!cupons));
+  $("modeCupom").setAttribute("aria-selected", String(cupons));
+  $("viewPromo").classList.toggle("hidden", cupons);
+  $("viewCupons").classList.toggle("hidden", !cupons);
+  if (cupons) loadCupons();
 }
-$("modePromo").addEventListener("click", () => setMode("promo"));
-$("modeCupom").addEventListener("click", () => setMode("cupom"));
+$("modePromo").addEventListener("click", () => setTela("promo"));
+$("modeCupom").addEventListener("click", () => setTela("cupons"));
 
 // ── Toggles Sim/Não (nome da loja · total do desconto) ───────
 function initSeg(id) {
@@ -926,7 +993,7 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
       (cupomPct ? cupomPct + "% OFF" : "") + "."
     : "- Sem cupom informado: só cite cupom se estiver visível no print ou nas observações.";
   const hint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
-  const modeLabel = mode === "promo" ? "PROMOÇÃO (oferta de produto)" : "CUPOM (divulgação de cupom de desconto)";
+  const modeLabel = "PROMOÇÃO (oferta de produto)";
   const richRules = allowRich
     ? "- Pode usar *negrito* (no preço final e em código de cupom) e ~tachado~ (no preço antigo). Com moderação."
     : "- NÃO use negrito, tachado nem itálico. Texto puro, só emojis e quebras de linha.";
@@ -1125,7 +1192,7 @@ function renderHistory(currentKey) {
 
     const meta = document.createElement("div"); meta.className = "wa-meta";
     const tag = document.createElement("span"); tag.className = "wa-tag";
-    tag.textContent = item.mode === "promo" ? "promoção" : "cupom";
+    tag.textContent = item.mode === "cupom" ? "cupom" : "promoção"; // "cupom" = item antigo do modo que saiu
     meta.appendChild(tag);
     meta.appendChild(document.createTextNode(item.time + " ✓✓"));
     bubble.appendChild(meta);
@@ -1188,9 +1255,10 @@ async function supaToken() {
   } catch { setSess(null); return null; }
 }
 
-let pendingAfterLogin = null;
-function openLogin(next) {
+let pendingAfterLogin = null, cancelAfterLogin = null;
+function openLogin(next, onCancel) {
   pendingAfterLogin = next || null;
+  cancelAfterLogin = onCancel || null;
   $("supaErr").classList.add("hidden");
   $("supaGate").classList.remove("hidden");
   $("supaEmail").focus();
@@ -1205,6 +1273,7 @@ $("btnSupaLogin").addEventListener("click", async () => {
     saveSessFrom(data);
     $("supaPass").value = "";
     $("supaGate").classList.add("hidden");
+    cancelAfterLogin = null;
     if (pendingAfterLogin) { const fn = pendingAfterLogin; pendingAfterLogin = null; fn(); }
   } catch (e) {
     const el = $("supaErr");
@@ -1212,7 +1281,11 @@ $("btnSupaLogin").addEventListener("click", async () => {
     el.classList.remove("hidden");
   } finally { b.disabled = false; b.textContent = "Entrar"; }
 });
-$("btnSupaCancel").addEventListener("click", () => { $("supaGate").classList.add("hidden"); pendingAfterLogin = null; });
+$("btnSupaCancel").addEventListener("click", () => {
+  $("supaGate").classList.add("hidden"); pendingAfterLogin = null;
+  const fn = cancelAfterLogin; cancelAfterLogin = null;
+  if (fn) fn();
+});
 
 // Validade do cupom (seg + data)
 let valSel = "0";
@@ -1829,6 +1902,254 @@ async function excluirPromo(p, btn) {
 }
 
 $("mpBox").addEventListener("toggle", () => { if ($("mpBox").open) loadMinhasPromos(); });
+
+// ── Cupons no ar (aba Cupons) ────────────────────────────────
+// Cupom esgotou -> um toque encerra (ativa=false) TODAS as promos no ar com
+// aquele código. Desativar/reativar não dispara push (o gatilho do app só
+// olha promo que fica ativa com push_enviado_em vazio). Desfazer por 8 s.
+const normCupom = (c) => String(c || "").trim().toUpperCase();
+let cpSeq = 0;          // descarta resposta de carga antiga
+let cpUndo = null;      // { ids, codigo, salvos: [{item, idx}] }
+let cpToastTimer = null;
+
+function cpErroHttp(res) { const e = new Error("http " + res.status); e.status = res.status; return e; }
+
+async function cpBuscarAtivas(token) {
+  const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,cupom_codigo,created_at,expira_em&ativa=eq.true&cupom_codigo=neq.&order=created_at.desc",
+    { headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } });
+  if (!res.ok) throw cpErroHttp(res);
+  const rows = await res.json();
+  // prazo vencido = encerrada (mesma regra de Minhas promos), mesmo com ativa=true
+  const agora = Date.now();
+  return Array.isArray(rows) ? rows.filter((p) => !p.expira_em || new Date(p.expira_em) > agora) : [];
+}
+
+// PATCH em lote; devolve os ids que o banco mudou de fato (return=representation)
+async function cpSetAtiva(ids, ativa, token) {
+  const res = await fetch(SUPA + "/rest/v1/promos?id=in.(" + ids.join(",") + ")&ativa=eq." + String(!ativa), {
+    method: "PATCH",
+    headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
+    body: JSON.stringify({ ativa }),
+  });
+  if (!res.ok) throw cpErroHttp(res);
+  const rows = await res.json().catch(() => []);
+  return Array.isArray(rows) ? rows.map((r) => r.id) : [];
+}
+
+function cpAgrupar(rows) {
+  const m = new Map();
+  rows.forEach((p) => {
+    const c = normCupom(p.cupom_codigo);
+    if (!c) return;
+    let g = m.get(c);
+    if (!g) { g = { codigo: c, promos: [], recente: 0 }; m.set(c, g); }
+    g.promos.push(p);
+    const t = Date.parse(p.created_at) || 0;
+    if (t > g.recente) g.recente = t;
+  });
+  return [...m.values()].sort((a, b) => b.promos.length - a.promos.length || b.recente - a.recente);
+}
+
+const nPromos = (n) => n + (n === 1 ? " promo" : " promos");
+
+function cpMensagem(texto, botao, acao) {
+  const box = $("cpList");
+  box.textContent = "";
+  const d = document.createElement("div"); d.className = "cp-msg";
+  const p = document.createElement("div"); p.textContent = texto; d.appendChild(p);
+  if (botao) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "go";
+    b.textContent = botao; b.addEventListener("click", acao);
+    d.appendChild(b);
+  }
+  box.appendChild(d);
+}
+
+function cpPedirLogin(texto) {
+  cpMensagem(texto || "Entre com a conta admin do site pra ver os cupons no ar.", "Entrar", () => openLogin(loadCupons));
+}
+
+async function loadCupons() {
+  const seq = ++cpSeq;
+  const box = $("cpList");
+  const token = await supaToken();
+  if (seq !== cpSeq) return;
+  if (!token) { cpPedirLogin(); return; }
+  if (!box.querySelector(".cp-item")) cpMensagem("Carregando cupons...");
+  $("cpRefresh").disabled = true;
+  try {
+    const rows = await cpBuscarAtivas(token);
+    if (seq !== cpSeq) return;
+    renderCupomGrupos(cpAgrupar(rows));
+  } catch (e) {
+    if (seq !== cpSeq) return;
+    if (e.status === 401) { setSess(null); cpPedirLogin("Sua sessão venceu. Entre de novo pra ver os cupons."); return; }
+    cpMensagem("Não deu pra carregar os cupons.", "Tentar de novo", loadCupons);
+  } finally {
+    if (seq === cpSeq) $("cpRefresh").disabled = false;
+  }
+}
+$("cpRefresh").addEventListener("click", loadCupons);
+
+function renderCupomGrupos(grupos) {
+  const box = $("cpList");
+  box.textContent = "";
+  if (!grupos.length) { cpMensagem("Nenhum cupom no ar agora."); return; }
+  grupos.forEach((g) => {
+    const it = document.createElement("div"); it.className = "cp-item";
+    const info = document.createElement("div"); info.className = "cp-info";
+    const code = document.createElement("div"); code.className = "cp-code"; code.textContent = g.codigo;
+    const n = document.createElement("div"); n.className = "cp-n"; n.textContent = nPromos(g.promos.length);
+    const ul = document.createElement("ul"); ul.className = "cp-tits";
+    g.promos.slice(0, 3).forEach((p) => {
+      const li = document.createElement("li"); li.textContent = p.titulo || "(sem título)"; li.title = p.titulo || "";
+      ul.appendChild(li);
+    });
+    if (g.promos.length > 3) {
+      const li = document.createElement("li"); li.className = "cp-mais"; li.textContent = "e mais " + (g.promos.length - 3);
+      ul.appendChild(li);
+    }
+    info.appendChild(code); info.appendChild(n); info.appendChild(ul);
+    const b = document.createElement("button"); b.type = "button"; b.className = "cp-btn";
+    cpDesarmar(b, g);
+    b.addEventListener("click", () => cpEsgotou(g, b));
+    it.appendChild(info); it.appendChild(b);
+    box.appendChild(it);
+  });
+}
+
+// O Desfazer só existe enquanto o aviso dele está na tela: aviso sem Desfazer
+// descarta o pendente, e o prazo só descarta o Desfazer que era dele.
+function cpAgendarFim(dono, ms) {
+  clearTimeout(cpToastTimer);
+  cpToastTimer = setTimeout(() => {
+    $("cpToast").classList.add("hidden");
+    if (cpUndo === dono) cpUndo = null;
+  }, ms || 8000);
+}
+function cpToast(texto, comDesfazer, ms) {
+  if (!comDesfazer) cpUndo = null;
+  $("cpToastMsg").textContent = texto;
+  const b = $("cpDesfazer");
+  b.classList.toggle("hidden", !comDesfazer); b.disabled = false;
+  $("cpToast").classList.remove("hidden");
+  cpAgendarFim(cpUndo, ms);
+}
+
+// Tira o código dos cupons salvos (chips do formulário); guarda pra devolver no Desfazer
+function cpTirarDosSalvos(codigo) {
+  const salvos = getCupons(), tirados = [];
+  const ficam = salvos.filter((o, idx) => {
+    if (normCupom(o.c) === codigo) { tirados.push({ item: o, idx }); return false; }
+    return true;
+  });
+  if (tirados.length) { setCupons(ficam); renderCupons(); }
+  return tirados;
+}
+function cpDevolverAosSalvos(tirados) {
+  if (!tirados || !tirados.length) return;
+  const lista = getCupons();
+  tirados.forEach(({ item, idx }) => {
+    if (lista.some((o) => normCupom(o.c) === normCupom(item.c))) return;
+    lista.splice(Math.min(idx, lista.length), 0, item);
+  });
+  setCupons(lista); renderCupons();
+}
+
+function cpDepois() {
+  loadCupons();
+  if (typeof loadMinhasPromos === "function") loadMinhasPromos(true);
+}
+
+function cpDesarmar(btn, g) {
+  clearTimeout(btn._revert);
+  btn.dataset.confirm = ""; btn.classList.remove("armed");
+  btn.textContent = "Esgotou";
+  btn.setAttribute("aria-label", "Cupom " + g.codigo + " esgotou: encerrar " + nPromos(g.promos.length));
+}
+
+// Guarda o código que está no formulário de Promoção, se for o cupom que esgotou,
+// e limpa o campo pra ele não ir de novo na próxima promo
+function cpTirarDoCampo(codigo) {
+  if (normCupom($("cupom").value) !== codigo) return null;
+  const campo = { c: $("cupom").value, p: $("cupomPct").value };
+  $("cupom").value = ""; $("cupomPct").value = "";
+  return campo;
+}
+function cpDevolverAoCampo(campo) {
+  if (!campo || $("cupom").value.trim()) return;
+  $("cupom").value = campo.c; $("cupomPct").value = campo.p;
+}
+
+// 1º toque arma ("Encerrar N?" por 3 s), 2º toque encerra. Sem diálogo nativo.
+// Toque duplo colado (menos de 400 ms) não confirma, e o botão trava enquanto trabalha.
+async function cpEsgotou(g, btn) {
+  if (btn._busy) return;
+  if (btn.dataset.confirm !== "1") {
+    btn.dataset.confirm = "1"; btn.classList.add("armed"); btn._armadoEm = Date.now();
+    btn.textContent = "Encerrar " + g.promos.length + "?";
+    btn.setAttribute("aria-label", "Toque de novo pra encerrar " + nPromos(g.promos.length) + " com " + g.codigo);
+    btn._revert = setTimeout(() => cpDesarmar(btn, g), 3000);
+    return;
+  }
+  if (Date.now() - (btn._armadoEm || 0) < 400) return;
+  clearTimeout(btn._revert); btn.dataset.confirm = ""; btn.classList.remove("armed");
+  btn._busy = true; btn.disabled = true; btn.textContent = "Encerrando...";
+  const liberar = () => { btn._busy = false; btn.disabled = false; cpDesarmar(btn, g); };
+  const token = await supaToken();
+  if (!token) { liberar(); openLogin(loadCupons); return; }
+  try {
+    // busca de novo: pega promo com esse cupom publicada depois que a tela abriu
+    const ativas = await cpBuscarAtivas(token);
+    const ids = ativas.filter((p) => normCupom(p.cupom_codigo) === g.codigo).map((p) => p.id);
+    if (!ids.length) { cpToast("Nenhuma promo com " + g.codigo + " estava no ar.", false, 4000); cpDepois(); return; }
+    const feitos = await cpSetAtiva(ids, false, token);
+    if (!feitos.length) throw new Error("Nada mudou. Essa conta tem permissão de editar as promos?");
+    const salvos = cpTirarDosSalvos(g.codigo);
+    const campo = cpTirarDoCampo(g.codigo);
+    cpUndo = { ids: feitos, codigo: g.codigo, salvos, campo };
+    cpToast(nPromos(feitos.length) + " com " + g.codigo + (feitos.length === 1 ? " encerrada" : " encerradas"), true, 8000);
+    cpDepois();
+  } catch (e) {
+    liberar();
+    if (e.status === 401) { setSess(null); openLogin(loadCupons); return; }
+    cpToast(e.status ? "Não deu pra encerrar " + g.codigo + ". Tente de novo." : (e.message || "Não deu pra encerrar. Tente de novo."), false, 5000);
+  }
+}
+
+// Login do Desfazer cancelado: o aviso volta a ter prazo pra sumir
+function cpUndoLoginCancelado() {
+  if (!cpUndo) return;
+  $("cpToastMsg").textContent = "Promos com " + cpUndo.codigo + " seguem encerradas.";
+  cpAgendarFim(cpUndo, 8000);
+}
+
+async function cpDesfazer() {
+  const u = cpUndo;
+  const b = $("cpDesfazer");
+  if (!u || b.disabled) return;
+  // trava antes de qualquer espera: toque repetido não manda o PATCH duas vezes
+  b.disabled = true; cpUndo = null;
+  clearTimeout(cpToastTimer); // o aviso não some enquanto volta (nem durante o login)
+  $("cpToastMsg").textContent = "Voltando as promos...";
+  const token = await supaToken();
+  if (!token) { cpUndo = u; b.disabled = false; openLogin(cpDesfazer, cpUndoLoginCancelado); return; }
+  try {
+    const volta = await cpSetAtiva(u.ids, true, token);
+    cpDevolverAosSalvos(u.salvos);
+    cpDevolverAoCampo(u.campo);
+    // se outro cupom foi encerrado nesse meio tempo, o aviso (e o Desfazer) dele fica
+    if (!cpUndo) cpToast(nPromos(volta.length) + " com " + u.codigo + " de volta no ar", false, 3500);
+    cpDepois();
+  } catch (e) {
+    if (cpUndo) return; // outro cupom já tomou o aviso
+    cpUndo = u; b.disabled = false;
+    if (e.status === 401) { setSess(null); openLogin(cpDesfazer, cpUndoLoginCancelado); return; }
+    $("cpToastMsg").textContent = "Não deu pra desfazer. Toque de novo.";
+    cpAgendarFim(u, 8000);
+  }
+}
+$("cpDesfazer").addEventListener("click", cpDesfazer);
 
 // ── PWA ──────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
