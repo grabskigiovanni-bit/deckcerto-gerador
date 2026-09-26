@@ -184,7 +184,7 @@
   .set-chip button{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
   .pub-ok{margin-top:11px;font-size:13px;color:#86efac;background:rgba(134,239,172,.08);
     border:1px solid rgba(134,239,172,.25);border-radius:10px;padding:9px 12px}
-  .mp-item{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}
+  .mp-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--border)}
   .mp-item:first-of-type{border-top:0}
   .mp-item img{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0}
   .mp-info{flex:1;min-width:0}
@@ -194,12 +194,20 @@
   .mp-st .live{color:#86efac}
   .mp-st .dead{color:var(--danger)}
   .mp-btn{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:999px;
-    font-size:11.5px;padding:6px 11px;cursor:pointer;font-family:inherit;flex-shrink:0}
+    font-size:11.5px;padding:0 12px;min-height:32px;cursor:pointer;font-family:inherit;flex-shrink:0}
   .mp-btn:hover{border-color:var(--accent)}
   .mp-btn:disabled{opacity:.5;cursor:wait}
+  .mp-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:1px}
   .mp-btn.del{color:var(--danger)}
   .mp-btn.del:hover{border-color:var(--danger)}
-  .mp-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+  .mp-btn.esg{color:#fcd34d;border-color:rgba(252,211,77,.35)}
+  .mp-btn.esg:hover{border-color:#fcd34d}
+  .mp-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  /* Esgotada: aparece apagada no app/site por 48 h e some sozinha */
+  .mp-selo{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#1a1426;background:#b9b1cc;border-radius:999px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+  .mp-item.is-esg img{filter:grayscale(1);opacity:.5}
+  .mp-item.is-esg .mp-title{color:var(--muted)}
   /* Cupons no ar (aba Cupons) */
   #segTela button{min-height:44px}
   .cp-head{display:flex;align-items:flex-start;gap:10px}
@@ -269,13 +277,13 @@
     </div>
   </div>
 
-  <!-- Aba Cupons: gestao dos cupons que estao no ar (encerrar em lote quando esgota) -->
+  <!-- Aba Cupons: gestao dos cupons que estao no ar (marcar esgotadas em lote quando o cupom acaba) -->
   <section id="viewCupons" class="hidden" role="tabpanel" aria-labelledby="cpTitulo">
     <div class="card">
       <div class="cp-head">
         <div>
           <h2 class="cp-h" id="cpTitulo">Cupons no ar</h2>
-          <p class="cp-sub">Cupom esgotou? Toque em Esgotou e todas as promos com ele saem do app e do site.</p>
+          <p class="cp-sub">Cupom esgotou? Toque em Esgotou: todas as promos com ele aparecem como esgotadas no app e no site por 48 horas e depois somem sozinhas.</p>
         </div>
         <button type="button" class="cp-refresh" id="cpRefresh" aria-label="Atualizar a lista de cupons">↻</button>
       </div>
@@ -446,7 +454,7 @@
   </div><!-- /viewPromo -->
 </div>
 
-<!-- Aviso de cupom encerrado (com Desfazer) -->
+<!-- Aviso de cupom esgotado (com Desfazer) -->
 <div class="cp-toast hidden" id="cpToast" role="status" aria-live="polite">
   <span id="cpToastMsg"></span>
   <button type="button" id="cpDesfazer">Desfazer</button>
@@ -1800,8 +1808,30 @@ function prefillPublish(text) {
 }
 
 // ── Minhas promos no site ────────────────────────────────────
+// Esgotada (25/09/2026) = esgotada_em preenchido. A promo segue ativa=true: o app e
+// o site mostram ela apagada, com selo "Esgotada", por 48 h depois de esgotada_em e
+// ela some sozinha (filtro na leitura, sem job). Arquivar (ativa=false) continua
+// tirando na hora. Mexer só em esgotada_em não dispara push (o gatilho olha set_slug e ativa).
+const ESG_JANELA_MS = 48 * 3600e3;
+const MSG_SEM_COLUNA = "O banco ainda não tem a coluna esgotada_em. Rode o SQL do Esgotada antes de usar este botão.";
+const esgVisivel = (p) => !!p.esgotada_em && new Date(p.esgotada_em).getTime() + ESG_JANELA_MS > Date.now();
+
+// Erro do PATCH de esgotada_em: banco sem a coluna (SQL de 25/09 ainda não aplicado)
+// vira um aviso claro em vez de "tente de novo"
+async function erroEsgotada(res) {
+  const d = await res.json().catch(() => ({}));
+  const e = new Error("http " + res.status); e.status = res.status;
+  if (/esgotada_em/.test((d && d.message) || "")) e.semColuna = true;
+  return e;
+}
+
 function mpStatus(p) {
-  if (!p.ativa) return '<span class="dead">arquivada</span>';
+  if (!p.ativa) return '<span class="dead">arquivada</span>' + (p.esgotada_em ? " · esgotada" : "");
+  if (p.esgotada_em) {
+    const resta = new Date(p.esgotada_em).getTime() + ESG_JANELA_MS - Date.now();
+    return '<span class="mp-selo">Esgotada</span>' +
+      (resta > 0 ? "some do app e do site em " + Math.max(1, Math.ceil(resta / 3600e3)) + "h" : "já saiu do app e do site");
+  }
   if (p.expira_em) {
     const ms = new Date(p.expira_em) - Date.now();
     if (ms <= 0) return '<span class="dead">encerrada</span>';
@@ -1823,26 +1853,35 @@ async function loadMinhasPromos(force) {
     const rows = await res.json();
     if (!res.ok) throw new Error();
     list.dataset.loaded = "1";
-    const noAr = rows.filter((p) => p.ativa && (!p.expira_em || new Date(p.expira_em) > Date.now())).length;
-    $("mpCount").textContent = noAr + " no ar";
+    // esgotada não conta como "no ar" (mesma regra do número de ofertas ativas do app)
+    const noAr = rows.filter((p) => p.ativa && !p.esgotada_em && (!p.expira_em || new Date(p.expira_em) > Date.now())).length;
+    const esg = rows.filter((p) => p.ativa && esgVisivel(p)).length;
+    $("mpCount").textContent = noAr + " no ar" + (esg ? " · " + esg + (esg === 1 ? " esgotada" : " esgotadas") : "");
     list.textContent = "";
     if (!rows.length) { list.textContent = "Nenhuma promo publicada ainda."; return; }
     rows.forEach((p) => {
-      const it = document.createElement("div"); it.className = "mp-item";
+      const it = document.createElement("div"); it.className = "mp-item" + (p.esgotada_em ? " is-esg" : "");
       const im = document.createElement("img"); im.src = p.imagem; im.alt = ""; im.loading = "lazy";
       const info = document.createElement("div"); info.className = "mp-info";
       const t = document.createElement("div"); t.className = "mp-title"; t.textContent = p.titulo;
       const st = document.createElement("div"); st.className = "mp-st"; st.innerHTML = mpStatus(p) + mpSet(p, setsAll);
-      info.appendChild(t); info.appendChild(st);
-      const b = document.createElement("button"); b.className = "mp-btn";
+      const acts = document.createElement("div"); acts.className = "mp-actions";
+      // Esgotou só faz sentido em promo no ar; Desfazer esgotado aparece sempre que está marcada
+      if (p.ativa || p.esgotada_em) {
+        const e = document.createElement("button"); e.type = "button"; e.className = "mp-btn esg";
+        e.textContent = p.esgotada_em ? "Desfazer esgotado" : "Esgotou";
+        e.addEventListener("click", () => toggleEsgotada(p, e));
+        acts.appendChild(e);
+      }
+      const b = document.createElement("button"); b.type = "button"; b.className = "mp-btn";
       b.textContent = p.ativa ? "Arquivar" : "Reativar";
       b.addEventListener("click", () => toggleAtiva(p, b));
-      const del = document.createElement("button"); del.className = "mp-btn del";
+      const del = document.createElement("button"); del.type = "button"; del.className = "mp-btn del";
       del.textContent = "Excluir";
       del.addEventListener("click", () => excluirPromo(p, del));
-      const acts = document.createElement("div"); acts.className = "mp-actions";
       acts.appendChild(b); acts.appendChild(del);
-      it.appendChild(im); it.appendChild(info); it.appendChild(acts);
+      info.appendChild(t); info.appendChild(st); info.appendChild(acts);
+      it.appendChild(im); it.appendChild(info);
       list.appendChild(it);
     });
   } catch {
@@ -1866,6 +1905,29 @@ async function toggleAtiva(p, btn) {
   } catch {
     btn.disabled = false;
     pubError("Não deu pra atualizar essa promo. Tente de novo.");
+  }
+}
+// Esgotou: esgotada_em = agora (NÃO arquiva). Desfazer esgotado: esgotada_em = null.
+// return=representation: lista vazia = o banco não mudou nada (RLS de outra conta).
+async function toggleEsgotada(p, btn) {
+  if (btn._busy) return;
+  const token = await supaToken();
+  if (!token) { openLogin(() => toggleEsgotada(p, btn)); return; }
+  btn._busy = true; btn.disabled = true;
+  try {
+    const res = await fetch(SUPA + "/rest/v1/promos?id=eq." + p.id, {
+      method: "PATCH",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ esgotada_em: p.esgotada_em ? null : new Date().toISOString() }),
+    });
+    if (!res.ok) throw await erroEsgotada(res);
+    const rows = await res.json().catch(() => []);
+    if (!Array.isArray(rows) || !rows.length) throw new Error("Nada mudou. Essa conta tem permissão de editar as promos?");
+    loadMinhasPromos(true);
+  } catch (e) {
+    btn._busy = false; btn.disabled = false;
+    if (e.status === 401) { setSess(null); openLogin(() => toggleEsgotada(p, btn)); return; }
+    pubError(e.semColuna ? MSG_SEM_COLUNA : e.status ? "Não deu pra atualizar essa promo. Tente de novo." : (e.message || "Não deu pra atualizar essa promo. Tente de novo."));
   }
 }
 // Excluir de vez (2 toques pra confirmar, sem dialog): apaga a linha + a imagem do storage
@@ -1904,9 +1966,10 @@ async function excluirPromo(p, btn) {
 $("mpBox").addEventListener("toggle", () => { if ($("mpBox").open) loadMinhasPromos(); });
 
 // ── Cupons no ar (aba Cupons) ────────────────────────────────
-// Cupom esgotou -> um toque encerra (ativa=false) TODAS as promos no ar com
-// aquele código. Desativar/reativar não dispara push (o gatilho do app só
-// olha promo que fica ativa com push_enviado_em vazio). Desfazer por 8 s.
+// Cupom esgotou -> um toque marca esgotada_em = agora em TODAS as promos no ar
+// com aquele código (ativa segue true: ficam 48 h apagadas no app e no site e
+// somem sozinhas). Só esgotada_em muda, então não dispara push (o gatilho do app
+// olha set_slug e ativa). Desfazer por 8 s volta esgotada_em = null.
 const normCupom = (c) => String(c || "").trim().toUpperCase();
 let cpSeq = 0;          // descarta resposta de carga antiga
 let cpUndo = null;      // { ids, codigo, salvos: [{item, idx}] }
@@ -1915,23 +1978,27 @@ let cpToastTimer = null;
 function cpErroHttp(res) { const e = new Error("http " + res.status); e.status = res.status; return e; }
 
 async function cpBuscarAtivas(token) {
-  const res = await fetch(SUPA + "/rest/v1/promos?select=id,titulo,cupom_codigo,created_at,expira_em&ativa=eq.true&cupom_codigo=neq.&order=created_at.desc",
+  // select=* : a lista não quebra se o banco ainda não tem a coluna esgotada_em
+  const res = await fetch(SUPA + "/rest/v1/promos?select=*&ativa=eq.true&cupom_codigo=neq.&order=created_at.desc",
     { headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } });
   if (!res.ok) throw cpErroHttp(res);
   const rows = await res.json();
-  // prazo vencido = encerrada (mesma regra de Minhas promos), mesmo com ativa=true
+  // prazo vencido = encerrada (mesma regra de Minhas promos), mesmo com ativa=true;
+  // já esgotada também não está mais "no ar"
   const agora = Date.now();
-  return Array.isArray(rows) ? rows.filter((p) => !p.expira_em || new Date(p.expira_em) > agora) : [];
+  return Array.isArray(rows) ? rows.filter((p) => !p.esgotada_em && (!p.expira_em || new Date(p.expira_em) > agora)) : [];
 }
 
-// PATCH em lote; devolve os ids que o banco mudou de fato (return=representation)
-async function cpSetAtiva(ids, ativa, token) {
-  const res = await fetch(SUPA + "/rest/v1/promos?id=in.(" + ids.join(",") + ")&ativa=eq." + String(!ativa), {
+// PATCH em lote só de esgotada_em; devolve os ids que o banco mudou de fato
+// (return=representation). O filtro só pega quem está no estado oposto.
+async function cpSetEsgotada(ids, esgotar, token) {
+  const filtro = esgotar ? "&ativa=eq.true&esgotada_em=is.null" : "&esgotada_em=not.is.null";
+  const res = await fetch(SUPA + "/rest/v1/promos?id=in.(" + ids.join(",") + ")" + filtro, {
     method: "PATCH",
     headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
-    body: JSON.stringify({ ativa }),
+    body: JSON.stringify({ esgotada_em: esgotar ? new Date().toISOString() : null }),
   });
-  if (!res.ok) throw cpErroHttp(res);
+  if (!res.ok) throw await erroEsgotada(res);
   const rows = await res.json().catch(() => []);
   return Array.isArray(rows) ? rows.map((r) => r.id) : [];
 }
@@ -2065,7 +2132,7 @@ function cpDesarmar(btn, g) {
   clearTimeout(btn._revert);
   btn.dataset.confirm = ""; btn.classList.remove("armed");
   btn.textContent = "Esgotou";
-  btn.setAttribute("aria-label", "Cupom " + g.codigo + " esgotou: encerrar " + nPromos(g.promos.length));
+  btn.setAttribute("aria-label", "Cupom " + g.codigo + " esgotou: marcar " + nPromos(g.promos.length) + " como esgotadas");
 }
 
 // Guarda o código que está no formulário de Promoção, se for o cupom que esgotou,
@@ -2081,20 +2148,20 @@ function cpDevolverAoCampo(campo) {
   $("cupom").value = campo.c; $("cupomPct").value = campo.p;
 }
 
-// 1º toque arma ("Encerrar N?" por 3 s), 2º toque encerra. Sem diálogo nativo.
+// 1º toque arma ("Esgotar N?" por 3 s), 2º toque marca esgotadas. Sem diálogo nativo.
 // Toque duplo colado (menos de 400 ms) não confirma, e o botão trava enquanto trabalha.
 async function cpEsgotou(g, btn) {
   if (btn._busy) return;
   if (btn.dataset.confirm !== "1") {
     btn.dataset.confirm = "1"; btn.classList.add("armed"); btn._armadoEm = Date.now();
-    btn.textContent = "Encerrar " + g.promos.length + "?";
-    btn.setAttribute("aria-label", "Toque de novo pra encerrar " + nPromos(g.promos.length) + " com " + g.codigo);
+    btn.textContent = "Esgotar " + g.promos.length + "?";
+    btn.setAttribute("aria-label", "Toque de novo pra marcar " + nPromos(g.promos.length) + " com " + g.codigo + " como esgotadas");
     btn._revert = setTimeout(() => cpDesarmar(btn, g), 3000);
     return;
   }
   if (Date.now() - (btn._armadoEm || 0) < 400) return;
   clearTimeout(btn._revert); btn.dataset.confirm = ""; btn.classList.remove("armed");
-  btn._busy = true; btn.disabled = true; btn.textContent = "Encerrando...";
+  btn._busy = true; btn.disabled = true; btn.textContent = "Marcando...";
   const liberar = () => { btn._busy = false; btn.disabled = false; cpDesarmar(btn, g); };
   const token = await supaToken();
   if (!token) { liberar(); openLogin(loadCupons); return; }
@@ -2103,24 +2170,25 @@ async function cpEsgotou(g, btn) {
     const ativas = await cpBuscarAtivas(token);
     const ids = ativas.filter((p) => normCupom(p.cupom_codigo) === g.codigo).map((p) => p.id);
     if (!ids.length) { cpToast("Nenhuma promo com " + g.codigo + " estava no ar.", false, 4000); cpDepois(); return; }
-    const feitos = await cpSetAtiva(ids, false, token);
+    const feitos = await cpSetEsgotada(ids, true, token);
     if (!feitos.length) throw new Error("Nada mudou. Essa conta tem permissão de editar as promos?");
     const salvos = cpTirarDosSalvos(g.codigo);
     const campo = cpTirarDoCampo(g.codigo);
     cpUndo = { ids: feitos, codigo: g.codigo, salvos, campo };
-    cpToast(nPromos(feitos.length) + " com " + g.codigo + (feitos.length === 1 ? " encerrada" : " encerradas"), true, 8000);
+    cpToast(nPromos(feitos.length) + " com " + g.codigo + (feitos.length === 1 ? " marcada como esgotada" : " marcadas como esgotadas"), true, 8000);
     cpDepois();
   } catch (e) {
     liberar();
     if (e.status === 401) { setSess(null); openLogin(loadCupons); return; }
-    cpToast(e.status ? "Não deu pra encerrar " + g.codigo + ". Tente de novo." : (e.message || "Não deu pra encerrar. Tente de novo."), false, 5000);
+    if (e.semColuna) { cpToast(MSG_SEM_COLUNA, false, 8000); return; }
+    cpToast(e.status ? "Não deu pra marcar " + g.codigo + " como esgotado. Tente de novo." : (e.message || "Não deu pra marcar como esgotado. Tente de novo."), false, 5000);
   }
 }
 
 // Login do Desfazer cancelado: o aviso volta a ter prazo pra sumir
 function cpUndoLoginCancelado() {
   if (!cpUndo) return;
-  $("cpToastMsg").textContent = "Promos com " + cpUndo.codigo + " seguem encerradas.";
+  $("cpToastMsg").textContent = "Promos com " + cpUndo.codigo + " seguem esgotadas.";
   cpAgendarFim(cpUndo, 8000);
 }
 
@@ -2135,10 +2203,10 @@ async function cpDesfazer() {
   const token = await supaToken();
   if (!token) { cpUndo = u; b.disabled = false; openLogin(cpDesfazer, cpUndoLoginCancelado); return; }
   try {
-    const volta = await cpSetAtiva(u.ids, true, token);
+    const volta = await cpSetEsgotada(u.ids, false, token);
     cpDevolverAosSalvos(u.salvos);
     cpDevolverAoCampo(u.campo);
-    // se outro cupom foi encerrado nesse meio tempo, o aviso (e o Desfazer) dele fica
+    // se outro cupom foi esgotado nesse meio tempo, o aviso (e o Desfazer) dele fica
     if (!cpUndo) cpToast(nPromos(volta.length) + " com " + u.codigo + " de volta no ar", false, 3500);
     cpDepois();
   } catch (e) {
