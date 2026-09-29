@@ -1061,6 +1061,38 @@ function setLoading(on) {
   $("goText").textContent = on ? "Conjurando a oferta..." : "Gerar mensagem";
 }
 
+// Diagnostico do "Failed to fetch" no Gerar. mode no-cors: basta a conexao abrir para
+// contar como alcancado, a resposta nao e lida (a Claude sem chave responde 401).
+async function alcanca(url) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), 6000);
+  try { await fetch(url, { mode: "no-cors", cache: "no-store", signal: c.signal }); return true; }
+  catch { return false; }
+  finally { clearTimeout(t); }
+}
+async function diagnosticoRede() {
+  if (navigator.onLine === false) {
+    return { msg: "O celular está sem internet. Confira o Wi-Fi ou os dados móveis e toque em Gerar de novo." };
+  }
+  const [claude, outro] = await Promise.all([
+    alcanca("https://api.anthropic.com/v1/models"),
+    alcanca(SUPA + "/auth/v1/health"),
+  ]);
+  if (claude) {
+    return { tentarDeNovo: true, msg: "A conexão com a Claude caiu no meio do pedido. Acontece quando a internet oscila ou quando você sai do Gerador enquanto ele escreve. Toque em Gerar de novo e espere nesta tela." };
+  }
+  if (outro) {
+    return { msg: "Sua internet funciona, mas esta rede não deixa o celular falar com a Claude, que é quem escreve a mensagem. Isso acontece em Wi-Fi de empresa, VPN ou bloqueador de anúncios. Desligue o Wi-Fi e tente pelos dados móveis." };
+  }
+  return { msg: "O celular não conseguiu falar com a internet agora. Confira a conexão e toque em Gerar de novo." };
+}
+function detalheRede(e, body) {
+  const tam = body.length < 1048576
+    ? Math.max(1, Math.round(body.length / 1024)) + " KB"
+    : (body.length / 1048576).toFixed(1).replace(".", ",") + " MB";
+  return " (detalhe: " + ((e && e.message) || "erro de rede") + ", pedido de " + tam + ")";
+}
+
 async function generate() {
   if (loading) return;
   hideError();
@@ -1082,7 +1114,13 @@ async function generate() {
     }));
     content.push({ type: "text", text: prompt });
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const body = JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      temperature: 1,
+      messages: [{ role: "user", content }],
+    });
+    const pedir = () => fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1090,14 +1128,22 @@ async function generate() {
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        temperature: 1,
-        messages: [{ role: "user", content }],
-      }),
+      body,
     });
-    const data = await res.json();
+    let res;
+    try { res = await pedir(); }
+    catch (e1) {
+      // "Failed to fetch": o pedido nao chegou na Claude ou a resposta nao voltou, e o
+      // navegador nao diz o motivo. O Gerador testa a conexao para explicar (29/09).
+      const diag = await diagnosticoRede();
+      if (!diag.tentarDeNovo) throw new Error(diag.msg + detalheRede(e1, body));
+      $("goText").textContent = "A conexão caiu, tentando de novo...";
+      try { res = await pedir(); }
+      catch (e2) { throw new Error(diag.msg + detalheRede(e2, body)); }
+    }
+    let data;
+    try { data = await res.json(); }
+    catch { throw new Error("A Claude devolveu uma resposta que não deu pra ler (erro " + res.status + "). Espere um minuto e toque em Gerar de novo."); }
     if (data.error) {
       if (res.status === 401) { showError("Chave de API inválida. Toque na engrenagem e cole de novo."); return; }
       throw new Error(data.error.message || "Erro na API.");
