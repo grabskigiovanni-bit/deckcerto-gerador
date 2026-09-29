@@ -1079,12 +1079,15 @@ async function diagnosticoRede() {
     alcanca(SUPA + "/auth/v1/health"),
   ]);
   if (claude) {
-    return { tentarDeNovo: true, msg: "A conexão com a Claude caiu no meio do pedido. Acontece quando a internet oscila ou quando você sai do Gerador enquanto ele escreve. Toque em Gerar de novo e espere nesta tela." };
+    return { tentarDeNovo: true, msg: "A Claude não respondeu direito. Pode ser instabilidade dela agora (acompanhe em status.claude.com) ou a sua internet que oscilou, ou você saiu do Gerador enquanto ele escrevia. Espere uns minutos, toque em Gerar de novo e fique nesta tela." };
   }
   if (outro) {
     return { msg: "Sua internet funciona, mas esta rede não deixa o celular falar com a Claude, que é quem escreve a mensagem. Isso acontece em Wi-Fi de empresa, VPN ou bloqueador de anúncios. Desligue o Wi-Fi e tente pelos dados móveis." };
   }
   return { msg: "O celular não conseguiu falar com a internet agora. Confira a conexão e toque em Gerar de novo." };
+}
+function msgInstavel(status) {
+  return "A Claude está instável agora (erro " + status + "). Não é o seu celular nem o Gerador. Espere uns minutos e toque em Gerar de novo. Dá pra acompanhar em status.claude.com.";
 }
 function detalheRede(e, body) {
   const tam = body.length < 1048576
@@ -1141,9 +1144,16 @@ async function generate() {
       try { res = await pedir(); }
       catch (e2) { throw new Error(diag.msg + detalheRede(e2, body)); }
     }
+    if (res.status >= 500) {
+      // 500, 502, 529 (sobrecarga): instabilidade da Claude. Tenta de novo 1 vez.
+      $("goText").textContent = "A Claude está instável, tentando de novo...";
+      await new Promise((z) => setTimeout(z, 2000));
+      res = await pedir().catch(() => res);
+      if (res.status >= 500) throw new Error(msgInstavel(res.status));
+    }
     let data;
     try { data = await res.json(); }
-    catch { throw new Error("A Claude devolveu uma resposta que não deu pra ler (erro " + res.status + "). Espere um minuto e toque em Gerar de novo."); }
+    catch { throw new Error("A Claude devolveu uma resposta que não deu pra ler (erro " + res.status + "). Espere uns minutos e toque em Gerar de novo."); }
     if (data.error) {
       if (res.status === 401) { showError("Chave de API inválida. Toque na engrenagem e cole de novo."); return; }
       throw new Error(data.error.message || "Erro na API.");
