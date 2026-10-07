@@ -350,7 +350,7 @@
       <div class="cp-head">
         <div>
           <h2 class="cp-h" id="cpTitulo">Cupons no ar</h2>
-          <p class="cp-sub">Cupom esgotou? Toque em Esgotou: todas as promos com ele aparecem como esgotadas no app e no site por 48 horas e depois somem sozinhas.</p>
+          <p class="cp-sub">Cupom esgotou? Toque em Esgotou: todas as promos com ele aparecem como esgotadas no app e no site por 48 horas e depois somem sozinhas. Promo com dois cupons aparece aqui pelo primeiro código.</p>
         </div>
         <button type="button" class="cp-refresh" id="cpRefresh" aria-label="Atualizar a lista de cupons">↻</button>
       </div>
@@ -381,6 +381,7 @@
         <input type="text" id="cupom" placeholder="Código · ex.: AMOCUPOM" autocapitalize="characters" autocomplete="off" spellcheck="false">
         <input type="text" id="cupomPct" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="% OFF" autocomplete="off" spellcheck="false">
       </div>
+      <p class="pi-hint" id="cupomDica" style="margin-top:6px" aria-live="polite">Dois cupons? Escreva A ou B (vale qualquer um) ou A + B (usa os dois). A mensagem leva os dois; no site vai o primeiro.</p>
       <div class="saved-wrap">
         <button type="button" class="mini-link" id="btnSaveCupom">salvar este cupom</button>
         <div class="chips" id="cupomChips" aria-label="Cupons salvos"></div>
@@ -498,6 +499,7 @@
         <b id="pubSetNome"></b>
         <button type="button" id="pubSetLimpar" aria-label="Tirar coleção">×</button>
       </div>
+      <p class="pi-hint hidden" id="pubSetAuto" style="margin-top:6px" aria-live="polite">Coleção preenchida pelo produto: avisa quem segue essa coleção no app.</p>
       <input type="text" id="pubSetBusca" placeholder="Digite o nome da coleção e toque na certa" autocomplete="off" aria-label="Buscar coleção" aria-autocomplete="list" aria-controls="pubSetLista">
       <div class="set-lista hidden" id="pubSetLista" role="listbox"></div>
       <p class="pi-hint" style="margin-top:6px">Quem ligou o sino dessa coleção no app Deck Certo recebe a notificação na hora que você publicar. Sem coleção escolhida, ninguém é avisado. Zera a cada promo, de propósito.</p>
@@ -1077,6 +1079,7 @@ function onLinkChange() {
     $("pubErr").classList.add("hidden");
     $("pubOk").classList.add("hidden");
     atualizarResumoQtd();
+    colAutoNovaOferta(); // antes do prodReset: a sincronização dele já vale pra promo nova
     prodReset(); // indice: produto da oferta anterior sai junto
   }
   autoAdImage();
@@ -1084,6 +1087,301 @@ function onLinkChange() {
 let linkTimer = null;
 $("link").addEventListener("input", () => { clearTimeout(linkTimer); linkTimer = setTimeout(onLinkChange, 700); });
 $("link").addEventListener("change", onLinkChange);
+
+// ==== CUPONS: INICIO DO BLOCO PURO (sem DOM; o teste_cupons.mjs roda este trecho no Node) ====
+// Dois cupons na mesma promo (07/10/2026): o dono escrevia "são dois" e a mensagem saía com um só.
+// Campo Cupom: "A ou B" = vale qualquer um; "A + B" ou "A e B" = usar os dois juntos; "A, B",
+// "A / B" e "A e/ou B" contam como "ou". Só separador explícito separa: "BLACK FRIDAY" (com espaço)
+// continua sendo um texto só. Sem separador, publicar e chip ficam iguais a antes (texto inteiro).
+// O site e o app recebem só o PRIMEIRO em cupom_codigo (o botão Copiar de lá copia um código só).
+// Funções puras: nada aqui lê a tela nem a rede.
+const CUPOM_MAX = 3; // além disso o resto é ignorado
+const CUPOM_OK = /^[A-Z0-9._-]{3,24}$/;
+const CUPOM_PALAVRA = new Set(["OU", "OR", "AND", "MAIS", "OFF", "CUPOM", "CUPONS", "CODIGO", "USE", "USAR", "PIX", "APP"]);
+// palavras de enchimento no campo ("cupom BRINCAR ou o MELIMAXITOYS")
+const CUPOM_ENCHE = new Set(["O", "A", "OS", "AS", "DE", "DO", "DA", "NO", "NA", "COM", "E"]);
+// palavra em maiúsculas que aparece em mensagem e observação e NÃO é código ("FRETE GRÁTIS",
+// "PRIMEIRA COMPRA", "ETB + BOOSTER"). Só vale pra ler a mensagem e as observações; o campo não usa.
+const PALAVRA_COMUM = new Set(("FRETE GRATIS BRINDE BRINDES CASHBACK PRIMEIRA SEGUNDA COMPRA COMPRAS " +
+  "LIMITADO LIMITADOS LIMITADA LIMITADAS RAPIDO RAPIDOS SITE LOJA BOLETO CARTAO CREDITO DEBITO HOJE " +
+  "AGORA NOVO NOVA NOVOS VALIDO VALIDA TODOS TODAS ACIMA APENAS SOMENTE CADA PRIME FULL OFERTA " +
+  "OFERTAS DESCONTO DESCONTOS ETB BOOSTER BOOSTERS BOX BLISTER DECK KIT TIN LATA CARTAS POKEMON TCG " +
+  "PARCELADO VISTA CONTA CLIENTE CLIENTES NOVIDADE ESTOQUE UNIDADE UNIDADES").split(" "));
+// separadores do campo (já em maiúsculas); o split guarda o separador nas posições ímpares
+const CUPOM_SEP = /(\s*\bE\s*\/\s*OU\b\s*|\s*[+&,/;|]\s*|\s+(?:OU|E|MAIS|OR|AND)\s+)/;
+const escRx = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// cara de código na mensagem: maiúsculas/dígitos, com pelo menos uma letra, e não é palavra comum
+const pareceCodigo = (c) => CUPOM_OK.test(c) && /[A-Z]/.test(c) && !CUPOM_PALAVRA.has(c);
+const codigoProvavel = (c) => pareceCodigo(c) && !PALAVRA_COMUM.has(c);
+// rótulo de cupom numa linha da mensagem: "🎟️ Cupom:", "Cupons:", "Cupom de 10% OFF:"
+const ROT_CUPOM = /^(.*?cupo(?:m|ns)\b[^:\n]{0,30}:)(.*)$/i;
+// a linha PRINCIPAL de cupom começa no rótulo ("🎟️ Cupom:", "*Cupons:*", "Cupom de 10% OFF:");
+// "⚠️ Cupom limitado:" e "Frete grátis com cupom:" não são a principal
+const ROT_PRINCIPAL = /^[\s*_~]*(?:🎟\uFE0F?[\s*_~]*)?cupo(?:m|ns)\b[^:\n]{0,30}:/i;
+// pedaço da linha antes do link ("🎟️ Cupom: A 🔗 https://..." -> "🎟️ Cupom: A ")
+function antesDoLink(l) {
+  const ks = [l.search(/https?:\/\//i), l.indexOf("🔗")].filter((k) => k >= 0);
+  return ks.length ? l.slice(0, Math.min(...ks)) : l;
+}
+const semUrl = (s) => String(s).replace(/https?:\/\/\S+/g, " ");
+const ehLinhaCupom = (l) => /cupo|🎟/i.test(antesDoLink(l));
+const ehLinhaProduto = (l) => /^\s*(?:🇧🇷|🇺🇸)/.test(l);
+// código como palavra inteira (letra acentuada conta como letra: "Promoções" não contém PROMO)
+const LETRA = "A-Za-z0-9\\u00C0-\\u024F";
+const temToken = (s, c, semCaixa) =>
+  new RegExp("(^|[^" + LETRA + "])" + escRx(c) + "($|[^" + LETRA + "])", semCaixa ? "i" : "").test(s);
+
+// campo -> { codigos, modo, separado (tinha separador), ignorados (pedaços que não viraram código) }
+function lerCampoCupom(texto) {
+  const s = String(texto || "").toUpperCase()
+    // "(10% OFF)" e "(os dois valem)" saem; "(ou MELIMAXITOYS)" fica (é o segundo código)
+    .replace(/\(([^)]*)\)?/g, (_, d) => (/^\s*(?:(?:OU|E|MAIS|OR|AND)\s|[+&,/;|])/.test(d) ? " " + d + " " : " "))
+    .replace(/[*~"'`“”‘’]/g, " ")                      // negrito e tachado do WhatsApp, aspas
+    .replace(/^[^A-Z0-9]*CUPO(?:M|NS)\b\s*:?/, " ")    // colou a linha inteira "🎟️ Cupom: A ou B"
+    .replace(/\s+/g, " ").trim();
+  const pedacos = s.split(CUPOM_SEP);
+  const codigos = [], ignorados = [];
+  for (let i = 0; i < pedacos.length; i += 2) {
+    const toks = pedacos[i].split(" ")
+      .filter((t) => !/^\d{1,3}%$/.test(t) && !/^R\$/.test(t))              // "10%", "R$20"
+      .map((t) => t.replace(/^[^A-Z0-9À-Ý]+|[^A-Z0-9À-Ý]+$/g, ""))          // "MELIMAXITOYS!", "AMOCUPOM." (Ç e Í ficam: não é código)
+      .filter((t) => t && !CUPOM_ENCHE.has(t) && !CUPOM_PALAVRA.has(t));
+    if (toks.length === 1 && CUPOM_OK.test(toks[0])) {
+      if (!codigos.includes(toks[0]) && codigos.length < CUPOM_MAX) codigos.push(toks[0]);
+    } else if (toks.length) ignorados.push(toks.join(" "));
+  }
+  const mais = pedacos.some((p, i) => i % 2 === 1 && /^\s*([+&]|E|MAIS|AND)\s*$/.test(p));
+  // separador na ponta ("AMOCUPOM ou", "ou AMOCUPOM"): o dono começou a escrever o segundo
+  const ponta = /^(?:OU|E|MAIS|OR|AND)\s|\s(?:OU|E|MAIS|OR|AND)$/.test(s);
+  return { codigos, modo: codigos.length < 2 ? "um" : mais ? "mais" : "ou", separado: pedacos.length > 1 || ponta, ignorados };
+}
+// texto do campo -> { codigos: ["A", "B"], modo: "um" | "ou" | "mais" } (códigos em maiúsculas)
+function parseCupons(texto) {
+  const L = lerCampoCupom(texto);
+  return { codigos: L.codigos, modo: L.modo };
+}
+// "A ou B", "A, B ou C", "A + B" (negrito = cada código em *negrito* do WhatsApp)
+function formatarCupons(p, negrito) {
+  const cs = p.codigos.map((c) => (negrito ? "*" + c + "*" : c));
+  if (cs.length < 2) return cs[0] || "";
+  if (p.modo === "mais") return cs.join(" + ");
+  return cs.slice(0, -1).join(", ") + " ou " + cs[cs.length - 1];
+}
+const linhaCupom = (p, negrito) => "🎟️ " + (p.modo === "mais" ? "Cupons: " : "Cupom: ") + formatarCupons(p, negrito);
+// códigos do campo. Com separador ("A ou B", "A ou o B", "A ou AB"), só os pedaços que viraram
+// código, mesmo que sobre um só. Sem separador (um código, ou texto que não vira código), o texto
+// inteiro em maiúsculas, exatamente como antes.
+function codigosDoCampo(texto) {
+  const L = lerCampoCupom(texto);
+  if (L.codigos.length >= 2 || (L.separado && L.codigos.length)) return L.codigos;
+  const t = String(texto || "").trim().toUpperCase();
+  return t ? [t] : [];
+}
+// o que vai em cupom_codigo: o PRIMEIRO código (vazio = sem cupom)
+const cupomParaPublicar = (texto) => codigosDoCampo(texto)[0] || "";
+// o que fica salvo no chip: com dois códigos, o texto arrumado ("A ou B"); com separador e um código
+// só, esse código; sem separador, igual a antes
+function cupomParaSalvar(texto) {
+  const L = lerCampoCupom(texto);
+  if (L.codigos.length >= 2) return formatarCupons(L, false);
+  if (L.separado && L.codigos.length) return L.codigos[0];
+  return String(texto || "").trim().toUpperCase();
+}
+// as observações falam em mais de um cupom? ("são dois cupons", "cupom A ou B, os dois funcionam").
+// Só frase que AFIRMA dois cupons: "não acumula com outros cupons", "não use outro cupom",
+// "cupom 10% OFF + PIX" e "só no APP E SITE" não contam (o prompt de um cupom fica igual ao de antes).
+function notasFalamDeDoisCupons(notas) {
+  const bruto = String(notas || "");
+  const n = bruto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (!/cupo/.test(n)) return false;
+  const afirma = (rx) => {
+    const g = new RegExp(rx.source, "g");
+    let m;
+    while ((m = g.exec(n))) {
+      if (!/\b(nao|nem|sem)\b[^.!?;,\n]{0,25}$/.test(n.slice(0, m.index))) return true; // "não use outro cupom"
+    }
+    return false;
+  };
+  if (afirma(/\b(dois|2)\s+(codigos?\s+de\s+)?cupo(m|ns)\b/)) return true;                  // "são dois cupom", "2 cupons"
+  if (afirma(/\bcupo(m|ns)\b[^.\n]{0,30}\bsao\s+(dois|2)\b/)) return true;             // "os cupons são dois"
+  if (afirma(/\b(os dois|ambos|as duas)(\s+os\s+cupons)?\s+(funcion|vale|serve|da\b|dao\b)/)) return true; // "os dois funcionam"
+  if (afirma(/\bqualquer um dos (dois|cupons)\b|\bum ou (o )?outro\b/)) return true;
+  if (afirma(/\b(segundo|mais um)\s+cupom\b/)) return true;                                   // "tem mais um cupom"
+  if (afirma(/\boutro\s+cupom\s*(:|=|\be\b|\beh\b)/)) return true;                            // "outro cupom: MELI10"
+  // dois códigos escritos ("cupom BRINCAR ou MELIMAXITOYS"): cara de código, nenhum é palavra comum,
+  // e um deles tem dígito ou os dois têm 5 letras ou mais ("ETB + BOOSTER" e "APP E SITE" não contam)
+  const rx = /(^|[^A-Za-z0-9])([A-Z0-9][A-Z0-9._-]{2,23})(?:\s+(?:ou|OU|e|E)\s+|\s*[+/&,]\s*)([A-Z0-9][A-Z0-9._-]{2,23})(?=$|[^A-Za-z0-9])/g;
+  for (const linha of bruto.split("\n")) {
+    if (!/cupo/i.test(linha)) continue;
+    let m;
+    rx.lastIndex = 0;
+    while ((m = rx.exec(linha))) {
+      const a = m[2], b = m[3];
+      if (codigoProvavel(a) && codigoProvavel(b) && (/\d/.test(a + b) || (a.length >= 5 && b.length >= 5))) return true;
+      rx.lastIndex = m.index + m[0].length - b.length - 1; // o segundo pode formar par com o seguinte
+    }
+  }
+  return false;
+}
+// o que o Gerador entendeu do campo, pra dica embaixo dele ("" = a dica de sempre)
+function leituraCupom(texto, notas) {
+  const L = lerCampoCupom(texto);
+  const regra = " (3 a 24 letras ou números, sem espaço)";
+  if (L.codigos.length < 2 && !L.separado) {
+    return notasFalamDeDoisCupons(notas)
+      ? "As observações falam em dois cupons: escreva os dois aqui (A ou B) que a mensagem sai com os dois garantidos."
+      : "";
+  }
+  if (!L.codigos.length) return "Não reconheci nenhum código aqui" + regra + ". Confira o campo.";
+  const ign = L.ignorados.length
+    ? "Não reconheci " + L.ignorados.map((x) => "\"" + x + "\"").join(", ") + " como código" + regra + ". " : "";
+  if (L.codigos.length === 1) return ign + "Vai só o " + L.codigos[0] + ".";
+  const todos = L.codigos.length === 2 ? "os dois" : "todos";
+  return ign + "Na mensagem: " + linhaCupom(L, false).replace(/^🎟️ /, "") + " (" +
+    (L.modo === "mais" ? "usar " + todos + " juntos" : "vale qualquer um") + "). No site vai o " + L.codigos[0] + ".";
+}
+// trechos seguidos de códigos numa linha ("A", "*A* ou *B*", "A + B"): [{ ini, fim, cods }].
+// O asterisco entra no trecho só quando fecha dos dois lados (*A*). fins = onde termina cada código.
+function corridasDeCodigo(trecho, ehCodigo) {
+  const rx = /[^\s*+,/&|;:()[\]{}"'“”!?]+/g;
+  const runs = [];
+  let cur = null, m;
+  while ((m = rx.exec(trecho))) {
+    const c = m[0].replace(/^[._-]+|[._-]+$/g, ""); // "AMOCUPOM." no fim da frase
+    if (/^(ou|e|mais|or|and)$/i.test(c)) continue;  // separador por extenso: não quebra a corrida
+    if (!c || !ehCodigo(c)) { cur = null; continue; }
+    let ini = m.index + m[0].indexOf(c), fim = ini + c.length;
+    if (trecho[ini - 1] === "*" && trecho[fim] === "*") { ini--; fim++; }
+    if (cur && /^\s*(ou|e|mais|or|and|\+|,|\/|&)\s*$/i.test(trecho.slice(cur.fim, ini))) {
+      cur.fim = fim; cur.cods.push(c); cur.fins.push(fim);
+    } else {
+      cur = { ini, fim, cods: [c], fins: [fim] }; runs.push(cur);
+    }
+  }
+  return runs;
+}
+// Preenchimento automático: o cupom que a mensagem gerada traz -> texto do campo ("" = nenhum)
+function cupomDaMensagem(texto) {
+  const t = String(texto || "");
+  // só a linha PRINCIPAL ("🎟️ Cupom: A ou B", "Cupons: A + B"); "⚠️ Cupons: LIMITADOS" não conta
+  const restos = t.split("\n").map(antesDoLink).filter((l) => ROT_PRINCIPAL.test(l))
+    .map((l) => l.replace(ROT_PRINCIPAL, ""));
+  for (const resto of restos) { // dois ou mais códigos logo depois do rótulo
+    const r = corridasDeCodigo(resto, codigoProvavel)[0];
+    if (!r || !/^[\s*_~]*$/.test(resto.slice(0, r.ini))) continue;
+    // "MELI10 / PRIMEIRA COMPRA", "MELI10 + FRETE GRÁTIS": palavra em maiúsculas colada depois = frase
+    const n = /^ [A-ZÀ-Ý]{3,}(?![a-zà-ý])/.test(resto.slice(r.fim)) ? r.cods.length - 1 : r.cods.length;
+    const pc = n >= 2 ? parseCupons(resto.slice(r.ini, r.fins[n - 1])) : null;
+    if (pc && pc.codigos.length >= 2) return formatarCupons(pc, false);
+  }
+  const mc = t.match(/Cupom:\s*([A-Z0-9][A-Z0-9._-]{2,24})/i); // um código: a regra de sempre
+  if (mc) return mc[1].toUpperCase();
+  for (const resto of restos) { // "Cupom: *AMOCUPOM*" (negrito) e "Cupom de 10% OFF: AMOCUPOM"
+    const r = corridasDeCodigo(resto, codigoProvavel)[0];
+    if (r) return r.cods[0].toUpperCase();
+  }
+  return "";
+}
+// o código está na mensagem? Na linha de cupom vale de qualquer jeito ("brincar ou melimaxitoys");
+// fora dela, só escrito igual ao campo (maiúsculas) e fora da linha do produto: "pra brincar",
+// "presente de Natal", "ETB Caos" e "Deck Certo | Promoções" não contam como cupom presente.
+function codigoNaMensagem(texto, c) {
+  return String(texto || "").split("\n").some((l, i) => {
+    const s = semUrl(l);
+    if (ehLinhaCupom(l)) return temToken(s, c, true);
+    return i > 0 && !ehLinhaProduto(l) && temToken(s, c, false);
+  });
+}
+// TRAVA DEPOIS DE GERAR: todo código do CAMPO tem que estar na mensagem. Faltou algum:
+// 1) linha de cupom que já tem um código do campo: o trecho dos códigos do campo vira o grupo
+//    inteiro ("🎟️ Cupom: A ou B" / "🎟️ Cupons: A + B");
+// 2) senão, a linha principal de cupom: o grupo entra na frente do que a Claude escreveu (o código
+//    que ela leu no print ou nas observações fica: nada some);
+// 3) senão, uma linha nova antes do link (ou da assinatura).
+// Só usa os códigos do campo (nunca inventa); com todos presentes devolve o texto intacto.
+function travaCupons(texto, campo, pct, negrito, link) {
+  const p = parseCupons(campo);
+  if (!p.codigos.length) return texto;
+  const linhas = texto.split("\n");
+  const falta = () => p.codigos.filter((c) => !codigoNaMensagem(linhas.join("\n"), c));
+  if (!falta().length) return texto;
+  const doCampo = (c) => p.codigos.includes(c.toUpperCase());
+  // asteriscos abertos antes da posição: dentro de um *negrito* já aberto o grupo vai sem asterisco
+  const aberto = (s) => ((s.match(/\*/g) || []).length % 2 === 1);
+  const grupo = (antes) => formatarCupons(p, negrito && !aberto(antes));
+  // "Cupom:" / "Cupons:" do rótulo acompanha o modo (só com dois códigos ou mais)
+  const rotulo = (cab) => p.codigos.length < 2 ? cab : cab.replace(/(cupo)(m|ns)\b/i, (_, a, b) => {
+    const novo = p.modo === "mais" ? "ns" : "m";
+    return a + (b === b.toUpperCase() ? novo.toUpperCase() : novo);
+  });
+  const parte = (l) => { const h = antesDoLink(l); return [h, l.slice(h.length)]; };
+  // linha nova: o % do cupom vai junto quando ainda não aparece no resto da mensagem
+  const linhaNova = (resto) => linhaCupom(p, negrito) +
+    (pct && !new RegExp("(^|[^0-9])" + escRx(pct) + "\\s*%").test(resto) ? " (" + pct + "% OFF)" : "");
+
+  // 0) código do campo que a Claude escreveu com espaço no meio ("AMO CUPOM"): junta
+  for (const c of falta()) {
+    const rx = new RegExp("(^|[^" + LETRA + "])(" + c.split("").map(escRx).join(" ?") + ")(?=$|[^" + LETRA + "])", "i");
+    const k = linhas.findIndex((l) => ehLinhaCupom(l) && rx.test(antesDoLink(l)));
+    if (k >= 0) {
+      const [h, cauda] = parte(linhas[k]);
+      linhas[k] = h.replace(rx, (_, a) => a + c) + cauda;
+    }
+  }
+  if (!falta().length) return linhas.join("\n");
+
+  // 1) linha de cupom com um código do campo
+  let i = linhas.findIndex((l) => ehLinhaCupom(l) && corridasDeCodigo(antesDoLink(l), doCampo).length);
+  if (i >= 0) {
+    const [h, cauda] = parte(linhas[i]);
+    const rot = h.match(ROT_CUPOM);
+    let off = rot ? rot[1].length : 0;
+    let r = corridasDeCodigo(h.slice(off), doCampo)[0];
+    if (!r) { off = 0; r = corridasDeCodigo(h, doCampo)[0]; } // código dentro do rótulo ("Cupom BRINCAR:")
+    const ini = off + r.ini, fim = off + r.fim;
+    const antes = off ? rotulo(h.slice(0, off)) + h.slice(off, ini) : h.slice(0, ini);
+    linhas[i] = antes + grupo(h.slice(0, ini)) + h.slice(fim) + cauda;
+    return linhas.join("\n");
+  }
+  // 2) a linha principal de cupom ("🎟️ Cupom: MELI10", "🎟️ Cupom: [CÓDIGO]", "🎟️ Cupom:")
+  i = linhas.findIndex((l) => ROT_PRINCIPAL.test(antesDoLink(l)));
+  if (i >= 0) {
+    const [h, cauda] = parte(linhas[i]);
+    const off = h.match(ROT_PRINCIPAL)[0].length;
+    const cab = h.slice(0, off), resto = h.slice(off);
+    // sem nada aproveitável depois do rótulo (vazio, só negrito, [CÓDIGO]): a linha vira a do campo
+    if (!/[A-Za-z0-9]/.test(resto.replace(/\[[^\]]*\]?/g, " "))) {
+      linhas[i] = linhaNova(linhas.filter((_, k) => k !== i).join("\n")) + (cauda ? " " + cauda.trim() : "");
+      return linhas.join("\n");
+    }
+    const r = corridasDeCodigo(resto, codigoProvavel)[0];
+    // o grupo entra na frente: "MELI10" -> "AMOCUPOM ou MELI10"; "10% OFF no app" -> "AMOCUPOM 10% OFF no app"
+    const ini = r ? r.ini : resto.length - resto.replace(/^[\s*_~]+/, "").length;
+    const elo = r ? " ou " : " ";
+    linhas[i] = rotulo(cab) + resto.slice(0, ini) + grupo(cab + resto.slice(0, ini)) + elo + resto.slice(ini) + cauda;
+    return linhas.join("\n");
+  }
+  // 3) nenhuma linha de cupom aproveitável: entra uma linha nova antes do link (ou da assinatura)
+  const linha = linhaNova(texto);
+  const j = linhas.findIndex((l) => (link && l.includes(link)) || /https?:\/\//i.test(l) ||
+    /^\s*link\s*:/i.test(l) || l.trim().startsWith("🔗") || l.includes("🧙"));
+  if (j < 0) return texto.replace(/\s+$/, "") + "\n\n" + linha;
+  const colado = j > 0 && linhas[j - 1].trim() !== "";
+  linhas.splice(j, 0, ...(colado ? ["", linha, ""] : [linha, ""]));
+  return linhas.join("\n");
+}
+// Esgotou na aba Cupons no ar: tira o código esgotado do texto do campo ou de um chip salvo.
+// -> null (o texto não tem esse código) ou { ficou } ("" = sai inteiro; "B" = sobra o B do "A ou B",
+// que segue valendo; "A + B" precisa dos dois e sai inteiro). Promo antiga em que o campo inteiro foi
+// pra cupom_codigo ("BRINCAR OU MELIMAXITOYS") também casa, como antes, e sai inteira.
+function tirarCodigo(texto, codigo) {
+  const inteiro = String(texto || "").trim().toUpperCase() === codigo;
+  if (!inteiro && !codigosDoCampo(texto).includes(codigo)) return null;
+  const pc = parseCupons(texto);
+  const resto = !inteiro && pc.modo === "ou" ? pc.codigos.filter((c) => c !== codigo) : [];
+  return { ficou: formatarCupons({ codigos: resto, modo: "ou" }, false) };
+}
+// ==== CUPONS: FIM DO BLOCO PURO ====
 
 // ── Prompt ───────────────────────────────────────────────────
 function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, comDesconto, estoque) {
@@ -1094,11 +1392,27 @@ function buildPrompt(link, notes, allowRich, avoid, cupom, cupomPct, comLoja, co
       ". Cite numa linha curta e sem drama (ex.: \"⚠️ " + (n === 1 ? "última unidade" : "restam só " + n) +
       "\"). Não invente urgência além disso nem diga que vai acabar."
     : "- Estoque NÃO informado: não cite estoque, quantidade restante nem escassez em lugar nenhum.";
-  const cupomInfo = (cupom || cupomPct)
+  // dois cupons (07/10/2026), no campo ("A ou B", "A + B") ou nas observações. Com um cupom só ou
+  // nenhum, o prompt sai idêntico ao de antes (teste_cupons.mjs confere).
+  const pc = parseCupons(cupom);
+  const doisCupons = pc.codigos.length >= 2 || notasFalamDeDoisCupons(notes);
+  const cupomInfo = (pc.codigos.length >= 2
+    ? "- CUPONS confirmados pelo usuário (" + pc.codigos.length + " códigos, " +
+      (pc.modo === "mais" ? "é pra usar " + (pc.codigos.length === 2 ? "os dois" : "todos") + " juntos" : "vale qualquer um") +
+      "). Inclua TODOS na mesma linha, exatamente assim: \"" + linhaCupom(pc, false) + "\"" +
+      (cupomPct ? ", e o " + cupomPct + "% OFF" : "") + "."
+    : (cupom || cupomPct)
     ? "- CUPOM confirmado pelo usuário, inclua na mensagem: " +
       (cupom ? "código " + cupom : "") + (cupom && cupomPct ? ", " : "") +
       (cupomPct ? cupomPct + "% OFF" : "") + "."
-    : "- Sem cupom informado: só cite cupom se estiver visível no print ou nas observações.";
+    : "- Sem cupom informado: só cite cupom se estiver visível no print ou nas observações.") +
+    (doisCupons
+      ? "\n- NUNCA omita um cupom informado pelo usuário. Se as observações falam em dois cupons, use os DOIS na linha de cupom (nunca só um)." +
+        " Escreva cada código exatamente como foi informado, mesmo que tenha nome de loja dentro (ex.: MELIMAXITOYS): a regra 4 não vale pra código de cupom."
+      : "");
+  const regraCupom = "3. Cupom: linha \"🎟️ Cupom: CODIGO\", só se houver cupom." + (doisCupons
+    ? " Com DOIS cupons, os dois vão na MESMA linha: \"🎟️ Cupom: A ou B\" quando vale qualquer um, \"🎟️ Cupons: A + B\" quando é pra usar os dois juntos."
+    : "");
   const hint = STYLE_HINTS[Math.floor(Math.random() * STYLE_HINTS.length)];
   const modeLabel = "PROMOÇÃO (oferta de produto)";
   const richRules = allowRich
@@ -1119,7 +1433,7 @@ Analise o(s) print(s) e escreva UMA mensagem de ${modeLabel}, pronta pra postar.
 FORMATO (siga a estrutura em blocos dos exemplos, separados por linha em branco):
 1. 🇧🇷 + nome do produto LIMPO e CURTO (no máximo 60 caracteres), já na PRIMEIRA linha (🇺🇸 se for importado). Mantém o que identifica o produto (tipo, coleção, personagem, quantidade de boosters) e JOGA FORA o resto do título do anúncio: "original", "lacrado", "pronta entrega", "envio imediato", "nota fiscal", "12x sem juros", marca repetida e palavra solta de busca. Esse mesmo nome vai pro card do app, então tem que caber em duas linhas. Se houver "frete grátis" visível, põe "frete grátis" numa linha LOGO ABAIXO do produto, nunca como linha solta no topo. Escreve só "frete grátis", NUNCA "frete grátis acima de R$X" (os produtos sempre passam do valor mínimo do frete grátis). NUNCA escreva "loja oficial" (quase sempre está errado).
 2. Preço: "De R$X ❌" e "Por R$Y ✅" em linhas separadas, ou "De: X | Por: R$Y 👑". Cite pix/parcelado se visível.
-3. Cupom: linha "🎟️ Cupom: CODIGO", só se houver cupom.
+${regraCupom}
 4. NÃO cite o nome da loja/vendedor em nenhuma linha, nem "loja oficial" (pule esse bloco).
 5. Link de afiliado, no formato "🔗 <link>" ou "Link: <link>".
 6. Última linha, assinatura fixa do canal: "🧙‍♂️ Deck Certo | Promoções".
@@ -1209,7 +1523,9 @@ async function generate() {
   try {
     const ok = offerKey(link);
     const avoid = history.filter((h) => h.offerKey === ok).slice(0, 3).map((h) => h.text);
-    const prompt = buildPrompt(link, notes, $("rich").checked, avoid, $("cupom").value.trim(), $("cupomPct").value.trim(), showLoja(), showDesconto(), $("estoque").value.trim());
+    // cupom lido uma vez: o mesmo vale pro prompt e pra trava depois de gerar
+    const cupomCampo = $("cupom").value.trim(), cupomPct = $("cupomPct").value.trim(), rich = $("rich").checked;
+    const prompt = buildPrompt(link, notes, rich, avoid, cupomCampo, cupomPct, showLoja(), showDesconto(), $("estoque").value.trim());
     const content = images.map((img) => ({
       type: "image",
       source: { type: "base64", media_type: img.media_type, data: img.data },
@@ -1263,6 +1579,8 @@ async function generate() {
     text = text.replace(/\s*[—–]\s*/g, ", ").replace(/🎴\s*/g, "");
     if (!text) throw new Error("A resposta veio vazia. Tente de novo.");
     if (!text.includes(link)) text = text + "\n👉 " + link;
+    // trava: código do campo que a Claude esqueceu volta pra mensagem (dois cupons, 07/10/2026)
+    text = travaCupons(text, cupomCampo, cupomPct, rich, link);
 
     history.unshift({
       id: Math.random().toString(36).slice(2),
@@ -1721,10 +2039,13 @@ function setPubLoading(on) {
 }
 
 async function publicar() {
+  colAutoParada = false; // volta do login com algum campo errado: a coleção não fica parada (sem mexer no chip agora)
   $("pubErr").classList.add("hidden"); $("pubOk").classList.add("hidden");
   const titulo = $("pubTitulo").value.trim();
   const link = $("link").value.trim();
-  const cupom = $("cupom").value.trim().toUpperCase();
+  // dois cupons no campo ("A ou B", "A + B"): vai o PRIMEIRO, porque o Copiar do site e do app copia
+  // um código só; a mensagem do WhatsApp é que leva os dois. Com um código, igual a antes.
+  const cupom = cupomParaPublicar($("cupom").value);
   const pct = $("cupomPct").value.trim();
   // o formulario e por UNIDADE; o banco guarda o TOTAL da compra minima (site e app mostram o "cada")
   const qtd = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
@@ -1739,10 +2060,16 @@ async function publicar() {
   const de = deUn === null ? null : Math.round(deUn * qtd * 100) / 100;
   const exp = expiraISO();
   if (exp === undefined) return pubError("Escolha a data de validade (ou troque pra Sem prazo).");
+  // coleção: vale a do chip no toque em Publicar (o set_slug dispara o aviso do app). Daqui até o
+  // fim do publicar a coleção automática fica parada: a lista de produtos que chega no meio (login,
+  // upload da imagem) não troca a coleção que o dono viu.
+  const setSlug = $("pubSet").value || null, setNome = $("pubSetNome").textContent;
+  colAutoPausar(true);
 
   const token = await supaToken();
   // indice: publicar sem sessao abre o login e o publicar volta sozinho depois; o dono nao viu o cadastro
-  if (!token) { PROD.semVer = true; openLogin(publicar); return; }
+  // (a coleção segue parada durante o login; Cancelar solta)
+  if (!token) { PROD.semVer = true; openLogin(publicar, () => colAutoPausar(false)); return; }
   const semVer = PROD.semVer; PROD.semVer = false;
 
   setPubLoading(true);
@@ -1781,7 +2108,7 @@ async function publicar() {
         url_afiliado: link,
         frete_gratis: $("pubFrete").checked,
         expira_em: exp,
-        set_slug: $("pubSet").value || null,
+        set_slug: setSlug,
         imagem_1x1,
         imagem_3x2,
         cor_fundo,
@@ -1812,8 +2139,6 @@ async function publicar() {
     const vinc = await prodVincular(token, promoId, prodPlano).catch(() => ({ aviso: " O produto não foi ligado; a promo saiu sem produto.", produto_id: null }));
     const avisoProd = vinc.aviso || "";
     const grupoLink = promoId ? OG_WORKER + "/l?id=" + promoId : null;
-    const setSlug = $("pubSet").value;
-    const setNome = $("pubSetNome").textContent;
     const fmtR = (v) => "R$ " + v.toFixed(2).replace(".", ",");
     pubDoneLink("Promo publicada e no feed do site." + (qtd > 1
       ? " Levando " + qtd + ": " + fmtR(por) + " no total, " + fmtR(porUn) + " cada."
@@ -1821,11 +2146,12 @@ async function publicar() {
       ? " Aviso enviado pra quem segue " + setNome + " no app."
       : " Sem coleção: ninguém foi avisado no app.") + avisoVar + avisoProd, grupoLink);
     escolherSet("", "");
+    colAutoZerar(); // coleção automática e escolha do dono zeram junto com o resto
     prodDepoisDePublicar(vinc.produto_id || null);
     loadMinhasPromos(true);
   } catch (e) {
     pubError(e.message || "Algo falhou ao publicar. Tente de novo.");
-  } finally { setPubLoading(false); }
+  } finally { colAutoPausar(false); setPubLoading(false); }
 }
 $("btnPub").addEventListener("click", publicar);
 
@@ -1833,6 +2159,10 @@ $("btnPub").addEventListener("click", publicar);
 // Lista vem da tabela pública `sets` (a mesma do app), filtrada pelo Jogo escolhido.
 // Busca por digitação (ignora acento), toque escolhe. Sem memória entre promos:
 // mandar aviso pra coleção errada é pior que não mandar.
+// Desde 07/10/2026 a coleção também vem do PRODUTO (pedido do dono): produto conhecido no bloco
+// Produto (do cadastro ou sugestão segura, nunca no Confere?) com coleção da lista do jogo
+// escolhido preenche a coleção vazia (ver COLAUTO abaixo). Ela acompanha o produto; escolher ou
+// tirar a coleção na mão desliga o automático até a próxima promo.
 let setsCache = null;
 async function loadSets() {
   if (setsCache) return setsCache;
@@ -1872,7 +2202,7 @@ async function filtrarSets() {
       sm.textContent = x.slug + (x.release_date ? " · " + String(x.release_date).slice(0, 4) : "");
       b.appendChild(sm);
       b.addEventListener("mousedown", (e) => e.preventDefault()); // não tira o foco do campo antes do click
-      b.addEventListener("click", () => escolherSet(x.slug, x.name_br || x.slug));
+      b.addEventListener("click", () => { colAutoDono(); escolherSet(x.slug, x.name_br || x.slug); }); // escolha do dono: o automático para
       lista.appendChild(b);
     });
   }
@@ -1885,15 +2215,95 @@ $("pubSetBusca").addEventListener("keydown", (e) => {
   if (e.key === "Escape") $("pubSetLista").classList.add("hidden");
   if (e.key === "Enter") { e.preventDefault(); const primeiro = $("pubSetLista").querySelector("button"); if (primeiro) primeiro.click(); }
 });
-$("pubSetLimpar").addEventListener("click", () => { escolherSet("", ""); $("pubSetBusca").focus(); });
-$("pubCat").addEventListener("change", () => escolherSet("", ""));
+// o × do dono tira a coleção e desliga o automático até a próxima promo
+$("pubSetLimpar").addEventListener("click", () => { colAutoDono(); escolherSet("", ""); $("pubSetBusca").focus(); });
+// trocar o Jogo limpa a coleção (como antes); a automática pode voltar se o produto for do jogo novo
+// (o prodDoTitulo do outro ouvinte do pubCat roda depois deste)
+$("pubCat").addEventListener("change", () => { escolherSet("", ""); SET_AUTO.slug = null; colAutoDica(); });
 function mpSet(p, setsAll) {
   if (!p.set_slug) return "";
   const hit = (setsAll || []).find((x) => x.slug === p.set_slug);
   const nome = hit ? (hit.name_br || hit.slug) : p.set_slug;
   return " · 🔔 " + nome + (p.push_enviado_em ? " (aviso enviado)" : " (aviso pendente)");
 }
-loadSets();
+
+// ==== COLECAO AUTO: INICIO DO BLOCO PURO (sem DOM; o teste_colecao.mjs roda este trecho no Node) ====
+// Coleção preenchida pelo produto (07/10/2026). O set_slug da promo dispara o push do app
+// (gatilho promos_push_ins) pra quem segue a coleção, então só entra coleção de produto em que dá
+// pra confiar. Funções puras: nada aqui lê a tela nem a rede.
+const COLAUTO = (() => {
+  // o produto do bloco Produto em que dá pra confiar -> { colecao, origem } ou null.
+  // Vale: produto do cadastro (escolhido no autocompletar, achado pelo nome ou pela chave) e a
+  // sugestão do Gerador que veio segura ou que o dono confirmou no "Está certo".
+  // Não vale: Confere? sem resposta, nome digitado que não está no cadastro, campo vazio.
+  // st = { nome, escolhido, dup, sugestao, tocado, confirmado, nomeGerado, leitura }
+  function produtoConhecido(st) {
+    if (!st || !String(st.nome || "").trim()) return null;
+    const s = st.sugestao;
+    if (s && s.estado === "confere" && !st.tocado && !st.confirmado) return null; // Confere? sem resposta
+    const cad = st.escolhido || st.dup;
+    if (cad) return { colecao: cad.colecao || null, origem: "cadastro" };
+    // nomeGerado = o nome no campo ainda é o da sugestão (o dono não digitou por cima)
+    if (s && st.nomeGerado && (s.estado === "seguro" || st.confirmado)) {
+      return { colecao: (st.leitura && st.leitura.colecao) || null, origem: "sugestao" };
+    }
+    return null;
+  }
+  // o que fazer com a coleção do card Publicar -> { acao: "nada" | "preencher" | "limpar", slug, nome }
+  // e = { produto, sets, jogo, atual (slug no #pubSet), auto (slug que o automático pôs), dono, buscando }
+  function decidir(e) {
+    const nada = { acao: "nada" };
+    if (e.dono) return nada;                         // o dono escolheu ou tirou na mão: até a próxima promo
+    const atual = e.atual || "", auto = e.auto || "";
+    if (atual && atual !== auto) return nada;        // coleção que não veio do automático: não mexe
+    const p = e.produto;
+    // só coleção que existe na lista do Gerador e é do Jogo escolhido (a mesma lista da busca manual)
+    const set = p && p.colecao ? (e.sets || []).find((x) => x.slug === p.colecao && x.game === e.jogo) || null : null;
+    if (set) {
+      if (set.slug === atual) return nada;
+      if (!atual && e.buscando) return nada;         // o dono está na busca de coleção: não atropela
+      return { acao: "preencher", slug: set.slug, nome: set.name_br || set.slug };
+    }
+    return atual ? { acao: "limpar" } : nada;        // produto saiu, trocou ou ficou sem coleção da lista
+  }
+  return { produtoConhecido, decidir };
+})();
+// ==== COLECAO AUTO: FIM DO BLOCO PURO ====
+
+// ==== COLECAO AUTO: COLA COM A TELA (o teste_colecao.mjs roda este trecho com um DOM de mentira) ====
+// slug = o que o automático pôs no #pubSet (null = nada dele lá); dono = o dono escolheu ou tirou
+// a coleção na mão nesta promo. Zera depois de publicar.
+const SET_AUTO = { slug: null, dono: false };
+let colAutoParada = false; // durante o publicar: a coleção do chip não muda
+function colAutoPausar(on) { colAutoParada = !!on; if (!on) colAutoSincronizar(); }
+function colAutoDica() {
+  $("pubSetAuto").classList.toggle("hidden", !(SET_AUTO.slug && $("pubSet").value === SET_AUTO.slug));
+}
+// roda no fim de cada prodRender (todo jeito de mexer no produto passa por ele). L = leitura do produto.
+function colAutoSincronizar(L) {
+  if (colAutoParada) return;
+  const prod = PROD.disponivel === true ? COLAUTO.produtoConhecido({
+    nome: $("prodNome").value, escolhido: PROD.escolhido, dup: PROD.dup, sugestao: PROD.sugestao,
+    tocado: PROD.tocado, confirmado: PROD.confirmado, nomeGerado: PROD.nomeGerado,
+    leitura: L === undefined ? prodLeituraAtual() : L,
+  }) : null;
+  const busca = $("pubSetBusca");
+  const d = COLAUTO.decidir({ produto: prod, sets: setsCache || [], jogo: $("pubCat").value,
+    atual: $("pubSet").value, auto: SET_AUTO.slug, dono: SET_AUTO.dono,
+    buscando: document.activeElement === busca || !!busca.value.trim() });
+  if (d.acao === "preencher") { escolherSet(d.slug, d.nome); SET_AUTO.slug = d.slug; }
+  else if (d.acao === "limpar") { escolherSet("", ""); SET_AUTO.slug = null; }
+  colAutoDica();
+}
+function colAutoDono() { SET_AUTO.dono = true; SET_AUTO.slug = null; colAutoDica(); }
+function colAutoZerar() { SET_AUTO.dono = false; SET_AUTO.slug = null; colAutoDica(); }
+// link novo = promo nova: a escolha do dono na promo anterior deixa de travar o automático (a
+// coleção que ele escolheu na mão continua no chip, como antes; o × dele vale só praquela promo)
+function colAutoNovaOferta() { SET_AUTO.dono = false; }
+// ==== COLECAO AUTO: FIM DA COLA ====
+
+// a lista de coleções chega depois do produto às vezes: confere de novo quando ela chegar
+loadSets().then(() => { try { colAutoSincronizar(); } catch {} });
 
 // ── Cupons salvos (localStorage: sobrevive fechar/abrir o app) ─
 const CUPONS_STORE = "dc_cupons";
@@ -1907,7 +2317,7 @@ function renderCupons() {
     const code = document.createElement("span"); code.className = "code";
     code.textContent = cp.p ? cp.c + " · " + cp.p + "%" : cp.c;
     code.title = "Usar este cupom";
-    code.addEventListener("click", () => { $("cupom").value = cp.c; $("cupomPct").value = cp.p || ""; });
+    code.addEventListener("click", () => { $("cupom").value = cp.c; $("cupomPct").value = cp.p || ""; cupomDica(); });
     const x = document.createElement("button"); x.type = "button"; x.className = "x";
     x.setAttribute("aria-label", "Excluir cupom salvo"); x.textContent = "×";
     x.addEventListener("click", () => { setCupons(getCupons().filter((o) => o.c !== cp.c)); renderCupons(); });
@@ -1915,7 +2325,7 @@ function renderCupons() {
   });
 }
 function salvarCupomAtual() {
-  const c = $("cupom").value.trim().toUpperCase();
+  const c = cupomParaSalvar($("cupom").value); // dois códigos ficam juntos no chip ("A ou B")
   if (!c) { $("cupom").focus(); return; }
   const p = $("cupomPct").value.trim();
   const list = getCupons().filter((o) => o.c !== c);
@@ -1927,6 +2337,15 @@ function salvarCupomAtual() {
 }
 $("btnSaveCupom").addEventListener("click", salvarCupomAtual);
 renderCupons();
+// dica embaixo do campo Cupom: mostra como o Gerador leu ("Na mensagem: Cupom: A ou B ... No site vai o A")
+// e avisa pedaço que não virou código. Campo com um código só (ou vazio): a dica de sempre.
+const CUPOM_DICA_PADRAO = $("cupomDica").textContent;
+function cupomDica() {
+  const t = leituraCupom($("cupom").value, $("notes").value);
+  $("cupomDica").textContent = t || CUPOM_DICA_PADRAO;
+}
+$("cupom").addEventListener("input", cupomDica);
+$("notes").addEventListener("input", cupomDica);
 
 // Preenche o card de publicacao com o que a mensagem gerada ja revelou
 function prefillPublish(text) {
@@ -1970,15 +2389,20 @@ function prefillPublish(text) {
   }
   atualizarResumoQtd();
   // cupom detectado na mensagem -> preenche o campo que vai pro site (se estiver vazio)
+  // ("Cupom: A ou B" e "Cupons: A + B" trazem os dois códigos pro campo)
   if (!$("cupom").value.trim()) {
-    const mc = text.match(/Cupom:\s*([A-Z0-9][A-Z0-9._-]{2,24})/i);
-    if (mc) $("cupom").value = mc[1].toUpperCase();
+    const mc = cupomDaMensagem(text);
+    if (mc) $("cupom").value = mc;
   }
   if ($("cupom").value.trim() && !$("cupomPct").value.trim()) {
-    const mpct = text.match(/cupom[^\n]*?(\d{1,2})\s*%\s*OFF/i);
+    // a regra de sempre ("cupom ... 10% OFF"); "Cupons:" só na linha principal ("🎟️ Cupons: A + B (10% OFF)"),
+    // pra "Não acumula com outros cupons. 10% OFF no pix" não virar o % do cupom
+    const mpct = text.match(/cupom[^\n]*?(\d{1,2})\s*%\s*OFF/i) ||
+      text.match(/^[\s*_~]*(?:🎟\uFE0F?[\s*_~]*)?cupons\b[^\n]*?(\d{1,2})\s*%\s*OFF/im);
     if (mpct) $("cupomPct").value = mpct[1];
   }
   prodDoTitulo(); // indice: titulo, preco e Leve ja estao no formulario
+  cupomDica();
 }
 
 // ==== INDICE: INICIO DO BLOCO PURO (sem DOM; o build/teste_reconhecer.mjs roda este trecho no Node) ====
@@ -2827,6 +3251,7 @@ function prodSumir() {
   PROD.disponivel = false;
   $("prodBox").classList.add("hidden");
   $("pubIndice").classList.add("hidden");
+  colAutoSincronizar(null); // sem bloco Produto, a coleção automática sai junto
 }
 
 function prodNormaliza(p) {
@@ -3031,7 +3456,7 @@ function prodPecas(L) {
 
 function prodRender() {
   const box = $("prodBox");
-  if (PROD.disponivel !== true) { box.classList.add("hidden"); return; }
+  if (PROD.disponivel !== true) { box.classList.add("hidden"); colAutoSincronizar(null); return; }
   box.classList.remove("hidden");
   const nome = $("prodNome").value.trim();
   $("prodLimpar").classList.toggle("hidden", !nome);
@@ -3049,6 +3474,7 @@ function prodRender() {
   prodRenderEditor(L);
   prodUnidDica();
   prodLinhaPub();
+  colAutoSincronizar(L); // coleção do card Publicar acompanha o produto (07/10/2026)
 }
 
 function prodRenderLeitura(L, nome) {
@@ -3689,6 +4115,10 @@ async function cpSetEsgotada(ids, esgotar, token) {
   return Array.isArray(rows) ? rows.map((r) => r.id) : [];
 }
 
+// Agrupa por cupom_codigo. Promo com dois cupons ("A ou B") foi publicada só com o PRIMEIRO
+// (decisão de 07/10/2026: o Copiar do site e do app copia um código só), então ela aparece aqui
+// pelo A. LIMITE: esgotar o B por esta aba só funciona se o B for o primeiro de alguma promo; se o
+// B acabar e o A seguir valendo, a promo continua no ar (o que o site mostra, o A, ainda funciona).
 function cpAgrupar(rows) {
   const m = new Map();
   rows.forEach((p) => {
@@ -3789,19 +4219,25 @@ function cpToast(texto, comDesfazer, ms) {
   cpAgendarFim(cpUndo, ms);
 }
 
-// Tira o código dos cupons salvos (chips do formulário); guarda pra devolver no Desfazer
+// Tira o código dos cupons salvos (chips do formulário); guarda pra devolver no Desfazer.
+// Chip "A ou B" com o A esgotado vira "B" (igual ao campo); "A + B" e chip de um código saem inteiros.
 function cpTirarDosSalvos(codigo) {
-  const salvos = getCupons(), tirados = [];
-  const ficam = salvos.filter((o, idx) => {
-    if (normCupom(o.c) === codigo) { tirados.push({ item: o, idx }); return false; }
-    return true;
+  const salvos = getCupons(), tirados = [], ficam = [];
+  salvos.forEach((o, idx) => {
+    const t = tirarCodigo(o.c, codigo);
+    if (!t) { ficam.push(o); return; }
+    const novo = t.ficou && !salvos.some((x) => x.c === t.ficou) && !ficam.some((x) => x.c === t.ficou)
+      ? { c: t.ficou, p: o.p } : null;
+    if (novo) ficam.push(novo);
+    tirados.push({ item: o, idx, posto: novo ? novo.c : "" });
   });
   if (tirados.length) { setCupons(ficam); renderCupons(); }
   return tirados;
 }
 function cpDevolverAosSalvos(tirados) {
   if (!tirados || !tirados.length) return;
-  const lista = getCupons();
+  const postos = tirados.map((t) => t.posto).filter(Boolean); // o "B" que entrou no lugar do "A ou B" sai
+  const lista = getCupons().filter((o) => !postos.includes(o.c));
   tirados.forEach(({ item, idx }) => {
     if (lista.some((o) => normCupom(o.c) === normCupom(item.c))) return;
     lista.splice(Math.min(idx, lista.length), 0, item);
@@ -3822,16 +4258,22 @@ function cpDesarmar(btn, g) {
 }
 
 // Guarda o código que está no formulário de Promoção, se for o cupom que esgotou,
-// e limpa o campo pra ele não ir de novo na próxima promo
+// e limpa o campo pra ele não ir de novo na próxima promo. Com dois cupons: "A ou B" com o A
+// esgotado deixa o B no campo (ele segue valendo); "A + B" precisa dos dois e sai inteiro.
 function cpTirarDoCampo(codigo) {
-  if (normCupom($("cupom").value) !== codigo) return null;
-  const campo = { c: $("cupom").value, p: $("cupomPct").value };
-  $("cupom").value = ""; $("cupomPct").value = "";
+  const t = tirarCodigo($("cupom").value, codigo);
+  if (!t) return null;
+  const campo = { c: $("cupom").value, p: $("cupomPct").value, ficou: t.ficou };
+  $("cupom").value = t.ficou;
+  if (!t.ficou) $("cupomPct").value = "";
+  cupomDica();
   return campo;
 }
 function cpDevolverAoCampo(campo) {
-  if (!campo || $("cupom").value.trim()) return;
+  // só volta se o dono não mexeu no campo depois (segue vazio, ou com o que sobrou do "A ou B")
+  if (!campo || $("cupom").value.trim() !== campo.ficou) return;
   $("cupom").value = campo.c; $("cupomPct").value = campo.p;
+  cupomDica();
 }
 
 // 1º toque arma ("Esgotar N?" por 3 s), 2º toque marca esgotadas. Sem diálogo nativo.
