@@ -256,6 +256,73 @@
   .gate-card p{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5}
   .gate-card .go{margin-top:12px}
   .gate-note{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.5;opacity:.85}
+
+  /* Produto desta promo + indice das NOSSAS promos (07/10/2026) */
+  .prod-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;min-height:22px}
+  .prod-head .label{margin:0 0 0 2px}
+  .prod-selo{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent-hi);background:rgba(139,92,246,.14);
+    border:1px solid var(--border);border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .prod-campo{position:relative}
+  .prod-campo input{padding-right:48px;min-height:46px;font-size:15px}
+  .prod-limpar{position:absolute;right:1px;top:1px;width:44px;height:44px;background:none;border:0;color:var(--muted);
+    font-size:22px;line-height:1;cursor:pointer;font-family:inherit}
+  .prod-limpar:hover{color:var(--text)}
+  .prod-lista button{min-height:44px}
+  .prod-lista button.ativo{background:rgba(139,92,246,.18)}
+  .prod-lista button mark{background:none;color:var(--accent-hi);font-weight:700}
+  .prod-conf{display:flex;align-items:center;gap:10px;margin-top:8px;background:rgba(255,211,77,.07);
+    border:1px solid rgba(255,211,77,.3);border-radius:11px;padding:4px 4px 4px 12px;font-size:12.5px;color:#ffe9a8;line-height:1.35}
+  .prod-conf b{color:#ffd34d}
+  .prod-conf span{flex:1;min-width:0}
+  .prod-conf button,.prod-dup button{flex-shrink:0;min-height:44px;padding:0 14px;border-radius:9px;background:transparent;
+    font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
+  .prod-conf button{border:1px solid rgba(255,211,77,.45);color:#ffd34d}
+  .prod-dup{display:flex;align-items:center;gap:10px;margin-top:8px;background:rgba(139,92,246,.1);border:1px solid var(--accent);
+    border-radius:11px;padding:4px 4px 4px 12px;font-size:12.5px;line-height:1.35}
+  .prod-dup span{flex:1;min-width:0}
+  .prod-dup button{border:1px solid var(--accent);color:var(--accent-hi)}
+  .prod-leitura{margin-top:9px;font-size:12px;color:var(--muted);line-height:1.45}
+  /* leitura pequena: o pedaco parece um chip baixo, mas a area de toque tem 44 px */
+  .prod-pecas{display:flex;flex-wrap:wrap;column-gap:4px;margin:-4px 0 -6px -2px}
+  .prod-peca{min-height:44px;padding:0 2px;background:none;border:0;display:inline-flex;align-items:center;
+    color:var(--text);font-size:12.5px;font-family:inherit;cursor:pointer}
+  .prod-peca span{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--border);line-height:1.3}
+  .prod-peca:hover span{border-color:var(--accent)}
+  .prod-peca.duvida span{border-style:dashed;border-color:rgba(255,211,77,.6);color:#ffe9a8}
+  .prod-peca.aberta span{border-color:var(--accent);background:rgba(139,92,246,.18)}
+  .prod-peca:focus-visible span{outline:2px solid var(--accent-hi);outline-offset:1px}
+  .prod-op:focus-visible,.prod-conf button:focus-visible,.prod-dup button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:1px}
+  .prod-salva{margin-top:6px;font-size:11.5px;color:var(--muted)}
+  .prod-salva b{color:var(--text);font-weight:600}
+  .prod-editor{margin-top:8px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:10px;position:relative}
+  .prod-editor .label{margin-bottom:8px}
+  .prod-ops{display:flex;flex-wrap:wrap;gap:6px}
+  .prod-op{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);
+    color:var(--text);font-size:13px;font-family:inherit;cursor:pointer}
+  .prod-op.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .prod-op.sec{color:var(--muted)}
+  .prod-num{display:flex;gap:6px;align-items:center}
+  .prod-num input{width:96px;min-height:44px;text-align:center}
+  .prod-unid{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .prod-unid label{font-size:12.5px;font-weight:600;color:var(--muted)}
+  .prod-unid input{width:72px;min-height:44px;text-align:center;font-size:15px}
+  .prod-unid .pi-hint{margin:0;flex:1 1 160px}
+  .idx-card{margin-top:12px;border-radius:12px;padding:10px 12px;border:1px solid var(--border);background:var(--panel-2);
+    border-left:4px solid var(--muted)}
+  .idx-card.bom{border-left-color:#86efac}
+  .idx-card.acima{border-left-color:#ffd34d}
+  .idx-card.media{border-left-color:var(--accent-hi)}
+  .idx-tit{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .idx-principal{font-size:14.5px;font-weight:700;margin-top:4px;line-height:1.35}
+  .idx-card.bom .idx-principal{color:#86efac}
+  .idx-card.acima .idx-principal{color:#ffd34d}
+  .idx-extra{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .idx-card .go{margin-top:8px;padding:11px;min-height:44px}
+  .prod-editor input[type=text]{min-height:44px}
+  .prod-pend{margin-top:8px;font-size:12px;color:#ffe9a8;line-height:1.4}
+  #pubIndice.pend{color:#ffd34d}
+  #pubIndice.bom{color:#86efac}
+  #pubIndice.acima{color:#ffd34d}
 </style>
 </head>
 <body>
@@ -365,6 +432,35 @@
 
   <button class="go" id="btnGo"><span id="goIcon">✨</span><span id="goText">Gerar mensagem</span></button>
   <div class="error hidden" id="err" role="alert"></div>
+  <!-- Produto desta promo + indice das NOSSAS promos (07/10/2026). Fica escondido ate o banco
+       responder que tem o SQL do indice (promo_produtos_lista); sem ele, o Gerador segue como antes. -->
+  <div class="card hidden" id="prodBox" style="margin-top:14px">
+    <div class="prod-head">
+      <label class="label" for="prodNome">Produto</label>
+      <span class="prod-selo hidden" id="prodSelo"></span>
+    </div>
+    <div class="prod-campo">
+      <input type="text" id="prodNome" placeholder="Ex.: blister triplo caos ascendente" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="prodLista">
+      <button type="button" class="prod-limpar hidden" id="prodLimpar" aria-label="Apagar o produto">×</button>
+      <div class="set-lista prod-lista hidden" id="prodLista" role="listbox" aria-label="Produtos já cadastrados"></div>
+    </div>
+    <div class="prod-conf hidden" id="prodConf">
+      <span><b>Confere?</b> <span id="prodMotivo"></span></span>
+      <button type="button" id="prodOk">Está certo</button>
+    </div>
+    <div class="prod-dup hidden" id="prodDup">
+      <span id="prodDupTxt"></span>
+      <button type="button" id="prodDupUsar">Usar este</button>
+    </div>
+    <div class="prod-leitura hidden" id="prodLeitura"></div>
+    <div class="prod-editor hidden" id="prodEditor"></div>
+    <div class="prod-unid" id="prodUnidBox">
+      <label for="prodUnid">Unidades no anúncio</label>
+      <input type="text" id="prodUnid" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="1" autocomplete="off">
+      <p class="pi-hint" id="prodUnidDica"></p>
+    </div>
+    <div class="idx-card hidden" id="idxCard" aria-live="polite"></div>
+  </div>
 
   <div class="wa-pane hidden" id="pane">
     <div class="wa-pane-head">
@@ -422,6 +518,7 @@
     </div>
     <p class="pi-hint" style="margin-top:6px">Preço sempre de CADA unidade. Se o cupom só vale levando 2 ou mais, põe o preço de um e a quantidade em "Leve": o total sai sozinho.</p>
     <p class="pi-hint hidden" id="pubResumoQtd" style="margin-top:4px;font-weight:700;color:#ffd34d"></p>
+    <p class="pi-hint hidden" id="pubIndice" style="margin-top:4px;font-weight:700" aria-live="polite"></p>
     <div style="margin-top:12px">
       <span class="label">Validade do cupom</span>
       <div class="seg seg-sm" id="segVal" role="tablist" aria-label="Validade do cupom">
@@ -925,6 +1022,7 @@ async function autoAdImage() {
       const dec = new DOMParser().parseFromString(meta.title, "text/html").documentElement.textContent || meta.title;
       $("pubTitulo").value = limparTitulo(dec);
       tituloAuto = true; // veio do anuncio: a mensagem gerada pode melhorar
+      prodDoTitulo(); // indice: sugere o produto pelo titulo do anuncio
     }
     // ML serve variantes pelo sufixo do arquivo (-I, -V, -F...): -O e o original, em
     // resolucao cheia. Tenta ele primeiro; se nao existir, fica com a og:image.
@@ -979,6 +1077,7 @@ function onLinkChange() {
     $("pubErr").classList.add("hidden");
     $("pubOk").classList.add("hidden");
     atualizarResumoQtd();
+    prodReset(); // indice: produto da oferta anterior sai junto
   }
   autoAdImage();
 }
@@ -1335,6 +1434,7 @@ $("btnSupaLogin").addEventListener("click", async () => {
   try {
     const data = await supaAuth("token?grant_type=password", { email, password: pass });
     saveSessFrom(data);
+    prodCarregarLista(true); // indice: cadastro de produtos (so admin)
     $("supaPass").value = "";
     $("supaGate").classList.add("hidden");
     cancelAfterLogin = null;
@@ -1369,6 +1469,8 @@ function parseMoney(v) {
   v = (v || "").trim().replace(/[^\d.,]/g, "");
   if (!v) return null;
   if (v.includes(",")) v = v.replace(/\./g, "").replace(",", ".");
+  // "1.299" ou "1.299.000": ponto de milhar sem centavos (a mensagem as vezes vem assim); "299.90" segue decimal
+  else if (/^\d{1,3}(\.\d{3})+$/.test(v)) v = v.replace(/\./g, "");
   const n = Number(v);
   return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
 }
@@ -1639,7 +1741,9 @@ async function publicar() {
   if (exp === undefined) return pubError("Escolha a data de validade (ou troque pra Sem prazo).");
 
   const token = await supaToken();
-  if (!token) { openLogin(publicar); return; }
+  // indice: publicar sem sessao abre o login e o publicar volta sozinho depois; o dono nao viu o cadastro
+  if (!token) { PROD.semVer = true; openLogin(publicar); return; }
+  const semVer = PROD.semVer; PROD.semVer = false;
 
   setPubLoading(true);
   try {
@@ -1682,15 +1786,21 @@ async function publicar() {
         imagem_3x2,
         cor_fundo,
     };
-    let ins = await inserir(corpoPromo);
+    // indice: o PLANO do produto sai antes do insert (le a tela), mas nada e criado antes de a promo sair
+    let prodPlano = null;
+    try { prodPlano = prodParaPublicar(semVer); } catch (e) { prodPlano = { aviso: " (o produto não foi ligado: erro no Gerador.)" }; }
+    let corpo = corpoPromo, msg = "";
+    let ins = await inserir(corpo);
     if (!ins.ok) {
       const d = await ins.json().catch(() => ({}));
-      const msg = d && d.message ? d.message : "Falha ao salvar a promo.";
+      msg = d && d.message ? d.message : "Falha ao salvar a promo.";
       // banco ainda sem as colunas das variantes (promos_imagens_variantes.sql): publica sem elas
       if (/imagem_1x1|imagem_3x2|cor_fundo/i.test(msg)) {
-        const { imagem_1x1: _a, imagem_3x2: _b, cor_fundo: _c, ...semVariantes } = corpoPromo;
-        ins = await inserir(semVariantes);
+        const { imagem_1x1: _a, imagem_3x2: _b, cor_fundo: _c, ...semVariantes } = corpo;
+        corpo = semVariantes;
+        ins = await inserir(corpo);
         if (ins.ok) avisoVar = " (o banco ainda não tem as colunas das variantes; o app usa a imagem com selo.)";
+        else { const d2 = await ins.json().catch(() => ({})); msg = d2 && d2.message ? d2.message : msg; } // o erro mostrado e o da ultima tentativa
       }
       if (!ins.ok) {
         throw new Error(/row-level security/i.test(msg) ? "Essa conta não tem permissão de publicar (não é a admin)." : msg);
@@ -1698,6 +1808,9 @@ async function publicar() {
     }
     const rows = await ins.json().catch(() => []);
     const promoId = Array.isArray(rows) && rows[0] ? rows[0].id : null;
+    // indice: liga a promo ao produto (promo_vincular). Falha aqui so vira aviso: a promo ja saiu.
+    const vinc = await prodVincular(token, promoId, prodPlano).catch(() => ({ aviso: " O produto não foi ligado; a promo saiu sem produto.", produto_id: null }));
+    const avisoProd = vinc.aviso || "";
     const grupoLink = promoId ? OG_WORKER + "/l?id=" + promoId : null;
     const setSlug = $("pubSet").value;
     const setNome = $("pubSetNome").textContent;
@@ -1706,8 +1819,9 @@ async function publicar() {
       ? " Levando " + qtd + ": " + fmtR(por) + " no total, " + fmtR(porUn) + " cada."
       : "") + (setSlug
       ? " Aviso enviado pra quem segue " + setNome + " no app."
-      : " Sem coleção: ninguém foi avisado no app.") + avisoVar, grupoLink);
+      : " Sem coleção: ninguém foi avisado no app.") + avisoVar + avisoProd, grupoLink);
     escolherSet("", "");
+    prodDepoisDePublicar(vinc.produto_id || null);
     loadMinhasPromos(true);
   } catch (e) {
     pubError(e.message || "Algo falhou ao publicar. Tente de novo.");
@@ -1817,6 +1931,9 @@ renderCupons();
 // Preenche o card de publicacao com o que a mensagem gerada ja revelou
 function prefillPublish(text) {
   const lines = text.split("\n").map((l) => l.trim());
+  // indice: a bandeira da linha do produto e o melhor sinal de idioma (antes ela era jogada fora)
+  const linhaBand = lines.find((l) => l.startsWith("🇧🇷") || l.startsWith("🇺🇸"));
+  if (linhaBand) PROD.bandeira = linhaBand.startsWith("🇺🇸") ? "us" : "br";
   // a linha do produto da mensagem e o nome limpo: substitui o titulo cru do
   // anuncio, mas nunca o que o dono digitou a mao
   if (!$("pubTitulo").value.trim() || tituloAuto) {
@@ -1861,7 +1978,1520 @@ function prefillPublish(text) {
     const mpct = text.match(/cupom[^\n]*?(\d{1,2})\s*%\s*OFF/i);
     if (mpct) $("cupomPct").value = mpct[1];
   }
+  prodDoTitulo(); // indice: titulo, preco e Leve ja estao no formulario
 }
+
+// ==== INDICE: INICIO DO BLOCO PURO (sem DOM; o build/teste_reconhecer.mjs roda este trecho no Node) ====
+// Reconhecedor de produto (porte do essencial do parse_ml de deck-certo-afiliados/_ml_casa_liga.py,
+// 11/09/2026) + autocompletar + textos do indice. Funcoes puras: nada aqui le a tela nem a rede.
+// Correcoes em relacao ao Python: Box Colecao com Fichario e box (nao acessorio); cases magneticos,
+// toploader e sleeve sao acessorio; mascote com "Mega" nao decide colecao; numero de cartas que nao
+// bate com caixa/combo/ETB vira duvida; case/caixa lacrada sem numero nao multiplica; Booster Bundle
+// fica bundle (sem a equivalencia da Liga); codigo tipo OP-09 nao vira quantidade; sem lookbehind.
+const IDX = (() => {
+  "use strict";
+  const MEMORIA_LIGADA = false; // memoria por semelhanca de letras: pronta, mas DESLIGADA (com 50 promos nao provou ganho)
+  const MEMORIA_LIMIAR = 0.7;
+
+  // ── normalizacao (igual a norm_ml) ──
+  function norm(s) {
+    s = String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+    s = s.replace(/[º°]/g, "").replace(/&/g, " e ");
+    s = s.replace(/[^a-z0-9/.,+()#:\- ]+/g, " ");
+    return s.replace(/\s+/g, " ").trim();
+  }
+  const semAcento = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+  // ── colecoes (Pokemon): regex sobre o nome normalizado -> slug da tabela sets. Especificos antes ──
+  // (o Python tinha 4 lookbehinds "(?<=[a-z])me05"; aqui so testamos, entao "[a-z]me0?5" vale igual)
+  const SET_ALIASES = [
+    [/\bescuridao\b(?! incandescente)|escuriadao|escuridao absol|escuridao absul|pitch ?black|\bme ?0?5\b|[a-z]me0?5\b|megaevolucao 5\b|mega darkrai/, "escuridao-absoluta"],
+    [/caos ?ascendente|chaos ?rising|\bme ?0?4\b|[a-z]me0?4\b|megaevolucao 4\b/, "caos-ascendente"],
+    [/\bequilibrio\b|perfect ?order|\bme ?0?3\b|[a-z]me0?3\b|megaevolucao 3\b|mega zygarde/, "equilibrio-perfeito"],
+    [/herois? ?excelsos\w*|ascended ?heroes|\bme ?0?2[.,]5\b|megaevolucao 2[.,]5\b|mega (feraligat\w*|emboar|meganium)|first partners? (deluxe )?pin|pin collection|deluxe pin/, "herois-excelsos"],
+    [/fogo ?fantasmagorico|phantasmal ?flames|\bme ?0?2\b(?![.,]5)|[a-z]me0?2\b(?![.,]5)|megaevolucao 2\b(?![.,]5)/, "fogo-fantasmagorico"],
+    [/reinado delta|delta reign|\bme ?0?6\b|megaevolucao 6\b/, "reinado-delta"],
+    [/\bme ?0?1\b|megaevolucao 1\b|mega heroes/, "megaevolucao"],
+    [/evolucoes ?prismaticas|prismatic ?evolutions|\b(ev|sv) ?0?8[.,]5\b|escarlate e violeta 8[.,]5/, "evolucoes-prismaticas"],
+    [/rivais (pre)?destinados|destined rivals|\b(ev|sv) ?10\b(?![.,]5)|\bdri\b/, "rivais-destinados"],
+    [/fogo branco|white flare/, "fogo-branco"],
+    [/raio preto|black bolt/, "raio-preto"],
+    [/amigos d[ae] jornada|journey together|\b(ev|sv) ?0?9\b(?![.,]5)|\bjtg\b/, "amigos-da-jornada"],
+    [/fagulhas impetuosas|surging sparks|\b(ev|sv) ?0?8\b(?![.,]5)/, "fagulhas-impetuosas"],
+    [/coroa estelar|stellar crown|\b(ev|sv) ?0?7\b(?![.,]5)/, "coroa-estelar"],
+    [/fabulas nebulosas|shrouded fable|\b(ev|sv) ?0?6[.,]5\b/, "fabulas-nebulosas"],
+    [/mascaras? do crepusculo|twilight masquerade|\b(ev|sv) ?0?6\b(?![.,]5)/, "mascara-do-crepusculo"],
+    [/forcas temporais|temporal forces|\b(ev|sv) ?0?5\b(?![.,]5)/, "forcas-temporais"],
+    [/destinos de paldea|paldean fates|\b(ev|sv) ?0?4[.,]5\b/, "destinos-de-paldea"],
+    [/fenda paradoxal|paradox rift|\b(ev|sv) ?0?4\b(?![.,]5)/, "fenda-paradoxal"],
+    [/\b151\b|\b(ev|sv) ?0?3[.,]5\b/, "pokemon-151"],
+    [/obsidiana em chamas|obsidian flames|\b(ev|sv) ?0?3\b(?![.,]5)/, "obsidiana-em-chamas"],
+    [/evolucoes em paldea|paldea evolved|\b(ev|sv) ?0?2\b(?![.,]5)/, "evolucoes-em-paldea"],
+    [/celebracao (de )?30 anos|30th celebration|\b30 ?anos\b/, "celebracao-30-anos"],
+    [/celebracoes(?!.*30 anos)|\b25 anos\b|swsh132/, "celebracoes"],
+    [/\bpaldea\b/, "escarlate-e-violeta"],
+  ];
+  // nome curto de cada slug (reserva quando a lista de sets do banco ainda nao chegou)
+  const NOME_SET = {
+    "escuridao-absoluta": "Escuridão Absoluta", "caos-ascendente": "Caos Ascendente",
+    "equilibrio-perfeito": "Equilíbrio Perfeito", "herois-excelsos": "Heróis Excelsos",
+    "fogo-fantasmagorico": "Fogo Fantasmagórico", "reinado-delta": "Reinado Delta", "megaevolucao": "Megaevolução",
+    "evolucoes-prismaticas": "Evoluções Prismáticas", "rivais-destinados": "Rivais Predestinados",
+    "fogo-branco": "Fogo Branco", "raio-preto": "Raio Preto", "amigos-da-jornada": "Amigos de Jornada",
+    "fagulhas-impetuosas": "Fagulhas Impetuosas", "coroa-estelar": "Coroa Estelar",
+    "fabulas-nebulosas": "Fábulas Nebulosas", "mascara-do-crepusculo": "Máscara do Crepúsculo",
+    "forcas-temporais": "Forças Temporais", "destinos-de-paldea": "Destinos de Paldea",
+    "fenda-paradoxal": "Fenda Paradoxal", "pokemon-151": "151", "obsidiana-em-chamas": "Obsidiana em Chamas",
+    "evolucoes-em-paldea": "Evoluções em Paldea", "celebracao-30-anos": "Celebração de 30 Anos",
+    "celebracoes": "Celebrações", "escarlate-e-violeta": "Escarlate e Violeta",
+  };
+  const ME01_CONFIRMA = /golduck|psyduck|drifblim|drifloon|gardevoir|mega lucario/;
+  const MEGA_GENERICO = /mega ?evolucao|mega evo\b|megaevo\b|coleca?o mega\b|mega evolution/;
+  const PARCEIRO = /parceir[oa]s? ?(inicia(is|l|s)?|incial)|first partners?|\biniciais\b|\bserie ?0?[123]\b.*\bbox\b|\bbox\b.*\bserie ?0?[123]\b/;
+  const LIXO = /mascara|tapa[- ]?olho|dormir|blackout|lapis|almofada|pelucia|olheiras|sublimacao|oclusor/;
+  const LIXO_SEMPRE = /mascara|dormir/;
+  const VARIANTE_BLISTER_PT = {
+    slowpoke: ["escuridao-absoluta", "blister_triplo"], binacle: ["escuridao-absoluta", "blister_quadruplo"],
+    charmeleon: ["caos-ascendente", "blister_triplo"], toxel: ["caos-ascendente", "blister_quadruplo"],
+    makuhita: ["equilibrio-perfeito", "blister_triplo"], chikorita: ["equilibrio-perfeito", "blister_quadruplo"],
+    gastly: ["herois-excelsos", "blister_triplo"], charmander: ["herois-excelsos", "blister_triplo"],
+    komala: ["herois-excelsos", "blister_quadruplo"], tangela: ["herois-excelsos", "blister_quadruplo"],
+    cottonee: ["fogo-fantasmagorico", "blister_triplo"], whimsicott: ["fogo-fantasmagorico", "blister_triplo"],
+    sneasel: ["fogo-fantasmagorico", "blister_quadruplo"], weavile: ["fogo-fantasmagorico", "blister_quadruplo"],
+    drifblim: ["megaevolucao", "blister_triplo"], drifloon: ["megaevolucao", "blister_triplo"],
+    golduck: ["megaevolucao", "blister_quadruplo"], psyduck: ["megaevolucao", "blister_quadruplo"],
+    glaceon: ["evolucoes-prismaticas", "blister_triplo"], leafeon: ["evolucoes-prismaticas", "blister_triplo"],
+    sylveon: ["evolucoes-prismaticas", "blister_triplo"],
+    flareon: ["evolucoes-prismaticas", "blister_quadruplo"], jolteon: ["evolucoes-prismaticas", "blister_quadruplo"],
+    vaporeon: ["evolucoes-prismaticas", "blister_quadruplo"],
+  };
+  const VARIANTE_RX = new RegExp("\\b(" + Object.keys(VARIANTE_BLISTER_PT).join("|") + ")\\b");
+  const STARTERS = /\b(bulbasaur|charmander|squirtle|chikorita|cyndaquil|totodile|treecko|torchic|mudkip|turtwig|chimchar|piplup|snivy|tepig|oshawott|chespin|fennekin|froakie|rowlet|litten|popplio|grookey|scorbunny|sobble|sprigatito|fuecoco|quaxly)\b/;
+  const MASCOTE_RX = /mega (darkrai|zygarde|lucario|gardevoir|greninja|feraligat\w*|emboar|meganium|chandelure|zeraora|slowbro|delphox|excadrill|venusaur|charizard|blastoise|absol|dragonite)|gardevoir|darkrai|zygarde|lucario|greninja|eevee|koraidon|miraidon/;
+  const CARTAS_MAP = {
+    6: [1, "booster_avulso"], 12: [2, "booster_avulso"], 18: [3, "booster_avulso"], 24: [4, "booster_avulso"],
+    30: [5, "booster_avulso"], 36: [6, "booster_avulso"], 60: [10, "booster_avulso"],
+    19: [1, "blister_triplo"], 38: [2, "blister_triplo"], 57: [3, "blister_triplo"], 76: [4, "blister_triplo"],
+    25: [1, "blister_quadruplo"], 50: [2, "blister_quadruplo"], 75: [3, "blister_quadruplo"], 125: [5, "blister_quadruplo"],
+  };
+  const CASE_PADRAO = { blister_triplo: 12, blister_quadruplo: 12, blister_unitario: 24 }; // so com a palavra "case"
+  const TIPOS_SEM_PRODUTO = new Set(["lixo", "carta_avulsa", "acessorio", "codigo_digital"]);
+  const FLAGS_AMBIGUAS = new Set(["sem_tipo", "blister_sem_qualificador", "conflito_palavra_x_cartas", "kit_desafio_incerto",
+    "box_generico", "conflito_cartas", "case_sem_numero"]);
+  const MASCOTE_SET_PT = { greninj: "celebracao-30-anos", sylveon: "celebracao-30-anos", ditto: "celebracao-30-anos",
+    emboar: "herois-excelsos", feralig: "herois-excelsos", meganiu: "herois-excelsos" };
+  const MASCOTE_TOKENS_RX = /\b(darkrai|zygarde|lucario|gardevoir|greninja|feraligat\w*|emboar|meganium|chandelure|zeraora|slowbro|delphox|excadrill|venusaur|charizard|blastoise|absol|dragonite|eevee|koraidon|miraidon|sylveon|ditto|pikachu)\b/g;
+  const PIN_COLLECTION = /first partners? (deluxe )?pin|pin collection|deluxe pin/;
+  const UNIDADES_SOLTAS = new Set(["blister_unitario", "blister_triplo", "blister_quadruplo", "booster_avulso"]);
+  const SET_INVALIDO = new Set(["multi", "megaevolucao-serie", "aleatorio", "parceiro-inicial"]);
+
+  // ── tipos da tela (vocabulario do dono, 07/10) ──
+  const TIPOS = [
+    { v: "booster", r: "Booster", rl: "Booster", b: 1, pacote: true },
+    { v: "blister", r: "Blister", rl: "Blister", b: 1, pacote: true },
+    { v: "blister_triplo", r: "Triplo", rl: "Blister triplo", b: 3, pacote: true },
+    { v: "blister_quadruplo", r: "Quádruplo", rl: "Blister quádruplo", b: 4, pacote: true },
+    { v: "combo_pacotes", r: "Combo de pacotes", rl: "Combo de pacotes", b: null, pacote: true },
+    { v: "booster_box", r: "Booster box 36", rl: "Booster box", b: 36, pacote: true },
+    { v: "kit_boosters", r: "Kit de boosters", rl: "Kit de boosters", b: 18, pacote: true },
+    { v: "etb", r: "ETB", rl: "ETB", b: 9, pacote: true },
+    { v: "box_colecao", r: "Box coleção", rl: "Box coleção", b: null },
+    { v: "lata", r: "Lata", rl: "Lata", b: null },
+    { v: "mini_lata", r: "Mini lata", rl: "Mini lata", b: null },
+    { v: "fichario", r: "Fichário", rl: "Fichário", b: null },
+    { v: "desafio_estrategico", r: "Desafio estratégico", rl: "Desafio estratégico", b: null },
+    { v: "deck", r: "Deck", rl: "Deck", b: null },
+    { v: "outro", r: "Outro", rl: "Outro", b: null },
+  ];
+  const TIPO = Object.fromEntries(TIPOS.map((t) => [t.v, t]));
+  const IDIOMAS = [{ v: "pt", r: "PT-BR" }, { v: "en", r: "Inglês" }, { v: "jp", r: "Japonês" }, { v: "zh", r: "Chinês" }, { v: "outro", r: "Outro idioma" }];
+  // idioma no banco (promo_idioma_norm): PT-BR, EN, JP, ZH, OUTRO (ES e KO entram como outro aqui)
+  const IDI_BANCO = { pt: "PT-BR", en: "EN", jp: "JP", zh: "ZH", outro: "OUTRO" };
+  function idiomaBanco(v) { return IDI_BANCO[v] || "PT-BR"; }
+  function idiomaInterno(v) {
+    const k = String(v || "").toUpperCase().replace(/[^A-Z]/g, "");
+    return { PTBR: "pt", PT: "pt", BR: "pt", EN: "en", ING: "en", JP: "jp", JAP: "jp", ZH: "zh", CHI: "zh" }[k] || (k ? "outro" : "pt");
+  }
+  const JOGOS = { pokemon: "Pokémon", magic: "Magic", onepiece: "One Piece", yugioh: "Yu-Gi-Oh", lorcana: "Lorcana" };
+
+  // procura um padrao com grupo numerico, ignorando numero de codigo de colecao (OP-09, EB-01)
+  function achaNum(rx, x) {
+    const g = new RegExp(rx.source, "g");
+    let m;
+    while ((m = g.exec(x)) !== null) {
+      const antes = x.slice(0, m.index + m[0].indexOf(m[1]));
+      if (!/[a-z]{1,4}-$/.test(antes)) return m;
+      if (g.lastIndex === m.index) g.lastIndex++;
+    }
+    return null;
+  }
+
+  // "N boosters" que descreve o CONTEUDO do produto (revisao 07/10). Nao vale: "2 Booster Box" e "151 Booster
+  // Bundle" (lote ou colecao), "+ 2 Boosters de brinde", codigo OP-09, e numero fora da faixa do tipo
+  // (ETB 8 a 12, caixa 12 a 40, bundle 2 a 12, kit 2 a 200)
+  const FAIXA_BOOSTERS = { etb: [8, 12], booster_box: [12, 40], combo_pacotes: [2, 12], kit_boosters: [2, 200] };
+  function boostersDoTitulo(x, tipo) {
+    const g = /\b(\d{1,4}) ?(boosters?|pacotes?|envelopes?|pacotinhos?|packs?)\b/g;
+    let m;
+    while ((m = g.exec(x)) !== null) {
+      const antes = x.slice(0, m.index), depois = x.slice(m.index + m[0].length);
+      if (/\+ ?$/.test(antes) || /[a-z]{1,4}-$/.test(antes)) continue;
+      if (/^ ?(box|display|bundle)\b/.test(depois) || /^ ?(de )?(brinde|extra|bonus|gratis)\b/.test(depois)) continue;
+      const n = parseInt(m[1], 10), f = FAIXA_BOOSTERS[tipo] || [2, 5000];
+      if (n >= f[0] && n <= f[1]) return n;
+    }
+    return null;
+  }
+
+  function jogoDe(x, dica) {
+    if (/yu-?gi-?oh|yugioh/.test(x)) return ["yugioh", "alta"];
+    if (/one ?piece|\bop-?\d{2}\b/.test(x)) return ["onepiece", "alta"];
+    if (/lorcana/.test(x)) return ["lorcana", "alta"];
+    if (/\bmagic\b|\bmtg\b|the gathering/.test(x)) return ["magic", "alta"];
+    if (/pokemon|copag|\bme ?0?\d\b|\b(ev|sv) ?\d/.test(x)) return ["pokemon", "alta"];
+    return [dica || "pokemon", "media"];
+  }
+
+  // colecao: aliases (Pokemon) e, na falta, o nome de um set da lista do banco que apareca inteiro no titulo
+  function achaSet(x, jogo, sets) {
+    let hits = [];
+    if (jogo === "pokemon") for (const [rx, sid] of SET_ALIASES) if (rx.test(x) && !hits.includes(sid)) hits.push(sid);
+    const parceiro = PARCEIRO.test(x);
+    if (parceiro && hits.includes("celebracao-30-anos") && !/celebraca?o/.test(x)) hits = hits.filter((h) => h !== "celebracao-30-anos");
+    if (jogo === "pokemon" && parceiro && !hits.length) return ["parceiro-inicial", "alta", hits];
+    if (hits.length === 1) return [hits[0], "alta", hits];
+    if (hits.length > 1) return ["multi", "baixa", hits];
+    // "Megaevolucao" sem numero e o nome da serie, nao da colecao (regra do Python, antes da lista do banco)
+    if (jogo === "pokemon" && MEGA_GENERICO.test(x)) {
+      if (ME01_CONFIRMA.test(x)) return ["megaevolucao", "media", ["megaevolucao"]];
+      return ["megaevolucao-serie", "baixa", []];
+    }
+    // lista do banco (cobre os sets sem alias e os outros jogos). So nome de 2 palavras ou mais:
+    // nome de 1 palavra ("Dragon", "Destemido") aparece em titulo de outra coisa
+    let melhor = null;
+    for (const s of sets || []) {
+      if (s.game !== jogo) continue;
+      const nm = norm(nomeCurtoSet(s.name_br || ""));
+      if (nm.length < 6 || nm.split(" ").length < 2) continue;
+      if ((" " + x + " ").includes(" " + nm + " ") && (!melhor || nm.length > melhor.n.length)) melhor = { slug: s.slug, n: nm };
+    }
+    if (melhor) return [melhor.slug, "media", [melhor.slug]];
+    if (/colecoes diversas|varias colecoes|\bcolecoes\b|aleatori/.test(x)) return ["aleatorio", "alta", []];
+    return [null, "nenhuma", []];
+  }
+
+  // tipo no vocabulario do parse_ml. Devolve [tipo, qtd0, unit, flags]. A ORDEM DAS REGRAS IMPORTA.
+  function achaTipo(x) {
+    const flags = [];
+    if (LIXO.test(x)) {
+      if (!/pokemon|blister|booster|copag|\bme0?\d\b/.test(x) || LIXO_SEMPRE.test(x)) return ["lixo", 0, null, flags];
+    }
+    if (/caixa vazia|lata vazia/.test(x)) return ["caixa_vazia", 1, "caixa_vazia", flags];
+    if (/codigos? digita|tcg live|codigos? online|codigos? (do |de )?(tcg|jogo)/.test(x)) return ["codigo_digital", 1, null, flags];
+    // 1. acessorio. CORRECAO: fichario/album junto de box, caixa, booster etc. e Box Colecao com Fichario;
+    //    "Colecao ... Fichario" tambem, a nao ser que o titulo COMECE pelo fichario/pasta (ai e o fichario)
+    const fich = /fichario|\balbum\b|\bpasta\b/.test(x);
+    const comecaFich = /^(\d+ ?x? )?(fichario|album|pasta)\b/.test(x);
+    if (fich && (/\bbox\b|\bcaixa\b|booster|blister|treinador|\betb\b/.test(x) || (/\bcoleca?o\b/.test(x) && !comecaFich))) {
+      return ["box_colecao", 1, "box_colecao", flags.concat(["com_fichario"])];
+    }
+    // CORRECAO (revisao 07/10): moeda, dados, sleeves, adesivo ou deck box DENTRO de produto lacrado e brinde,
+    // nao transforma o produto em acessorio ("Blister Quadruplo ... com Moeda", "ETB ... + Dados")
+    const lacrado = /blister|booster|\betb\b|treinador avancad|elite trainer|\bbox\b|\bdisplay\b|\blatas?\b|desafio estrateg|\bcombo\b/
+      .test(x.replace(/\bdeck ?box(es)?\b/g, " "));
+    if (/\bsleeves?\b|toploaders?|\bcases? magnetic|\bmagnetic|protetor(es)? (de |para )?cart|\bshields?\b/.test(x) && !lacrado && !/\d{1,3}\/\d{2,3}\b|\bcarta\b.*toploader/.test(x)) {
+      return ["acessorio", 1, null, flags]; // CORRECAO: cases magneticos e toploader (antes: outro / carta avulsa)
+    }
+    if (/album|fichario|\bpasta\b|adesivo|cartela|\bdados\b|moeda|playmat|deck box|estojo/.test(x) && !lacrado && !/\bcarta\b.*toploader/.test(x)) {
+      return ["acessorio", 1, null, fich ? flags.concat(["fichario"]) : flags];
+    }
+    // 2. carta avulsa / lote de cartas
+    if (/^cards? pokemon (?!coleca?o)|kit card pokemon|^carta pokemon (?!coleca?o)|\bcartas? avulsa|graduad|\brpa ?10|\bpsa\b|\d{1,3}\/\d{2,3}\b|\b\dx cartas|toploader|meta deck|\btrio\b|\bkit \d cartas|conjunto completo|master set|\bcompleto\b|ultrarara garantida|\bbulk\b|\bnm\b|holo foil|pre evolucoes|\d+ cartas \+ \d+ foil|\bgen ?\d\b|\d+a geracao|kit pokemon: carta|kit cartas pokemon/.test(x)) {
+      if (!/blister|booster|box|display|combo|pacote|envelope|treinador|etb|desafio/.test(x) || /\d{1,3}\/\d{2,3}\b|toploader|meta deck|graduad/.test(x)) {
+        return ["carta_avulsa", 1, null, flags];
+      }
+    }
+    // 2b. parceiro inicial: trio de cartas promo x box
+    if (PARCEIRO.test(x) && !/\bbox|\bcaixa|coleca?o ilustra|21 ?cart|51 ?(cartas|cards)|serie ?0?[123]\b|series|\bkit \d|case|adesiv/.test(x)) {
+      if (STARTERS.test(x) || /\b9 cartas|\btrio\b|cartas\b/.test(x)) return ["carta_avulsa", 1, null, flags.concat(["trio_parceiro"])];
+    }
+    // 3. ETB
+    if (/treinador avancad|elite trainer|\betb\b|advanced train|\b121 ?(cartas|cards|un)|c\/121/.test(x)) return ["etb", 1, "etb", flags];
+    // 4. desafio estrategico
+    if (/desafio estrateg|build (&|and|e) battle|\b88 cart/.test(x)) return ["desafio_estrategico", 1, "desafio_estrategico", flags];
+    // 5. combo de pacotes (18 boosters) ANTES de caixa, por causa de "mini display"
+    // (revisao 07/10: "18 envelopes/pacotinhos" e "Booster Box 18" tambem sao o kit de 18, convencao do dono)
+    if (/combo de booster|combo de pacotes|combo booster|combo 18|\b18 ?(booster|pacote|pct|envelope|pacotinho)|booster box 18\b|\bbox 18\b|display 18\b|\b108 ?(cartas|cards|u\b|un\b)|\b108\b|mini display|mini booster box|mini combo|box 18 booster|box\/combo|c\/18|combo pokemon/.test(x) && !/quadrupl/.test(x)) {
+      let qtd = 1;
+      if (/\bcase\b/.test(x)) {
+        const m = /\bcase (?:lacrada )?(?:de |com )?(\d+)\b/.exec(x);
+        if (m) { qtd = parseInt(m[1], 10); flags.push("case_combo"); }
+        else flags.push("case_sem_numero"); // CORRECAO: case sem numero nao multiplica (era 6)
+      }
+      return ["combo_pacotes", qtd, "combo_pacotes", flags];
+    }
+    // 6. caixa de booster (36 boosters / 216 cartas)
+    if (/booster box|box display|display box|booster display|\bdisplay\b|caixa de boosters?|\b36 ?(booster|pacote|pct|packs|unidades)|\b216 ?(cartas|cards|card)|box 36|box combo 36|c\/36|display com 36|36 boosters?\b/.test(x)) {
+      return ["caixa_booster", 1, "caixa_booster", flags];
+    }
+    // 7. booster bundle (6 boosters). CORRECAO: fica bundle (o Python virava combo ING da Liga)
+    if (/booster bundle/.test(x)) return ["booster_bundle", 1, "booster_bundle", flags];
+    // 7b. kit de N pacotes/envelopes: a palavra blister e ruido
+    if (/kit (com )?\d+ (pacotes|envelopes|pacotinhos)/.test(x)) return ["booster_avulso", 1, "booster_avulso", flags];
+    if (/kit desafio/.test(x)) return ["desafio_estrategico", 1, "desafio_estrategico", flags.concat(["kit_desafio_incerto"])];
+    // 8. blisters
+    const quadW = /quadrupl|quadrupo|\bquad\b|\b36896\b/.test(x);
+    const triW = /tripl|tripo|triple pack|3-pack|\b36892\b|03 booster com 06 cartas/.test(x);
+    const quadC = /\b25 ?(cartas|cards|card|u\b|un\b)/.test(x);
+    const triC = /\b19 ?(cartas|cards|un\b)/.test(x);
+    if (quadW && triW) return ["kit_misto", 2, null, flags.concat(["kit_misto_triplo_quadruplo"])];
+    if (quadW || triW) {
+      if ((quadW && triC) || (triW && quadC)) flags.push("conflito_palavra_x_cartas");
+      const t = quadW ? "blister_quadruplo" : "blister_triplo";
+      return [t, 1, t, flags];
+    }
+    if (quadC) return ["blister_quadruplo", 1, "blister_quadruplo", flags.concat(["tipo_via_n_cartas"])];
+    if (triC) return ["blister_triplo", 1, "blister_triplo", flags.concat(["tipo_via_n_cartas"])];
+    if (/blister gigante|carta pokemon gigante|pacote de parceiros iniciais/.test(x)) return ["blister_gigante", 1, "blister_gigante", flags];
+    if (/blisters? unit|blister un\b|blist unit|blister.*\b6 ?(cartas|cards)|\b6 ?(cartas|cards).*blister|checklane/.test(x)) return ["blister_unitario", 1, "blister_unitario", flags];
+    if (/\bblisters?\b/.test(x)) {
+      const mv = VARIANTE_RX.exec(x);
+      if (mv) { const t = VARIANTE_BLISTER_PT[mv[1]][1]; return [t, 1, t, flags.concat(["tipo_via_variante"])]; }
+      return ["blister_unitario", 1, "blister_unitario", flags.concat(["blister_sem_qualificador"])];
+    }
+    // 9. box colecao
+    if (/box coleca?o|coleca?o ilustra|colecao rara|serie ?0?[123]\b|series ?[123]\b|q[23] |first partner|parceir|pin collection|caixa surpresa|estampas/.test(x)) {
+      if (/caixa surpresa/.test(x)) return ["outro", 1, null, flags.concat(["caixa_surpresa"])];
+      return ["box_colecao", 1, "box_colecao", flags];
+    }
+    if (/box .*\bex\b/.test(x)) {
+      if (/coleca?o/.test(x)) return ["box_colecao", 1, "box_colecao", flags];
+      return ["box_colecao", 1, "box_colecao", flags.concat(["box_generico"])];
+    }
+    // 10. baralho
+    if (/batalha de liga|\bbaralho\b|\bdeck\b|\b60 cartas|structure deck|estrutural/.test(x)) return ["baralho", 1, "baralho", flags];
+    // 11. lata
+    if (/mini latas?|\blatas?\b|\btins?\b/.test(x)) { const t = /mini/.test(x) ? "mini_lata" : "lata"; return [t, 1, t, flags]; }
+    // 12. booster avulso (pacote, envelope, pack)
+    if (/booster|pacote|pacotinho|envelope|\bpack\b|\b6 ?(cartas|cards)/.test(x)) return ["booster_avulso", 1, "booster_avulso", flags];
+    return ["outro", 1, null, flags];
+  }
+
+  // quantidade (lote) do anuncio: devolve [qtd, origem]
+  function achaQtd(x, tipo, qtd0) {
+    if (TIPOS_SEM_PRODUTO.has(tipo) || tipo === "kit_misto") return [qtd0, "n/a"];
+    if (qtd0 > 1) return [qtd0, "case"];
+    const conteudo = (q) => ([36, 216, 108, 18].includes(q) && (tipo === "caixa_booster" || tipo === "combo_pacotes")) || (q === 121 && tipo === "etb");
+    // "Charizard X 2 Boosters": o X e do Pokemon, nao multiplicador
+    x = x.replace(/\b(charizard|mewtwo) x\b/g, "$1x");
+    // 1. multiplicador explicito. CORRECAO (revisao 07/10): "c/ N" saiu ("c/ 9 boosters" e conteudo da ETB,
+    //    nao 9 ETBs); entrou o numero no comeco do titulo ("2 ETB ...", "2 Combos 18 Boosters ...")
+    const m = achaNum(/\bkit (?:com |c\/ )?(\d+)\s?x?\b/, x) || achaNum(/\b(\d+) ?x\b(?! \d+ ?cm)/, x)
+      || achaNum(/\bx ?(\d+)\b/, x) || achaNum(/\bcase (?:lacrada )?(?:de |com )?(\d+)\b/, x)
+      || /^(\d{1,2}) (etbs?|combos?|latas?|mini latas?|booster box(es)?|boxes|displays?|elite trainer|treinador)\b/.exec(x);
+    if (m) {
+      const q = parseInt(m[1], 10);
+      if (conteudo(q)) return [1, "conteudo do proprio produto"];
+      if (q >= 1 && q <= 100) return [q, "kit N"];
+    }
+    // 2. total de cartas coerente com o tipo unitario
+    const mc = /\b(\d{1,3}) ?(cartas|cards|card)\b/.exec(x);
+    if (mc && ["booster_avulso", "blister_triplo", "blister_quadruplo"].includes(tipo)) {
+      const n = parseInt(mc[1], 10);
+      if (CARTAS_MAP[n] && CARTAS_MAP[n][1] === tipo) return [CARTAS_MAP[n][0], "N cartas"];
+    }
+    // 3. "N boosters", "N blisters", "N unidades"
+    const m3 = achaNum(/\b(\d+) ?(unid|unidades|pct|pcs|blisters?|boosters?|envelopes?|pacotes?|pacotinhos|boxes|caixas|blist)\b/, x)
+      || /^(\d+) (blister|booster|caixas|boxes)/.exec(x);
+    if (m3) {
+      const q = parseInt(m3[1], 10), palavra = m3[2];
+      if (conteudo(q)) return [1, "conteudo do proprio produto"];
+      if (/^(booster|pacote|envelope|pct)/.test(palavra) && ((tipo === "blister_triplo" && q === 3) || (tipo === "blister_quadruplo" && q === 4) || (tipo === "blister_unitario" && q === 1))) {
+        return [1, "conteudo do proprio produto"];
+      }
+      if (q >= 1 && q <= 100) return [q, "N unidades"]; // o reconhecer decide se e lote ou conteudo
+    }
+    // 4. case sem numero (CORRECAO: so a palavra "case"; "caixa lacrada" e so lacrada)
+    if (/\bcase\b/.test(x) && CASE_PADRAO[tipo]) return [CASE_PADRAO[tipo], "case default"];
+    return [qtd0, "default 1"];
+  }
+
+  function achaIdioma(x) {
+    if (/japon|\bjap\b|\bjp\b/.test(x)) return ["jp", "alta"];
+    if (/chines/.test(x)) return ["zh", "alta"];
+    if (/\bingles\b|\bing\b|\ben\b|english|\(en\)|pitch ?black|ascended ?heroes|chaos ?rising|perfect ?order|phantasmal|mega evolution\b|importad/.test(x)) return ["en", "alta"];
+    if (/portugu|\bpt\b|pt-?br|ptbr|\bbr\b|\(pt\)|copag|potugues|portuques/.test(x)) return ["pt", "alta"];
+    if (/first partners?|illustration collection|pin collection|30th celebration/.test(x)) return ["en", "media"];
+    if (/\bme ?0?\d|escuridao|caos ascendente|equilibrio|herois|fantasmagorico|prismaticas|parceir|treinador avancado|blister (triplo|quadruplo|unitario)|combo de (booster|pacotes)|desafio estrateg/.test(x)) return ["pt", "media"];
+    return ["pt", "baixa"];
+  }
+
+  function achaVariantes(x) {
+    const vs = [];
+    const g = new RegExp(VARIANTE_RX.source, "g");
+    let m;
+    while ((m = g.exec(x)) !== null) if (!vs.includes(m[1])) vs.push(m[1]);
+    if (vs.length) return vs;
+    const mm = MASCOTE_RX.exec(x);
+    if (mm) return [mm[0]];
+    if (PIN_COLLECTION.test(x)) return ["first partners pin"];
+    const ms = /serie ?0?([123])\b|series ?([123])\b|q([23]) |\(serie ([123])\)|parceir[oa]s? inicia\w* ([123])\b/.exec(x);
+    if (ms) return ["serie " + ms.slice(1).find((g2) => g2)];
+    if (/parceir/.test(x) && /herois|excelsos|51 ?(cartas|cards)/.test(x)) return ["parceiros iniciais"];
+    return [];
+  }
+
+  // parse_ml portado: chave no vocabulario do Python (set, tipo, unit, qtd, idioma, flags)
+  function parseMl(nome, jogo, sets) {
+    const x = norm(nome);
+    let [sid, sconf] = achaSet(x, jogo, sets);
+    let [tipo, qtd0, unit, flags] = achaTipo(x);
+    if (tipo === "outro") {
+      const mv = VARIANTE_RX.exec(x);
+      if (mv && jogo === "pokemon") { tipo = unit = VARIANTE_BLISTER_PT[mv[1]][1]; flags.push("tipo_via_variante"); }
+      else flags.push("sem_tipo");
+    }
+    let [qtd, qorig] = achaQtd(x, tipo, qtd0);
+    if (UNIDADES_SOLTAS.has(unit) && qorig === "default 1" && /\b(combo|lote)\b/.test(x) && !/combo de (booster|pacotes)|combo booster|combo 18|mini display/.test(x)) {
+      qtd = null; qorig = "combo sem quantidade"; flags.push("combo_sem_qtd");
+    }
+    const [idi, iconf] = achaIdioma(x);
+    const variantes = achaVariantes(x);
+    const v = variantes[0] || null;
+    if ((sid === null || sid === "megaevolucao-serie") && v && VARIANTE_BLISTER_PT[v] && idi === "pt" && ["blister_triplo", "blister_quadruplo", "blister_unitario"].includes(unit)) {
+      sid = VARIANTE_BLISTER_PT[v][0]; sconf = "media"; flags.push("set_via_variante");
+    }
+    if ((sid === null || sid === "megaevolucao-serie") && tipo === "box_colecao") {
+      const g = new RegExp(MASCOTE_TOKENS_RX.source, "g");
+      let mm;
+      while ((mm = g.exec(x)) !== null) {
+        // CORRECAO: "Mega Greninja" nao e o Greninja do 30 Anos; fica sem colecao e cai em Confere?
+        if (/mega $/.test(x.slice(0, mm.index))) continue;
+        const k = mm[1].slice(0, 7);
+        if (MASCOTE_SET_PT[k]) { sid = MASCOTE_SET_PT[k]; sconf = "media"; flags.push("set_via_mascote"); break; }
+      }
+    }
+    if (sid === "parceiro-inicial" && v === "parceiros iniciais") sid = "herois-excelsos";
+    // CORRECAO: numero de cartas que nao bate com o tipo vira duvida ("Booster Box 144 Cartas")
+    const mc = /\b(\d{2,3}) ?(cartas|cards|card)\b/.exec(x);
+    let cartas = mc ? parseInt(mc[1], 10) : null;
+    if (cartas && ((tipo === "caixa_booster" && cartas !== 216) || (tipo === "combo_pacotes" && cartas !== 108) || (tipo === "etb" && cartas !== 121))) {
+      flags.push("conflito_cartas");
+    } else if (!(tipo === "caixa_booster" || tipo === "combo_pacotes" || tipo === "etb")) cartas = null;
+    return { x, set: sid, set_conf: sconf, tipo, unit, qtd, qtd_origem: qorig, idioma: idi, idioma_conf: iconf, variante: v, flags, cartas };
+  }
+
+  // ── reconhecer(titulo): chave no vocabulario da tela ──
+  // opts: { jogo (o Jogo escolhido, so de reserva), bandeira ("br" | "us"), sets (lista do banco) }
+  function reconhecer(titulo, opts) {
+    opts = opts || {};
+    const sets = opts.sets || [];
+    const x0 = norm(titulo);
+    const [jogo, jconf] = jogoDe(x0, opts.jogo);
+    const p = parseMl(titulo, jogo, sets);
+    const x = p.x;
+    const flags = p.flags.slice();
+    let tipo = "outro", boosters = null, bconf = "baixa", lote = p.qtd, acessorio = false;
+    const t = p.tipo;
+    const map = {
+      booster_avulso: "booster", blister_unitario: "blister", blister_triplo: "blister_triplo", blister_quadruplo: "blister_quadruplo",
+      combo_pacotes: "kit_boosters", caixa_booster: "booster_box", etb: "etb", box_colecao: "box_colecao",
+      desafio_estrategico: "desafio_estrategico", booster_bundle: "combo_pacotes", lata: "lata", mini_lata: "mini_lata",
+      baralho: "deck", kit_misto: "combo_pacotes", blister_gigante: "outro", caixa_vazia: "outro", carta_avulsa: "outro",
+      codigo_digital: "outro", lixo: "outro", outro: "outro", acessorio: "outro",
+    };
+    tipo = map[t] || "outro";
+    if (t === "acessorio") { acessorio = true; if (flags.includes("fichario")) tipo = "fichario"; }
+    // boosters (pacotes) por unidade do produto
+    if (TIPO[tipo] && TIPO[tipo].b) { boosters = TIPO[tipo].b; bconf = "alta"; }
+    if (tipo === "booster_box") {
+      bconf = /\b36\b|\b216\b/.test(x) ? "alta" : "media";
+      if (jogo !== "pokemon" && jogo !== "magic") { boosters = 24; bconf = "media"; }
+    }
+    if (tipo === "kit_boosters") {
+      // combo/kit: 18 so quando o titulo diz (18 boosters, 108 cartas, mini booster box, combo 18)
+      if (/\b18\b|\b108\b|mini display|mini booster box|mini combo/.test(x)) bconf = "alta";
+      else { bconf = "baixa"; flags.push("combo_sem_numero"); }
+      if (p.qtd > 1 && p.qtd_origem === "case") lote = p.qtd; // case de combos
+    }
+    if (tipo === "combo_pacotes") {
+      if (t === "booster_bundle") { boosters = 6; bconf = "alta"; } else { boosters = null; bconf = "baixa"; }
+    }
+    if (p.cartas && flags.includes("conflito_cartas")) {
+      if (p.cartas % 6 === 0) boosters = p.cartas / 6;
+      bconf = "baixa";
+    }
+    // CORRECAO: "N boosters" num produto que nao e unidade solta descreve o CONTEUDO, nao o lote
+    // ("Booster Box 24 Boosters" e uma caixa de 24, nao 24 caixas; "ETB 9 boosters" e 1 ETB)
+    if (!UNIDADES_SOLTAS.has(p.unit) && p.qtd_origem === "N unidades") lote = 1;
+    const nb = TIPO[tipo] && TIPO[tipo].pacote && !UNIDADES_SOLTAS.has(p.unit) && t !== "kit_misto" && !flags.includes("conflito_cartas")
+      ? boostersDoTitulo(x, tipo) : null;
+    if (nb) {
+      boosters = nb; bconf = "alta";
+      const i = flags.indexOf("combo_sem_numero"); if (i >= 0) flags.splice(i, 1);
+    }
+    // convencao do dono: "Booster Box 18" (ou 12) de Pokemon e Kit de boosters, nao a caixa de 36
+    if (tipo === "booster_box" && jogo === "pokemon") {
+      if (!nb && /\b18\b/.test(x) && !/\b18 ?(cartas|cards)\b/.test(x)) { boosters = 18; bconf = "media"; }
+      if (boosters && boosters < 24) tipo = "kit_boosters";
+    }
+    // convencao do dono: caixa/case/display com 12 ou mais unidades soltas = Kit de boosters (o produto e a caixa)
+    const porUn = { booster_avulso: 1, blister_unitario: 1, blister_triplo: 3, blister_quadruplo: 4 }[t];
+    if (porUn && p.qtd && p.qtd >= 12 && (/\bcaixa\b|\bcase\b|\bcx\b|cx\/|lacrad|\bdisplay\b/.test(x) || p.qtd_origem === "case default" || p.qtd_origem === "case")) {
+      tipo = "kit_boosters"; boosters = p.qtd * porUn; bconf = "media"; lote = 1;
+      const i = flags.indexOf("blister_sem_qualificador"); if (i >= 0) flags.splice(i, 1);
+      flags.push("caixa_de_unidades");
+    }
+    // colecao
+    let colecao = p.set && !SET_INVALIDO.has(p.set) ? p.set : null;
+    let cconf = colecao ? p.set_conf : "nenhuma";
+    if (colecao && sets.length && !sets.some((s) => s.slug === colecao)) { /* slug fora da lista do banco */ cconf = "baixa"; }
+    if (tipo === "box_colecao" && flags.includes("com_fichario")) flags.push("variante_fichario");
+    // idioma: a bandeira da mensagem gerada manda quando o titulo nao diz
+    let idioma = p.idioma, iconf = p.idioma_conf;
+    if (opts.bandeira === "us" && iconf !== "alta") { idioma = "en"; iconf = "alta"; }
+    if (opts.bandeira === "br" && iconf !== "alta") { idioma = "pt"; iconf = "alta"; }
+    let jogoF = jogo;
+    if (acessorio && jconf !== "alta" && !colecao) jogoF = "geral"; // sleeve, toploader, fichario sem jogo nem colecao no titulo
+    // lote (unidades do anuncio vindas do titulo): so unidade solta de 2 a 11, ou kit N de qualquer produto
+    let lconf = "alta";
+    if (lote === null) { lote = 1; lconf = "baixa"; }
+    if (tipo === "kit_boosters" && flags.includes("caixa_de_unidades")) lote = 1;
+    if (TIPOS_SEM_PRODUTO.has(t)) lote = 1;
+    // certeza e seguranca (mesma regra das 39/50 do Python, com as correcoes)
+    const ambig = flags.some((f) => FLAGS_AMBIGUAS.has(f));
+    const tipoOk = !["outro", "lixo", "carta_avulsa", "codigo_digital", "kit_misto"].includes(t) && !flags.includes("sem_tipo") && !ambig;
+    const colOk = !!colecao && (cconf === "alta" || cconf === "media");
+    const bOk = boosters === null ? !(TIPO[tipo] && TIPO[tipo].pacote) : bconf !== "baixa";
+    const seguro = tipoOk && (colOk || acessorio) && bOk;
+    const motivo = seguro ? "" : motivoDuvida({ t, tipo, flags, colecao, colOk, acessorio, bOk, cartas: p.cartas });
+    const reconheceu = t !== "outro" || !!colecao || acessorio;
+    return {
+      jogo: jogoF, tipo, colecao, idioma, boosters, lote,
+      certeza: { jogo: jconf, tipo: tipoOk ? "alta" : (reconheceu && t !== "outro" ? "media" : "baixa"), colecao: colecao ? cconf : "nenhuma", idioma: iconf, boosters: boosters === null ? "nenhuma" : bconf, lote: lconf },
+      seguro, reconheceu, motivo, acessorio, base: t, flags, variante: p.variante,
+    };
+  }
+
+  function motivoDuvida(o) {
+    if (o.flags.includes("conflito_cartas")) return "O título fala " + o.cartas + " cartas, que não bate com o tipo.";
+    if (o.flags.includes("combo_sem_numero")) return "Combo sem o número de boosters no título.";
+    if (o.flags.includes("case_sem_numero")) return "Case sem o número de unidades.";
+    if (o.flags.includes("blister_sem_qualificador")) return "Blister sem dizer se é triplo ou quádruplo.";
+    if (o.flags.includes("box_generico")) return "Box sem tipo claro.";
+    if (o.flags.includes("conflito_palavra_x_cartas")) return "O tipo e o número de cartas não batem.";
+    if (o.t === "kit_misto") return "Mistura triplo e quádruplo no mesmo anúncio.";
+    if (o.t === "carta_avulsa") return "Parece carta avulsa.";
+    if (o.t === "outro") return "Não reconheci o tipo do produto.";
+    if (!o.colecao) return "Não achei a coleção no título.";
+    if (!o.colOk) return "Não tenho certeza da coleção.";
+    if (!o.bOk) return "Não tenho certeza de quantos boosters vêm.";
+    return "Confira o produto.";
+  }
+
+  // ── nomes ──
+  function nomeCurtoSet(n) { return String(n || "").split(/\s*[—–]\s*/).pop().trim(); }
+  function nomeColecao(slug, sets) {
+    if (!slug) return "";
+    const s = (sets || []).find((z) => z.slug === slug);
+    return nomeCurtoSet((s && s.name_br) || NOME_SET[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+  }
+  const ROT_IDIOMA = { pt: "PT-BR", en: "Inglês", jp: "Japonês", zh: "Chinês", outro: "Outro idioma" };
+  // tira ruido de anuncio para usar o titulo como nome de produto novo
+  function limpaNome(t) {
+    return String(t || "").replace(/^\s*\d{1,2}\s*x\s+/i, "")
+      .replace(/\b(copag|pok[eé]mon tcg|tcg|original|lacrad[oa]s?|oficial|pr[eé][- ]?venda|portugu[eê]s|pt-?br|envio imediato|pronta entrega|para (cards|cartas))\b/gi, " ")
+      .replace(/[—–]/g, " ").replace(/\s{2,}/g, " ").trim().replace(/^[\s,.-]+|[\s,.-]+$/g, "");
+  }
+  // nome para produto novo a partir da chave (pacotes) ou do titulo limpo (box, lata, acessorio...)
+  function nomeSugerido(r, titulo, sets) {
+    const col = nomeColecao(r.colecao, sets);
+    const idi = r.idioma && r.idioma !== "pt" ? " " + ROT_IDIOMA[r.idioma] : "";
+    let base = "";
+    switch (r.tipo) {
+      case "booster": base = "Booster"; break;
+      case "blister": base = "Blister Unitário"; break;
+      case "blister_triplo": base = "Blister Triplo"; break;
+      case "blister_quadruplo": base = "Blister Quádruplo"; break;
+      case "booster_box": base = "Booster Box" + (r.boosters && r.boosters !== 36 ? " " + r.boosters + " Boosters" : ""); break;
+      case "kit_boosters": base = "Kit " + (r.boosters || 18) + " Boosters"; break;
+      case "etb": base = "ETB"; break;
+      case "combo_pacotes": base = r.base === "booster_bundle" ? "Booster Bundle" : ""; break;
+      case "box_colecao": base = r.flags && r.flags.includes("com_fichario") ? "Box Coleção com Fichário" : ""; break;
+      default: base = "";
+    }
+    if (base && (col || r.tipo === "kit_boosters" || r.tipo === "booster_box")) return (base + (col ? " " + col : "") + idi).trim();
+    if (base && r.colecao === null && (r.tipo === "booster" || r.tipo.indexOf("blister") === 0 || r.tipo === "etb")) return limpaNome(titulo) || base;
+    return limpaNome(titulo);
+  }
+  // capitaliza o nome digitado e devolve acentos conhecidos (o dono digita sem acento no celular)
+  const ACENTOS = { quadruplo: "Quádruplo", colecao: "Coleção", fichario: "Fichário", album: "Álbum", unitario: "Unitário",
+    estrategico: "Estratégico", ingles: "Inglês", japones: "Japonês", pokemon: "Pokémon", serie: "Série" };
+  const MINUSC = new Set(["de", "da", "do", "das", "dos", "e", "com", "para", "em", "ex"]); // "ex" do Pokemon fica minusculo
+  function bonitoNome(txt, colecaoSlug, sets) {
+    let s = String(txt || "").replace(/[—–]/g, " ").replace(/\s+/g, " ").trim();
+    if (!s) return "";
+    // troca o pedaco que e o nome da colecao pelo nome oficial (com acento)
+    if (colecaoSlug) {
+      const of = nomeColecao(colecaoSlug, sets), n = semAcento(of);
+      const pal = s.split(" "), alvo = n.split(" ").length;
+      for (let i = 0; i + alvo <= pal.length; i++) {
+        if (semAcento(pal.slice(i, i + alvo).join(" ")) === n) { pal.splice(i, alvo, of); s = pal.join(" "); break; }
+      }
+    }
+    return s.split(" ").map((w, i) => {
+      if (/[A-Z]/.test(w.slice(1)) || /\d/.test(w)) return w; // ETB, ME05, 18: fica como o dono escreveu
+      const k = semAcento(w);
+      if (ACENTOS[k] && w === k) return ACENTOS[k];
+      if (i > 0 && MINUSC.has(k)) return w.toLowerCase();
+      if (/^(etb|tcg|pt-br|ptbr)$/i.test(w)) return w.toUpperCase().replace("PTBR", "PT-BR");
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(" ");
+  }
+
+  // ── chave do produto (anti-duplicata) ──
+  // so identifica o produto quando o tipo e de pacote e tem colecao (Box colecao, lata etc. variam dentro da colecao)
+  function chave(p) {
+    return [p.jogo || "pokemon", p.tipo || "", p.colecao || "", idiomaInterno(p.idioma), p.boosters == null ? "" : String(p.boosters)].join("|");
+  }
+  // igual ao promo_produto_desempate do SQL: tipo de pacote, com colecao e com boosters
+  function chaveIdentifica(p) { return !!(p && p.colecao && p.boosters != null && TIPO[p.tipo] && TIPO[p.tipo].pacote); }
+  // igual ao promo_norm do SQL (nome_busca)
+  function nomeNorm(n) { return semAcento(n).replace(/[^a-z0-9]+/g, " ").trim(); }
+  // regua por booster: so pacote solto e caixa (igual ao indice_booster do SQL; ETB fica fora)
+  const TIPOS_REGUA = new Set(["booster", "blister", "blister_triplo", "blister_quadruplo", "combo_pacotes", "booster_box", "kit_boosters"]);
+
+  // ── produto ja cadastrado que NAO e de pacote (box, lata, fichario, deck, outro) pelo titulo do anuncio ──
+  // (revisao 07/10) A chave desses produtos inclui o nome, entao o titulo do vendedor nunca bate com o nome
+  // cadastrado. Vale o produto cujas palavras (sem as de ligacao, comparando os 5 primeiros caracteres) estao
+  // TODAS no titulo, do mesmo tipo, jogo e colecao compativeis. O mais especifico ganha. forte = o nome cobre
+  // boa parte do titulo (60%+): a sugestao pode vir segura; senao vem com Confere?.
+  const PARADAS = new Set(["de", "da", "do", "das", "dos", "e", "com", "para", "em", "c", "x", "o", "a", "kit",
+    "pokemon", "tcg", "copag", "the", "of", "original", "oficial", "lacrado", "lacrada", "novo", "nova"]);
+  function palavrasChave(s) {
+    return nomeNorm(s).split(" ").filter((w) => w && !PARADAS.has(w)).map((w) => (w.length > 5 ? w.slice(0, 5) : w));
+  }
+  function achaPorTitulo(r, titulo, produtos) {
+    if (!r) return null;
+    const tt = new Set(palavrasChave(titulo));
+    if (!tt.size) return null;
+    let best = null;
+    for (const p of produtos || []) {
+      if (chaveIdentifica(p)) continue; // pacote com colecao e boosters: so pela chave
+      if (p.tipo !== r.tipo) continue;
+      if (p.jogo !== r.jogo && p.jogo !== "geral" && r.jogo !== "geral") continue;
+      if (p.colecao && r.colecao && p.colecao !== r.colecao) continue;
+      if (r.certeza && r.certeza.idioma === "alta" && idiomaInterno(p.idioma) !== r.idioma) continue;
+      const pt = [...new Set(palavrasChave(p.nome))];
+      if (pt.length < 2 || !pt.every((w) => tt.has(w))) continue;
+      if (!best || pt.length > best.n || (pt.length === best.n && Number(p.usos || 0) > Number(best.produto.usos || 0))) {
+        best = { produto: p, n: pt.length };
+      }
+    }
+    if (!best) return null;
+    return { produto: best.produto, forte: best.n / tt.size >= 0.6 };
+  }
+
+  // ── autocompletar: palavras em qualquer ordem, sem acento, contidas no nome; mais usados primeiro ──
+  function autocompletar(q, produtos, n) {
+    const toks = nomeNorm(q).split(" ").filter(Boolean);
+    if (!toks.length || nomeNorm(q).replace(/ /g, "").length < 2) return [];
+    const out = [];
+    for (const p of produtos || []) {
+      const nn = nomeNorm(p.nome);
+      if (!toks.every((t) => nn.includes(t))) continue;
+      const pal = nn.split(" ");
+      const prefixos = toks.filter((t) => pal.some((w) => w.startsWith(t))).length;
+      out.push({ p, prefixos, usos: Number(p.usos || 0) });
+    }
+    out.sort((a, b) => b.usos - a.usos || b.prefixos - a.prefixos || a.p.nome.localeCompare(b.p.nome, "pt-BR"));
+    return out.slice(0, n || 6).map((o) => o.p);
+  }
+
+  // ── memoria por semelhanca de letras (Jaccard de trigramas). DESLIGADA por padrao ──
+  function trigramas(s) {
+    const t = "  " + nomeNorm(limpaNome(s)) + " ";
+    const g = new Set();
+    for (let i = 0; i + 3 <= t.length; i++) g.add(t.slice(i, i + 3));
+    return g;
+  }
+  function semelhanca(a, b) {
+    const A = trigramas(a), B = trigramas(b);
+    if (!A.size || !B.size) return 0;
+    let inter = 0;
+    for (const g of A) if (B.has(g)) inter++;
+    return inter / (A.size + B.size - inter);
+  }
+  // exemplos: [{titulo, produto_id}] (promos ja publicadas com produto). Devolve {produto_id, sim, titulo} ou null
+  function memoria(titulo, exemplos) {
+    if (!MEMORIA_LIGADA) return null;
+    let best = null;
+    for (const e of exemplos || []) {
+      if (!e.produto_id || !e.titulo) continue;
+      const s = semelhanca(titulo, e.titulo);
+      if (!best || s > best.sim) best = { produto_id: e.produto_id, sim: s, titulo: e.titulo };
+    }
+    return best && best.sim >= MEMORIA_LIMIAR ? best : null;
+  }
+
+  // ── indice: normaliza a resposta das RPC (jsonb de indice_produto / indice_booster) e escreve o cartao ──
+  const num = (v) => (v === null || v === undefined || v === "" || !isFinite(Number(v)) ? null : Number(v));
+  function primeiro(o, ks) { for (const k of ks) if (o && o[k] !== undefined && o[k] !== null) return o[k]; return null; }
+  // indice_produto: n (janela de 120 dias, sem outlier), n_total, n_outliers, mediana, menor_valor/_data,
+  // ultima_valor/_data. indice_booster: mesmos nomes com mediana_booster e menor_booster.
+  // Aceita tambem { pontos: [{preco_unit, created_at}] } (usado no teste).
+  function normIndice(r) {
+    if (r === null || r === undefined || typeof r !== "object") return null;
+    if (Array.isArray(r)) r = r.length === 1 && !("preco_unit" in r[0]) ? r[0] : { pontos: r };
+    const estado = r.estado || "ok";
+    const pontos = (Array.isArray(r.pontos) ? r.pontos : []).map((p) => ({
+      preco: num(primeiro(p, ["preco_unit", "preco_unitario", "preco_booster", "preco"])),
+      em: primeiro(p, ["created_at", "enviada_em", "em", "data"]),
+    })).filter((p) => p.preco !== null).sort((x, y) => String(x.em).localeCompare(String(y.em)));
+    const o = {
+      estado,
+      vezes: num(primeiro(r, ["n_total", "vezes"])),
+      nJan: num(primeiro(r, ["n"])),
+      mediana: num(primeiro(r, ["mediana", "mediana_booster"])),
+      menor: num(primeiro(r, ["menor_valor", "menor_booster", "menor"])),
+      menorEm: primeiro(r, ["menor_data", "menor_em"]),
+      menorPromo: primeiro(r, ["menor_promo_id"]),
+      ultima: num(primeiro(r, ["ultima_valor"])),
+      ultimaEm: primeiro(r, ["ultima_data"]),
+      ultimaPromo: primeiro(r, ["ultima_promo_id"]),
+      outliers: num(primeiro(r, ["n_outliers"])) || 0,
+      menorProduto: primeiro(r, ["menor_produto_nome"]),
+      pontos,
+    };
+    if (pontos.length) {
+      const ps = pontos.map((p) => p.preco).sort((x, y) => x - y);
+      if (o.vezes === null) o.vezes = ps.length;
+      if (o.nJan === null) o.nJan = ps.length;
+      if (o.mediana === null) o.mediana = ps.length % 2 ? ps[ps.length >> 1] : (ps[ps.length / 2 - 1] + ps[ps.length / 2]) / 2;
+      if (o.menor === null) { const pm = pontos.reduce((m, p) => (p.preco < m.preco ? p : m)); o.menor = pm.preco; o.menorEm = pm.em; }
+      if (o.ultima === null) { const pu = pontos[pontos.length - 1]; o.ultima = pu.preco; o.ultimaEm = pu.em; }
+    }
+    if (o.vezes === null) o.vezes = o.nJan || 0;
+    if (o.nJan === null) o.nJan = o.vezes;
+    return o;
+  }
+  // espaco que nao quebra entre "R$" e o numero (no celular o "R$" ficava sozinho no fim da linha)
+  const brl = (v) => "R$ " + Number(v).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  function ddmm(iso) {
+    if (!iso) return "";
+    const s = String(iso);
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+    if (!m) return s;
+    if (s.length > 10) {
+      const d = new Date(s);
+      if (!isNaN(d)) return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+    }
+    return m[3] + "/" + m[2];
+  }
+  // faixa "na media": 3% da mediana ou R$ 1,00, o que for maior
+  function comparar(preco, ref) {
+    const tol = Math.max(0.03 * ref, 1);
+    if (preco < ref - tol) return "abaixo";
+    if (preco > ref + tol) return "acima";
+    return "media";
+  }
+  // st = normIndice(indice_produto) ou null (produto novo); preco = preco de cada unidade (null antes do Gerar)
+  // bst = normIndice(indice_booster); pb = preco por booster desta promo (ou null)
+  // Devolve { nivel: neutro|bom|media|acima, principal, extra[], curta }. Sem travessao e sem emoji.
+  function textoIndice(st, preco, bst, pb) {
+    const out = { nivel: "neutro", principal: "", extra: [], curta: "" };
+    const vezes = st ? st.vezes : 0;
+    const menorTxt = st && st.menor !== null ? brl(st.menor) + " em " + ddmm(st.menorEm) : "";
+    // (revisao 07/10) preco muito fora do que ja mandamos: antes de comemorar "menor preco", desconfia
+    // (preco digitado errado, "1.299" lido como 1,30, unidades erradas)
+    const ref = st && vezes ? (st.nJan >= 3 && st.mediana !== null ? st.mediana : st.menor) : null;
+    if (preco && ref && (preco < 0.4 * ref || preco > 3 * ref)) {
+      out.nivel = "acima";
+      out.principal = "Preço muito " + (preco < ref ? "abaixo" : "acima") + " do que já mandamos (" + brl(ref) + "): confira o valor e as unidades.";
+      out.curta = "Índice: preço muito fora do que já mandamos, confira.";
+      out.extra.push("Mandamos " + vezes + (vezes === 1 ? " vez" : " vezes") + "; menor " + menorTxt + ".");
+      if (pb) out.extra.push(brl(pb) + " por booster.");
+      return out;
+    }
+    if (!st || !vezes) {
+      out.principal = "Primeira vez que mandamos esse produto.";
+      out.curta = "Índice: primeira vez.";
+    } else if (!(st.nJan >= 3 && st.mediana !== null)) {
+      // poucos pontos: mostra o que tem, sem "costume"
+      if (vezes === 1) {
+        out.principal = "Mandamos 1 vez: " + menorTxt + ".";
+        out.curta = "Índice: só 1 promo antes (" + brl(st.menor) + ").";
+      } else if (vezes === 2 && st.ultima !== null && (st.ultimaPromo !== st.menorPromo || st.ultimaEm !== st.menorEm)) {
+        const a = { p: st.menor, em: st.menorEm }, b = { p: st.ultima, em: st.ultimaEm };
+        const [x, y] = String(a.em) <= String(b.em) ? [a, b] : [b, a];
+        out.principal = Math.abs(x.p - y.p) < 0.005
+          ? "Mandamos 2 vezes, as duas a " + brl(x.p) + (ddmm(x.em) === ddmm(y.em) ? " em " + ddmm(x.em) : " (" + ddmm(x.em) + " e " + ddmm(y.em) + ")") + "."
+          : "Mandamos 2 vezes: " + brl(x.p) + " em " + ddmm(x.em) + " e " + brl(y.p) + " em " + ddmm(y.em) + ".";
+        out.curta = "Índice: só 2 promos antes (menor " + brl(st.menor) + ").";
+      } else {
+        out.principal = "Mandamos " + vezes + " vezes. Menor: " + menorTxt + (st.ultima !== null && vezes > 2 ? "; a última foi " + brl(st.ultima) + " em " + ddmm(st.ultimaEm) : "") + ".";
+        out.curta = "Índice: o menor que já mandamos foi " + brl(st.menor) + ".";
+      }
+      if (preco && st.menor !== null && preco < st.menor - 0.005) { out.nivel = "bom"; out.extra.push("Menor preço que já mandamos."); out.curta = "Índice: menor que já mandamos."; }
+      else if (preco && st.menor !== null && Math.abs(preco - st.menor) <= 0.005) { out.nivel = "bom"; out.extra.push("Igual ao menor preço que já mandamos."); out.curta = "Índice: igual ao menor que já mandamos."; }
+      else if (preco) out.extra.push("Ainda é pouco para dizer o que costumamos mandar.");
+    } else {
+      const C = st.mediana, M = st.menor;
+      const ctx = "Mandamos " + vezes + " vezes; menor " + menorTxt + ".";
+      if (!preco) {
+        out.principal = "Mandamos " + vezes + " vezes. Costumamos mandar " + brl(C) + "; menor " + menorTxt + ".";
+        out.curta = "Índice: costumamos mandar " + brl(C) + ".";
+      } else if (M !== null && preco < M - 0.005) {
+        out.nivel = "bom"; out.principal = "Menor preço que já mandamos.";
+        out.extra.push("Costumamos mandar " + brl(C) + ". " + ctx); out.curta = "Índice: menor que já mandamos.";
+      } else if (M !== null && Math.abs(preco - M) <= 0.005) {
+        out.nivel = "bom"; out.principal = "Igual ao menor preço que já mandamos.";
+        out.extra.push("Costumamos mandar " + brl(C) + ". " + ctx); out.curta = "Índice: igual ao menor que já mandamos.";
+      } else {
+        const c = comparar(preco, C), pct = Math.round(Math.abs(preco - C) / C * 100);
+        if (c === "abaixo") { out.nivel = "bom"; out.principal = pct + "% abaixo do que costumamos mandar (" + brl(C) + ")."; out.curta = "Índice: " + pct + "% abaixo do costume (" + brl(C) + ")."; }
+        else if (c === "acima") { out.nivel = "acima"; out.principal = pct + "% acima do que costumamos mandar (" + brl(C) + "). Menor: " + menorTxt + "."; out.curta = "Índice: " + pct + "% acima do costume (" + brl(C) + ")."; }
+        else { out.nivel = "media"; out.principal = "Na média do que costumamos mandar (" + brl(C) + ")."; out.curta = "Índice: na média (" + brl(C) + ")."; }
+        out.extra.push(c === "acima" ? "Mandamos " + vezes + " vezes." : ctx); // no "acima" o menor ja esta na frase principal
+      }
+    }
+    if (st && st.outliers > 0) out.extra.push(st.outliers === 1 ? "1 promo ficou fora da conta por preço muito diferente." : st.outliers + " promos ficaram fora da conta por preço muito diferente.");
+    if (pb && bst && bst.estado === "ok" && bst.nJan && bst.mediana !== null) {
+      out.extra.push(brl(pb) + " por booster; costumamos mandar a " + brl(bst.mediana) + (bst.menor !== null && bst.menor < bst.mediana - 0.005 ? " (menor " + brl(bst.menor) + ")" : "") + ".");
+    } else if (pb) {
+      out.extra.push(brl(pb) + " por booster.");
+    }
+    return out;
+  }
+
+  // unidades no anuncio: junta o Leve do formulario e o lote do titulo, sem multiplicar os dois
+  function unidadesPadrao(leve, lote) {
+    leve = Math.max(1, leve || 1); lote = Math.max(1, lote || 1);
+    if (leve > 1 && lote > 1 && leve !== lote) return { n: leve, duvida: true };
+    return { n: Math.max(leve, lote), duvida: false };
+  }
+
+  return { MEMORIA_LIGADA, TIPOS, TIPO, IDIOMAS, JOGOS, ROT_IDIOMA, TIPOS_REGUA, idiomaBanco, idiomaInterno, norm, semAcento, reconhecer, parseMl, achaSet, nomeColecao, nomeCurtoSet,
+    nomeSugerido, bonitoNome, limpaNome, chave, chaveIdentifica, nomeNorm, autocompletar, achaPorTitulo, semelhanca, memoria, normIndice,
+    textoIndice, comparar, brl, ddmm, unidadesPadrao };
+})();
+// ==== INDICE: FIM DO BLOCO PURO ====
+
+// ── Produto desta promo + indice das NOSSAS promos (07/10/2026) ───────────────
+// Campo "Produto": o dono escreve como fala ("blister triplo caos ascendente") e o
+// autocompletar mostra o cadastro (promo_produtos_lista, mais usados primeiro). O campo
+// ja vem preenchido pelo reconhecedor (titulo do anuncio ou da mensagem) quando ele tem
+// certeza, com "Confere?" quando tem duvida, e vazio quando nao reconhece. A leitura
+// embaixo mostra o que as regras entenderam do nome DIGITADO e tocar num pedaco corrige
+// so ele. O cartao mostra o que NOS ja mandamos (indice_produto) e a regua por booster
+// da colecao (indice_booster). O vinculo vai DEPOIS do insert da promo, pela RPC
+// promo_vincular (que tambem cria o produto novo): nenhuma coluna nova em promos e
+// nenhum produto nasce se a promo nao saiu. Banco sem o SQL do indice: o bloco nao
+// aparece e o publicar segue igual. Nada disso vai pro localStorage.
+const PROD = {
+  disponivel: null,   // null = ainda nao sei; true = banco tem o SQL; false = nao tem (bloco some)
+  semLogin: false,    // tem o SQL, mas sem sessao: autocompletar e cartao pedem login
+  lista: [], listaEm: 0, carregando: null,
+  r: null,            // reconhecimento do TITULO (fonte do lote e do idioma)
+  tocado: false,      // o dono digitou, escolheu, corrigiu, confirmou ou apagou: o titulo nao mexe mais no campo
+  nomeGerado: false,  // o texto do campo foi montado pelo Gerador (refaz se um pedaco mudar)
+  escolhido: null,    // produto ja cadastrado
+  ajustes: {},        // pedacos corrigidos pelo dono (tipo, colecao, idioma, boosters)
+  editando: null, buscaCol: "",
+  sugestao: null,     // { produtoId, chave, nomeNorm, estado: "seguro" | "confere", motivo }
+  confirmado: false,  // tocou "Esta certo" no Confere?
+  unidTocado: false, unidDuvida: false,
+  bandeira: null,     // "br" | "us", da linha do produto na mensagem gerada
+  ativo: -1,          // item destacado no autocompletar (setas do teclado)
+  parado: false,      // acabou de publicar: o titulo velho nao sugere de novo ate o proximo link (o dono pode digitar)
+  dup: null,          // produto de pacote que ja existe com a mesma chave do nome digitado
+  semVer: false,      // o publicar comecou sem sessao: o dono nao viu o cadastro nem o indice
+  cacheProd: new Map(), cacheBooster: new Map(), seqIdx: 0,
+  exemplos: null,     // memoria (desligada): titulos de promos ja ligadas a produto
+};
+const IDX_TTL = 5 * 60e3;
+const RANK_CERTEZA = { alta: 3, media: 2, baixa: 1, nenhuma: 0 };
+
+async function prodRpc(nome, args, token) {
+  const h = { apikey: SUPA_KEY, "Content-Type": "application/json" };
+  if (token) h.Authorization = "Bearer " + token;
+  const r = await fetch(SUPA + "/rest/v1/rpc/" + nome, { method: "POST", headers: h, body: JSON.stringify(args || {}) });
+  let data = null;
+  try { data = await r.json(); } catch {}
+  return { status: r.status, ok: r.ok, data };
+}
+// funcao que o banco nao conhece (SQL do indice ainda nao rodou): o PostgREST devolve 404 / PGRST202
+const prodSemFuncao = (res) => res.status === 404 || !!(res.data && res.data.code === "PGRST202");
+
+function prodSumir() {
+  PROD.disponivel = false;
+  $("prodBox").classList.add("hidden");
+  $("pubIndice").classList.add("hidden");
+}
+
+function prodNormaliza(p) {
+  return {
+    id: Number(p.id), nome: String(p.nome || ""), jogo: p.jogo || "pokemon", tipo: p.tipo || "outro",
+    colecao: p.colecao || null, idioma: IDX.idiomaInterno(p.idioma),
+    boosters: p.boosters === null || p.boosters === undefined ? null : Number(p.boosters),
+    usos: Number(p.usos || 0), nome_busca: p.nome_busca || IDX.nomeNorm(p.nome),
+  };
+}
+
+// sem sessao: so descobre se o banco ja tem o SQL (anon nao executa e recebe 401; funcao que nao existe da 404)
+async function prodSondar() {
+  try {
+    const res = await prodRpc("promo_produtos_lista", {}, null);
+    if (prodSemFuncao(res)) return;
+    PROD.disponivel = true; PROD.semLogin = true;
+    prodDoTitulo();
+  } catch {}
+}
+
+async function prodIniciar() {
+  const token = await supaToken();
+  if (token) prodCarregarLista(true); else prodSondar();
+}
+
+async function prodCarregarLista(force) {
+  if (PROD.disponivel === false) return PROD.lista;
+  if (!force && PROD.listaEm && Date.now() - PROD.listaEm < 10 * 60e3) return PROD.lista;
+  if (PROD.carregando) return PROD.carregando;
+  PROD.carregando = (async () => {
+    try {
+      const token = await supaToken();
+      if (!token) { if (PROD.disponivel === null) await prodSondar(); else { PROD.semLogin = true; prodRender(); idxAgendar(); } return PROD.lista; }
+      const res = await prodRpc("promo_produtos_lista", {}, token);
+      if (prodSemFuncao(res)) { prodSumir(); return PROD.lista; }
+      if (res.status === 401) { if (PROD.disponivel === null) await prodSondar(); return PROD.lista; }
+      if (!res.ok || !Array.isArray(res.data)) return PROD.lista;
+      PROD.lista = res.data.map(prodNormaliza);
+      PROD.listaEm = Date.now();
+      PROD.disponivel = true; PROD.semLogin = false;
+      prodPlacar(token);
+      prodCarregarExemplos(token);
+      prodDoTitulo();
+      return PROD.lista;
+    } catch { return PROD.lista; }
+    finally { PROD.carregando = null; }
+  })();
+  return PROD.carregando;
+}
+
+// selo "Ele ja sabe: N%": das ultimas 50 sugestoes, quantas o dono publicou sem trocar
+async function prodPlacar(token) {
+  const el = $("prodSelo");
+  try {
+    const res = await prodRpc("promo_placar_sugestoes", {}, token);
+    const d = res.ok ? res.data : null;
+    if (d && d.estado === "ok" && d.feitas >= 5 && d.pct !== null && d.pct !== undefined) {
+      el.textContent = "Ele já sabe: " + d.pct + "%";
+      el.title = d.aceitas + " de " + d.feitas + " sugestões publicadas sem troca (últimas 50)";
+      el.setAttribute("aria-label", "Ele já sabe: " + d.pct + "%. " + el.title);
+      el.classList.remove("hidden");
+    } else el.classList.add("hidden");
+  } catch { el.classList.add("hidden"); }
+}
+
+// ── memoria por semelhanca de letras: pronta, mas DESLIGADA (IDX.MEMORIA_LIGADA) ──
+// le os exemplos do historico (so o admin le); promos nao tem mais nada do indice
+async function prodCarregarExemplos(token) {
+  if (!IDX.MEMORIA_LIGADA || PROD.exemplos || !token) return;
+  PROD.exemplos = [];
+  try {
+    const r = await fetch(SUPA + "/rest/v1/promo_historico?select=titulo,produto_id&produto_id=not.is.null&order=created_at.desc&limit=500",
+      { headers: { apikey: SUPA_KEY, Authorization: "Bearer " + token } });
+    const rows = await r.json();
+    if (r.ok && Array.isArray(rows)) { PROD.exemplos = rows; prodDoTitulo(); }
+  } catch {}
+}
+function prodMemoria(titulo) {
+  if (!IDX.MEMORIA_LIGADA || !PROD.exemplos) return null;
+  const m = IDX.memoria(titulo, PROD.exemplos);
+  const p = m ? PROD.lista.find((x) => x.id === Number(m.produto_id)) : null;
+  return p ? { produto: p, titulo: m.titulo } : null;
+}
+
+function prodAchaPorNome(txt) {
+  const n = IDX.nomeNorm(txt);
+  return n ? PROD.lista.find((p) => p.nome_busca === n) || null : null;
+}
+function prodAchaPorChave(L) {
+  if (!L || !IDX.chaveIdentifica(L)) return null;
+  const k = IDX.chave(L);
+  let best = null;
+  for (const p of PROD.lista) if (IDX.chaveIdentifica(p) && IDX.chave(p) === k && (!best || p.usos > best.usos)) best = p;
+  return best;
+}
+const prodOpcoes = () => ({ jogo: $("pubCat").value, bandeira: PROD.bandeira, sets: setsCache || [] });
+
+// titulo do anuncio (worker), da mensagem (prefill) ou digitado no card Publicar -> sugestao no campo
+function prodDoTitulo() {
+  if (PROD.disponivel !== true) return;
+  const titulo = $("pubTitulo").value.trim();
+  PROD.r = titulo ? IDX.reconhecer(titulo, prodOpcoes()) : null;
+  prodUnidPadrao();
+  if (PROD.tocado || PROD.parado) { prodRender(); idxAgendar(); return; }
+  const r = PROD.r;
+  Object.assign(PROD, { escolhido: null, ajustes: {}, editando: null, confirmado: false, sugestao: null, nomeGerado: false });
+  let nome = "";
+  const mem = r && !r.seguro ? prodMemoria(titulo) : null;
+  if (r) {
+    let existe = null, estado = r.seguro ? "seguro" : "confere", motivo = r.motivo;
+    if (mem) { existe = mem.produto; motivo = "Parecido com: " + mem.titulo + "."; }
+    else {
+      existe = prodAchaPorChave(r);
+      // box, lata, fichario, deck: o nome cadastrado nao e o titulo do vendedor (revisao 07/10)
+      const pt = existe ? null : IDX.achaPorTitulo(r, titulo, PROD.lista);
+      if (pt) {
+        existe = pt.produto;
+        if (!r.seguro || !pt.forte) { estado = "confere"; motivo = "Parece com um produto já cadastrado."; }
+      }
+      if (!existe) existe = prodAchaPorNome(IDX.nomeSugerido(r, titulo, setsCache));
+    }
+    if (existe || r.seguro || r.reconheceu) {
+      if (existe) { PROD.escolhido = existe; nome = existe.nome; }
+      else {
+        nome = IDX.nomeSugerido(r, titulo, setsCache); PROD.nomeGerado = true;
+        // produto novo que nao e de pacote leva o nome do anuncio: o dono confere o nome antes de virar cadastro
+        if (estado === "seguro" && !IDX.chaveIdentifica(r)) { estado = "confere"; motivo = "Produto novo com o nome do anúncio: confira o nome."; }
+      }
+      PROD.sugestao = { produtoId: existe ? existe.id : null, chave: existe ? IDX.chave(existe) : IDX.chave(r), nomeNorm: IDX.nomeNorm(nome), estado, motivo };
+    }
+  }
+  $("prodNome").value = nome;
+  prodRender(); idxAgendar();
+}
+
+// o que vale para o produto do campo: o cadastro (produto escolhido) ou a leitura do nome digitado
+function prodLeituraAtual() {
+  const nome = $("prodNome").value.trim();
+  if (!nome) return null;
+  if (PROD.escolhido) {
+    const p = PROD.escolhido;
+    return { jogo: p.jogo, tipo: p.tipo, colecao: p.colecao, idioma: p.idioma, boosters: p.boosters, certeza: {}, cadastrado: true };
+  }
+  const r = IDX.reconhecer(nome, prodOpcoes());
+  const L = { jogo: r.jogo, tipo: r.tipo, colecao: r.colecao, idioma: r.idioma, boosters: r.boosters,
+    certeza: Object.assign({}, r.certeza), acessorio: r.acessorio, base: r.base, flags: r.flags };
+  // o nome digitado quase nunca diz o idioma nem o jogo: vale o do titulo quando ele tem MAIS certeza
+  // ("Chaos Rising Booster Box" e Ingles mesmo que o dono digite "booster box caos ascendente")
+  const t = PROD.r;
+  if (t && (RANK_CERTEZA[t.certeza.idioma] || 0) > (RANK_CERTEZA[r.certeza.idioma] || 0)) { L.idioma = t.idioma; L.certeza.idioma = t.certeza.idioma; }
+  if (t && r.certeza.jogo !== "alta" && t.certeza.jogo === "alta" && t.jogo !== "geral") L.jogo = t.jogo;
+  const a = PROD.ajustes;
+  if ("tipo" in a) {
+    L.tipo = a.tipo; L.certeza.tipo = "alta";
+    if (!("boosters" in a) && L.tipo !== r.tipo) { L.boosters = IDX.TIPO[a.tipo] ? IDX.TIPO[a.tipo].b : null; L.certeza.boosters = L.boosters === null ? "nenhuma" : "media"; }
+    if (L.jogo === "geral" && a.tipo !== "outro" && a.tipo !== "fichario") L.jogo = $("pubCat").value;
+  }
+  if ("colecao" in a) { L.colecao = a.colecao; L.certeza.colecao = "alta"; }
+  if ("idioma" in a) { L.idioma = a.idioma; L.certeza.idioma = "alta"; }
+  if ("boosters" in a) { L.boosters = a.boosters; L.certeza.boosters = "alta"; }
+  return L;
+}
+
+// produto NOVO que ainda nao pode virar cadastro (revisao 07/10): devolve o motivo, ou "" quando pode
+function prodPendencia(L) {
+  if (!L || L.cadastrado || PROD.dup) return "";
+  const a = PROD.ajustes;
+  const nome = $("prodNome").value.trim();
+  if (IDX.nomeNorm(nome).length < 3) return "Nome curto demais: escolha um produto da lista ou escreva o nome inteiro.";
+  if (L.tipo === "outro" && !L.colecao && !L.acessorio && !("tipo" in a)) {
+    return "Ainda não entendi o que é: escolha da lista, complete o nome ou toque em Outro para corrigir o tipo.";
+  }
+  if (IDX.TIPO[L.tipo] && IDX.TIPO[L.tipo].pacote && !L.colecao && !("colecao" in a)) {
+    return "Falta a coleção: toque em \"sem coleção\" para escolher (ou confirme Sem coleção).";
+  }
+  return "";
+}
+// o que impede o produto de ir junto no publicar (aparece em cima e na linha do card Publicar)
+function prodBloqueio() {
+  if (PROD.disponivel !== true || PROD.semLogin) return "";
+  const nome = $("prodNome").value.trim();
+  if (!nome) return "";
+  const s = PROD.sugestao;
+  if (s && s.estado === "confere" && !PROD.tocado && !PROD.confirmado) return "Produto: responda o Confere? lá em cima (sem resposta, a promo sai sem produto).";
+  const p = prodPendencia(prodLeituraAtual());
+  return p ? "Produto: " + p.charAt(0).toLowerCase() + p.slice(1) + " Sem isso, a promo sai sem produto." : "";
+}
+
+function prodPecas(L) {
+  const c = L.certeza || {};
+  const duv = (k) => !L.cadastrado && (c[k] === "baixa" || c[k] === "nenhuma");
+  const pacote = !!(IDX.TIPO[L.tipo] && IDX.TIPO[L.tipo].pacote);
+  return [
+    { campo: "tipo", rot: "Tipo", txt: IDX.TIPO[L.tipo] ? IDX.TIPO[L.tipo].rl : "Outro", duvida: !L.cadastrado && (L.tipo === "outro" || duv("tipo")) },
+    { campo: "colecao", rot: "Coleção", txt: L.colecao ? IDX.nomeColecao(L.colecao, setsCache) : "sem coleção", duvida: !L.cadastrado && !L.colecao && pacote },
+    { campo: "idioma", rot: "Idioma", txt: IDX.ROT_IDIOMA[L.idioma] || "PT-BR", duvida: false },
+    { campo: "boosters", rot: "Boosters", txt: L.boosters === null || L.boosters === undefined ? "boosters?" : L.boosters + (L.boosters === 1 ? " booster" : " boosters"),
+      duvida: pacote && (L.boosters === null || L.boosters === undefined || duv("boosters")) },
+  ];
+}
+
+function prodRender() {
+  const box = $("prodBox");
+  if (PROD.disponivel !== true) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const nome = $("prodNome").value.trim();
+  $("prodLimpar").classList.toggle("hidden", !nome);
+  $("prodUnidBox").classList.toggle("hidden", !nome);
+  const s = PROD.sugestao;
+  const conf = !!(s && s.estado === "confere" && !PROD.tocado && !PROD.confirmado && nome);
+  $("prodConf").classList.toggle("hidden", !conf);
+  if (conf) $("prodMotivo").textContent = (s.motivo || "Confira o produto.") + " Sem resposta, a promo sai sem produto.";
+  const L0 = PROD.escolhido ? null : prodLeituraAtual();
+  PROD.dup = L0 ? prodAchaPorChave(L0) : null;
+  const L = prodLeituraAtual();
+  prodRenderLeitura(L, nome);
+  $("prodDup").classList.toggle("hidden", !PROD.dup);
+  if (PROD.dup) $("prodDupTxt").textContent = "Já existe: " + PROD.dup.nome + ". A promo vai para ele.";
+  prodRenderEditor(L);
+  prodUnidDica();
+  prodLinhaPub();
+}
+
+function prodRenderLeitura(L, nome) {
+  const el = $("prodLeitura");
+  el.textContent = "";
+  if (!L) { el.classList.add("hidden"); return; }
+  el.classList.remove("hidden");
+  const pecas = prodPecas(L);
+  if (L.cadastrado) {
+    const p = PROD.escolhido;
+    el.textContent = "Já cadastrado: " + pecas.filter((x) => !(x.campo === "boosters" && p.boosters === null)).map((x) => x.txt).join(", ") + ".";
+    // o anuncio diz outro idioma (com certeza) e o produto escolhido e de outro: avisa antes do publicar
+    const t = PROD.r;
+    if (t && t.certeza.idioma === "alta" && t.idioma !== p.idioma) {
+      const w = document.createElement("div"); w.className = "prod-pend";
+      w.textContent = "Atenção: o anúncio parece " + (IDX.ROT_IDIOMA[t.idioma] || "outro idioma") + " e este produto é " + (IDX.ROT_IDIOMA[p.idioma] || "PT-BR") + ".";
+      el.appendChild(w);
+    }
+    return;
+  }
+  const t = document.createElement("div");
+  t.textContent = PROD.dup ? "Entendi assim (toque num pedaço para corrigir):" : "Produto novo. Entendi assim (toque num pedaço para corrigir):";
+  el.appendChild(t);
+  const wrap = document.createElement("div");
+  wrap.className = "prod-pecas";
+  pecas.forEach((pc) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "prod-peca" + (pc.duvida ? " duvida" : "") + (PROD.editando === pc.campo ? " aberta" : "");
+    const sp = document.createElement("span"); sp.textContent = pc.txt; b.appendChild(sp);
+    b.setAttribute("aria-label", pc.rot + ": " + pc.txt + ". Toque para corrigir");
+    b.setAttribute("aria-expanded", String(PROD.editando === pc.campo));
+    b.addEventListener("click", () => { PROD.editando = PROD.editando === pc.campo ? null : pc.campo; PROD.buscaCol = ""; prodRender(); });
+    wrap.appendChild(b);
+  });
+  el.appendChild(wrap);
+  const pend = prodPendencia(L);
+  if (pend) {
+    const w = document.createElement("div"); w.className = "prod-pend"; w.textContent = pend;
+    el.appendChild(w);
+  } else if (!PROD.dup) {
+    const bonito = IDX.bonitoNome(nome, L.colecao, setsCache);
+    if (bonito && bonito !== nome) {
+      const sv = document.createElement("div");
+      sv.className = "prod-salva";
+      sv.append("Vai para o cadastro como ");
+      const b = document.createElement("b"); b.textContent = bonito; sv.appendChild(b);
+      sv.append(".");
+      el.appendChild(sv);
+    }
+  }
+}
+
+function prodRenderEditor(L) {
+  const ed = $("prodEditor");
+  ed.textContent = "";
+  if (!PROD.editando || !L || L.cadastrado) { ed.classList.add("hidden"); return; }
+  ed.classList.remove("hidden");
+  const tit = document.createElement("span");
+  tit.className = "label";
+  ed.appendChild(tit);
+  const ops = document.createElement("div");
+  ops.className = "prod-ops";
+  const op = (txt, on, fn, sec) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "prod-op" + (on ? " on" : "") + (sec ? " sec" : "");
+    b.textContent = txt; b.setAttribute("aria-pressed", String(!!on));
+    b.addEventListener("click", fn);
+    ops.appendChild(b);
+    return b;
+  };
+  if (PROD.editando === "tipo") {
+    tit.textContent = "Tipo do produto";
+    IDX.TIPOS.forEach((t) => op(t.r, L.tipo === t.v, () => prodAjusta({ tipo: t.v })));
+    ed.appendChild(ops);
+  } else if (PROD.editando === "idioma") {
+    tit.textContent = "Idioma";
+    IDX.IDIOMAS.forEach((i) => op(i.r, L.idioma === i.v, () => prodAjusta({ idioma: i.v })));
+    ed.appendChild(ops);
+  } else if (PROD.editando === "boosters") {
+    tit.textContent = "Boosters em cada unidade do produto";
+    const w = document.createElement("div"); w.className = "prod-num";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.inputMode = "numeric"; inp.maxLength = 4; inp.autocomplete = "off";
+    inp.value = L.boosters === null || L.boosters === undefined ? "" : String(L.boosters);
+    inp.setAttribute("aria-label", "Boosters em cada unidade");
+    inp.addEventListener("input", () => { inp.value = inp.value.replace(/\D/g, "").slice(0, 4); });
+    const ok = () => { const n = parseInt(inp.value, 10); prodAjusta({ boosters: n > 0 ? n : null }); };
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok(); } });
+    w.appendChild(inp);
+    ops.appendChild(w);
+    op("OK", false, ok);
+    op("Não conta booster", false, () => prodAjusta({ boosters: null }), true);
+    ed.appendChild(ops);
+    setTimeout(() => inp.focus(), 0);
+  } else if (PROD.editando === "colecao") {
+    tit.textContent = "Coleção";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.placeholder = "Digite o nome da coleção"; inp.autocomplete = "off"; inp.value = PROD.buscaCol;
+    inp.setAttribute("aria-label", "Buscar coleção");
+    const lista = document.createElement("div");
+    lista.className = "prod-ops"; lista.style.marginTop = "8px";
+    const jogo = L.jogo === "geral" ? $("pubCat").value : L.jogo;
+    const desenha = () => {
+      lista.textContent = "";
+      const q = semAcento(inp.value.trim());
+      const rows = (setsCache || []).filter((x) => x.game === jogo);
+      const hits = (q ? rows.filter((x) => semAcento(x.name_br || x.slug).includes(q) || semAcento(x.slug).includes(q)) : rows).slice(0, 8);
+      hits.forEach((x) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prod-op" + (L.colecao === x.slug ? " on" : "");
+        b.textContent = IDX.nomeCurtoSet(x.name_br || x.slug);
+        b.addEventListener("click", () => prodAjusta({ colecao: x.slug }));
+        lista.appendChild(b);
+      });
+      if (!rows.length) { const v = document.createElement("span"); v.className = "pi-hint"; v.textContent = "Sem coleções cadastradas para este jogo."; lista.appendChild(v); }
+      const sem = document.createElement("button");
+      sem.type = "button"; sem.className = "prod-op sec" + (!L.colecao ? " on" : ""); sem.textContent = "Sem coleção";
+      sem.addEventListener("click", () => prodAjusta({ colecao: null }));
+      lista.appendChild(sem);
+    };
+    inp.addEventListener("input", () => { PROD.buscaCol = inp.value; desenha(); });
+    ed.appendChild(inp);
+    ed.appendChild(lista);
+    desenha();
+    setTimeout(() => inp.focus(), 0);
+  }
+}
+
+// o dono corrigiu um pedaco da leitura
+function prodAjusta(patch) {
+  Object.assign(PROD, { tocado: true, parado: false });
+  Object.assign(PROD.ajustes, patch);
+  PROD.editando = null;
+  if (PROD.nomeGerado) {
+    // o nome foi montado pelo Gerador: refaz com os pedacos novos (nome digitado pelo dono nao muda)
+    const L = prodLeituraAtual();
+    const novo = L ? IDX.nomeSugerido(Object.assign({ base: "", flags: [] }, L), $("prodNome").value, setsCache) : "";
+    if (novo) $("prodNome").value = novo;
+  }
+  PROD.escolhido = prodAchaPorNome($("prodNome").value);
+  prodRender(); idxAgendar();
+}
+
+function prodEscolher(p) {
+  Object.assign(PROD, { tocado: true, parado: false, nomeGerado: false, escolhido: p, ajustes: {}, editando: null, ativo: -1 });
+  $("prodNome").value = p.nome;
+  prodFecharLista();
+  $("prodNome").blur(); // fecha o teclado do celular
+  prodRender(); idxAgendar();
+}
+
+function prodOnInput() {
+  Object.assign(PROD, { tocado: true, parado: false, nomeGerado: false, editando: null, ativo: -1 });
+  const txt = $("prodNome").value;
+  PROD.escolhido = prodAchaPorNome(txt);
+  if (!txt.trim()) PROD.ajustes = {};
+  prodRender(); prodListar(); idxAgendar();
+}
+
+// ── autocompletar (lista abaixo do campo) ──
+function prodFecharLista() {
+  $("prodLista").classList.add("hidden");
+  $("prodNome").setAttribute("aria-expanded", "false");
+  $("prodNome").removeAttribute("aria-activedescendant");
+}
+function prodListar() {
+  const lista = $("prodLista"), inp = $("prodNome");
+  if (document.activeElement !== inp || PROD.disponivel !== true) { prodFecharLista(); return; }
+  const q = inp.value;
+  const hits = IDX.autocompletar(q, PROD.lista, 6);
+  lista.textContent = "";
+  // o texto ja e exatamente o produto escolhido: nao precisa da lista
+  if (hits.length === 1 && PROD.escolhido && hits[0].id === PROD.escolhido.id) { prodFecharLista(); return; }
+  if (!hits.length) {
+    if (PROD.semLogin && IDX.nomeNorm(q).length >= 2) {
+      const v = document.createElement("div"); v.className = "vazio";
+      v.textContent = "Entre na conta admin para ver os produtos já cadastrados.";
+      lista.appendChild(v);
+    } else { prodFecharLista(); return; }
+  }
+  if (PROD.ativo >= hits.length) PROD.ativo = -1;
+  hits.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "prodOp" + i; b.setAttribute("role", "option");
+    b.className = i === PROD.ativo ? "ativo" : "";
+    b.setAttribute("aria-selected", String(i === PROD.ativo));
+    b.textContent = p.nome;
+    const sm = document.createElement("small");
+    sm.textContent = (IDX.TIPO[p.tipo] ? IDX.TIPO[p.tipo].rl : p.tipo) + (p.colecao ? ", " + IDX.nomeColecao(p.colecao, setsCache) : "") +
+      (p.idioma !== "pt" ? ", " + (IDX.ROT_IDIOMA[p.idioma] || "outro idioma") : "") +
+      (p.usos ? ", " + p.usos + (p.usos === 1 ? " promo" : " promos") : ", ainda sem promo");
+    b.appendChild(sm);
+    b.addEventListener("mousedown", (e) => e.preventDefault()); // nao tira o foco do campo antes do toque
+    b.addEventListener("click", () => prodEscolher(p));
+    lista.appendChild(b);
+  });
+  lista.classList.remove("hidden");
+  inp.setAttribute("aria-expanded", "true");
+  if (PROD.ativo >= 0) inp.setAttribute("aria-activedescendant", "prodOp" + PROD.ativo); else inp.removeAttribute("aria-activedescendant");
+  prodListaVisivel();
+}
+// no celular o teclado cobre a metade de baixo: rola so o necessario para a lista aparecer inteira
+function prodListaVisivel() {
+  requestAnimationFrame(() => {
+    const lista = $("prodLista");
+    if (lista.classList.contains("hidden")) return;
+    const vv = window.visualViewport;
+    const altura = vv ? vv.height : window.innerHeight;
+    const r = lista.getBoundingClientRect();
+    if (r.bottom > altura - 8) {
+      const topo = $("prodNome").getBoundingClientRect().top;
+      const delta = Math.min(r.bottom - altura + 12, topo - 12);
+      if (delta > 0) window.scrollBy({ top: delta, behavior: "smooth" });
+    }
+  });
+}
+
+// ── unidades no anuncio: Leve x lote do titulo, sem multiplicar os dois ──
+function prodUnidPadrao() {
+  if (PROD.unidTocado) return;
+  const leve = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
+  const u = IDX.unidadesPadrao(leve, PROD.r ? PROD.r.lote : 1);
+  $("prodUnid").value = String(u.n);
+  PROD.unidDuvida = u.duvida;
+}
+function prodPrecoUnit() {
+  const por = parseMoney($("pubPor").value);
+  if (!por) return null;
+  const leve = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
+  const un = Math.max(1, parseInt($("prodUnid").value || "1", 10) || 1);
+  return Math.round(por * leve / un * 100) / 100;
+}
+function prodUnidDica() {
+  const el = $("prodUnidDica");
+  const leve = Math.max(1, parseInt($("pubQtd").value || "1", 10) || 1);
+  const un = Math.max(1, parseInt($("prodUnid").value || "1", 10) || 1);
+  const pu = prodPrecoUnit();
+  if (PROD.unidDuvida && !PROD.unidTocado && PROD.r) el.textContent = "O título fala " + PROD.r.lote + " e o Leve está em " + leve + ": confira.";
+  else if (pu && un > 1) el.textContent = "Cada unidade sai a " + IDX.brl(pu) + ".";
+  else el.textContent = "Quantas unidades deste produto o preço total compra.";
+}
+
+// ── cartao do indice ──
+let idxTimer = null;
+function idxAgendar() { clearTimeout(idxTimer); idxTimer = setTimeout(idxAtualizar, 250); }
+async function idxProduto(id, token) {
+  const c = PROD.cacheProd.get(id);
+  if (c && Date.now() - c.em < IDX_TTL) return c.v;
+  const res = await prodRpc("indice_produto", { p_produto_id: id }, token);
+  // um 404 aqui nao derruba o bloco (pode ser passageiro): o cartao diz que nao leu e tenta de novo depois
+  if (!res.ok) throw new Error("http " + res.status);
+  const v = IDX.normIndice(res.data);
+  PROD.cacheProd.set(id, { v, em: Date.now() });
+  return v;
+}
+async function idxBooster(col, idioma, token) {
+  const k = col + "|" + idioma;
+  const c = PROD.cacheBooster.get(k);
+  if (c && Date.now() - c.em < IDX_TTL) return c.v;
+  const res = await prodRpc("indice_booster", { p_colecao: col, p_idioma: IDX.idiomaBanco(idioma) }, token);
+  if (!res.ok) return null; // a regua por booster e extra: sem ela o cartao sai igual
+  const v = IDX.normIndice(res.data);
+  PROD.cacheBooster.set(k, { v, em: Date.now() });
+  return v;
+}
+// linha junto do preco, no card Publicar: o que falta no produto ganha do indice
+function prodLinhaPub(curta, nivel, temPreco) {
+  const linha = $("pubIndice");
+  const bloq = prodBloqueio();
+  if (bloq) { linha.textContent = bloq; linha.className = "pi-hint pend"; return; }
+  if (curta === undefined) { if (linha.classList.contains("pend")) linha.classList.add("hidden"); return; }
+  linha.textContent = curta;
+  linha.className = "pi-hint " + (nivel || "");
+  linha.classList.toggle("hidden", !temPreco || !curta);
+}
+async function idxAtualizar() {
+  const card = $("idxCard");
+  const seq = ++PROD.seqIdx;
+  const L = PROD.disponivel === true ? prodLeituraAtual() : null;
+  const esconde = () => { card.classList.add("hidden"); prodLinhaPub("", "", false); };
+  if (!L) return esconde();
+  // nome novo que as regras ainda nao entenderam (o dono esta no meio da palavra): nada a dizer ainda
+  if (!L.cadastrado && !PROD.dup && L.tipo === "outro" && !L.colecao && !L.acessorio && !("tipo" in PROD.ajustes)) return esconde();
+  const titulo = () => { const t = document.createElement("div"); t.className = "idx-tit"; t.textContent = "Nossas promos deste produto"; return t; };
+  if (PROD.semLogin) {
+    card.className = "idx-card"; card.textContent = "";
+    card.appendChild(titulo());
+    const p = document.createElement("div"); p.className = "idx-extra";
+    p.textContent = "Entre na conta admin para ver o que já mandamos deste produto.";
+    const b = document.createElement("button"); b.type = "button"; b.className = "go"; b.textContent = "Entrar";
+    b.addEventListener("click", () => openLogin(() => prodCarregarLista(true)));
+    card.appendChild(p); card.appendChild(b);
+    prodLinhaPub("", "", false);
+    return;
+  }
+  const token = await supaToken();
+  if (seq !== PROD.seqIdx) return;
+  if (!token) { PROD.semLogin = true; return idxAtualizar(); }
+  const preco = prodPrecoUnit();
+  // "Ja existe" (mesma chave de um produto de pacote): o indice e o dele, porque a promo vai para ele
+  const alvo = PROD.escolhido || PROD.dup;
+  const pb = preco && L.boosters ? Math.round(preco / L.boosters * 100) / 100 : null;
+  let st = null, bst = null, falhou = false;
+  try {
+    if (alvo) st = await idxProduto(alvo.id, token);
+    if (L.colecao && L.boosters && IDX.TIPOS_REGUA.has(L.tipo)) bst = await idxBooster(L.colecao, L.idioma, token);
+  } catch { falhou = true; }
+  if (seq !== PROD.seqIdx || PROD.disponivel !== true) return;
+  if (st && st.estado === "sem_acesso") return prodSumir(); // conta que nao e a admin
+  if (st && st.estado === "nao_encontrado") { st = null; PROD.cacheProd.delete(alvo.id); prodCarregarLista(true); }
+  card.textContent = "";
+  card.appendChild(titulo());
+  if (falhou && alvo && !st) {
+    card.className = "idx-card";
+    const p = document.createElement("div"); p.className = "idx-extra"; p.textContent = "Não deu para ler o índice agora. Ele volta quando a conexão voltar.";
+    card.appendChild(p);
+    prodLinhaPub("", "", false);
+    return;
+  }
+  const o = IDX.textoIndice(st, preco, bst, pb);
+  card.className = "idx-card " + o.nivel;
+  const pr = document.createElement("div"); pr.className = "idx-principal"; pr.textContent = o.principal;
+  card.appendChild(pr);
+  o.extra.forEach((t) => { const e = document.createElement("div"); e.className = "idx-extra"; e.textContent = t; card.appendChild(e); });
+  prodLinhaPub(o.curta, o.nivel, !!preco);
+}
+
+// ── publicar: o PLANO do produto (nada e criado antes da promo sair) ──
+function prodOrigem(id, L) {
+  const s = PROD.sugestao;
+  if (!s) return "dono";
+  const igual = s.produtoId ? s.produtoId === id
+    : IDX.nomeNorm($("prodNome").value) === s.nomeNorm && IDX.chave(L) === s.chave;
+  return igual ? "sugestao_aceita" : "sugestao_trocada";
+}
+// Devolve null (nada a fazer), { aviso } (nao liga e diz por que), { descartada, aviso } ou
+// { produto_id | novo, unidades, origem }. semVer = o dono publicou sem ter visto o cadastro (login no meio).
+function prodParaPublicar(semVer) {
+  if (PROD.disponivel !== true) return null;
+  const nome = $("prodNome").value.trim();
+  const s = PROD.sugestao;
+  if (!nome) return s && PROD.tocado ? { descartada: true, aviso: "" } : null; // apagou a sugestao: conta no placar
+  const L = prodLeituraAtual();
+  if (!L) return null;
+  if (s && s.estado === "confere" && !PROD.tocado && !PROD.confirmado) {
+    return { descartada: true, aviso: " Produto não ligado: o Confere? ficou sem resposta." };
+  }
+  const un = Math.max(1, Math.min(1000, parseInt($("prodUnid").value || "1", 10) || 1));
+  const id = PROD.escolhido ? PROD.escolhido.id : PROD.dup ? PROD.dup.id : null;
+  if (id) return { produto_id: id, unidades: un, origem: prodOrigem(id, L) };
+  const pend = prodPendencia(L);
+  if (pend) return { descartada: !!s, aviso: " Produto não ligado: " + pend.charAt(0).toLowerCase() + pend.slice(1) };
+  // sem ter visto o cadastro, so produto de pacote (a chave acha o existente no banco); o resto duplicaria
+  if (semVer && !IDX.chaveIdentifica(L)) {
+    return { descartada: !!s, aviso: " Produto não ligado: entre na conta antes de publicar, para ver o cadastro e o índice." };
+  }
+  return {
+    novo: { nome: IDX.bonitoNome(nome, L.colecao, setsCache).slice(0, 140), jogo: L.jogo, tipo: L.tipo,
+      colecao: L.colecao || null, idioma: IDX.idiomaBanco(L.idioma), boosters: L.boosters || null },
+    unidades: un, origem: prodOrigem(null, L),
+  };
+}
+// liga a promo recem publicada (promo_vincular). Nunca derruba o publicar: devolve { aviso, produto_id }
+async function prodVincular(token, promoId, plano) {
+  if (!plano || !promoId) return { aviso: plano && plano.aviso ? plano.aviso : "", produto_id: null };
+  if (!plano.produto_id && !plano.novo) {
+    // havia sugestao e ela nao virou produto: registra para o selo "Ele ja sabe" (falha aqui nao importa)
+    if (plano.descartada) {
+      try { await prodRpc("promo_vincular", { p_promo_id: promoId, p_origem: "sugestao_descartada" }, token); } catch {}
+    }
+    return { aviso: plano.aviso || "", produto_id: null };
+  }
+  const args = { p_promo_id: promoId, p_produto_id: plano.produto_id || null, p_novo: plano.novo || null,
+    p_unidades: plano.unidades || null, p_origem: plano.origem || "dono" };
+  let res = null;
+  for (let i = 0; i < 2 && !res; i++) {
+    try { res = await prodRpc("promo_vincular", args, token); } catch { res = null; } // repetir e seguro: mesma chave, mesmo produto
+  }
+  if (!res) return { aviso: " O produto não foi ligado (sem conexão); a promo saiu sem produto.", produto_id: null };
+  if (prodSemFuncao(res)) return { aviso: " (o banco ainda não tem o SQL do índice; a promo saiu sem produto.)", produto_id: null };
+  const d = res.data || {};
+  if (res.ok && d.estado === "ok" && d.produto_id) return { aviso: "", produto_id: Number(d.produto_id), criado: !!d.criado };
+  const motivos = { sem_acesso: "essa conta não é a admin", promo_nao_encontrada: "a promo não apareceu no banco",
+    produto_invalido: "o produto não existe mais", parametro_invalido: "dado inválido" + (d.campo ? " (" + d.campo + ")" : "") };
+  return { aviso: " O produto não foi ligado (" + (motivos[d.estado] || d.message || "erro " + res.status) + "); a promo saiu sem produto.", produto_id: null };
+}
+function prodDepoisDePublicar(id) {
+  if (id) PROD.cacheProd.delete(id);
+  PROD.cacheBooster.clear();
+  prodReset();
+  PROD.parado = true; // o titulo velho nao sugere de novo; o proximo link (ou o dono digitando) reabre
+  prodRender();
+  prodCarregarLista(true);
+}
+function prodReset() {
+  Object.assign(PROD, { r: null, tocado: false, nomeGerado: false, escolhido: null, ajustes: {}, editando: null, sugestao: null,
+    confirmado: false, unidTocado: false, unidDuvida: false, bandeira: null, ativo: -1, parado: false, dup: null, semVer: false });
+  $("prodNome").value = "";
+  $("prodUnid").value = "1";
+  prodFecharLista();
+  prodRender(); idxAgendar();
+}
+
+// ── eventos ──
+$("prodNome").addEventListener("input", prodOnInput);
+$("prodNome").addEventListener("focus", () => { prodListar(); });
+$("prodNome").addEventListener("blur", () => setTimeout(prodFecharLista, 150));
+$("prodNome").addEventListener("keydown", (e) => {
+  const lista = $("prodLista");
+  const itens = lista.classList.contains("hidden") ? [] : lista.querySelectorAll("button[role=option]");
+  if (e.key === "ArrowDown" && itens.length) { e.preventDefault(); PROD.ativo = (PROD.ativo + 1) % itens.length; prodListar(); }
+  else if (e.key === "ArrowUp" && itens.length) { e.preventDefault(); PROD.ativo = (PROD.ativo - 1 + itens.length) % itens.length; prodListar(); }
+  else if (e.key === "Enter") {
+    e.preventDefault();
+    const alvo = itens[PROD.ativo >= 0 ? PROD.ativo : 0];
+    if (alvo) alvo.click(); else { prodFecharLista(); $("prodNome").blur(); }
+  } else if (e.key === "Escape") prodFecharLista();
+});
+$("prodLimpar").addEventListener("click", () => {
+  Object.assign(PROD, { tocado: true, parado: false, nomeGerado: false, escolhido: null, ajustes: {}, editando: null });
+  $("prodNome").value = "";
+  prodRender(); idxAgendar();
+  $("prodNome").focus();
+});
+// "Esta certo" vale ate o fim: a mensagem do Gerar (que reescreve o titulo) nao traz o Confere? de volta
+$("prodOk").addEventListener("click", () => { Object.assign(PROD, { confirmado: true, tocado: true, parado: false }); prodRender(); idxAgendar(); });
+$("prodDupUsar").addEventListener("click", () => { if (PROD.dup) prodEscolher(PROD.dup); });
+$("prodUnid").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+  PROD.unidTocado = true;
+  prodUnidDica(); idxAgendar();
+});
+["pubQtd", "pubPor"].forEach((id) => $(id).addEventListener("input", () => { prodUnidPadrao(); prodUnidDica(); idxAgendar(); }));
+let prodTitTimer = null;
+$("pubTitulo").addEventListener("input", () => { clearTimeout(prodTitTimer); prodTitTimer = setTimeout(prodDoTitulo, 500); });
+$("pubCat").addEventListener("change", () => prodDoTitulo());
+if (window.visualViewport) window.visualViewport.addEventListener("resize", prodListaVisivel);
+// banco sem o SQL quando a pagina abriu (bloco escondido): ao voltar para a aba, pergunta de novo
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && PROD.disponivel === false) { PROD.disponivel = null; prodIniciar(); }
+});
+prodIniciar();
 
 // ── Minhas promos no site ────────────────────────────────────
 // Esgotada (25/09/2026) = esgotada_em preenchido. A promo segue ativa=true: o app e
