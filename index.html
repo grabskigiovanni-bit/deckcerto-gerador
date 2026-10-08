@@ -323,6 +323,40 @@
   #pubIndice.pend{color:#ffd34d}
   #pubIndice.bom{color:#86efac}
   #pubIndice.acima{color:#ffd34d}
+
+  /* Cupom para o Vigia (aba Cupons, 07/10/2026): print das Condicoes -> linha /cupom do bot */
+  .cv-bloco{margin-top:12px}
+  .cv-linha{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Roboto Mono',monospace;font-size:17px;font-weight:700;
+    line-height:1.45;color:var(--text);background:#0d0918;border:1px dashed var(--accent);border-radius:12px;padding:12px 14px;
+    word-break:break-word;user-select:all;-webkit-user-select:all}
+  .cv-linha.vazia{font-family:inherit;font-size:13.5px;font-weight:600;color:var(--danger);border-style:solid;
+    border-color:rgba(252,165,165,.35);user-select:auto;-webkit-user-select:auto}
+  .cv-resumo{font-size:13.5px;color:var(--text);margin:9px 2px 0;line-height:1.45}
+  .cv-avisos{list-style:none;margin:6px 0 0;padding:0}
+  .cv-avisos li{font-size:12.5px;line-height:1.4;color:#ffe9a8;background:rgba(255,211,77,.07);
+    border:1px solid rgba(255,211,77,.3);border-radius:10px;padding:8px 11px;margin-top:6px}
+  .cv-avisos li.forte{color:var(--danger);background:rgba(252,165,165,.08);border-color:rgba(252,165,165,.35)}
+  .cv-avisos li.obs{color:var(--muted);background:var(--panel-2);border-color:var(--border)}
+  .cv-acoes{display:flex;gap:8px;margin-top:12px}
+  .cv-acoes .go{flex:1;min-height:48px;padding:12px}
+  .cv-sec{flex:1;display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:13px;
+    background:transparent;border:1px solid var(--accent);color:var(--accent-hi);font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:15px;text-decoration:none;cursor:pointer}
+  .cv-sec:hover{background:rgba(139,92,246,.12)}
+  .cv-sec:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+  .cv-campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cv-campos>div{min-width:0}
+  .cv-sem1p{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13.5px;color:var(--text);line-height:1.3}
+  .cv-sem1p input{width:20px;height:20px;flex:none;margin:0}
+  .cv-campos .cv-full{grid-column:1/-1}
+  .cv-campos input,.cv-campos select{min-height:44px}
+  .cv-desc{display:flex;gap:6px}
+  .cv-desc input{min-width:0}
+  .cv-desc select{width:64px;flex-shrink:0;text-align:center}
+  input[type=datetime-local]{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
+    color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;color-scheme:dark}
+  .cv-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px}
+  .cv-links .mini-link{min-height:32px}
 </style>
 </head>
 <body>
@@ -346,6 +380,81 @@
 
   <!-- Aba Cupons: gestao dos cupons que estao no ar (marcar esgotadas em lote quando o cupom acaba) -->
   <section id="viewCupons" class="hidden" role="tabpanel" aria-labelledby="cpTitulo">
+    <!-- Cupom para o Vigia (07/10/2026): print das Condicoes + codigo -> linha /cupom para o bot do Telegram -->
+    <div class="card" id="cvCard">
+      <h2 class="cp-h" id="cvTitulo">Cupom para o Vigia</h2>
+      <p class="cp-sub">Digite o código, anexe o print das Condições do cupom e toque em Ler as regras. Sai a linha pronta para mandar ao bot no Telegram.</p>
+      <div class="cv-bloco">
+        <label class="label" for="cvCodigo">Código</label>
+        <input type="text" id="cvCodigo" placeholder="ex.: BRINCADEIRASML" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="30">
+        <p class="pi-hint" style="margin-top:6px">Cupom sem código (relâmpago, resgate no app)? Dê um nome curto, ex.: OFICIAIS25.</p>
+      </div>
+      <div class="cv-bloco">
+        <span class="label">Print das Condições</span>
+        <button type="button" class="drop" id="cvDrop">
+          <span>Toque para anexar o print</span>
+          <small>as Condições e, se tiver, o cartão do cupom · até 3 imagens · no PC, cole ou arraste aqui</small>
+        </button>
+        <input type="file" id="cvFile" accept="image/*" multiple hidden>
+        <div class="thumbs" id="cvThumbs"></div>
+      </div>
+      <button type="button" class="go" id="cvLer" style="margin-top:14px"><span id="cvLerTxt">Ler as regras</span></button>
+      <div class="cv-links"><button type="button" class="mini-link" id="cvAMao">ou preencher à mão</button></div>
+      <div class="error hidden" id="cvErro" role="alert"></div>
+
+      <div id="cvRes" class="hidden">
+        <div class="cv-bloco" aria-live="polite">
+          <span class="label">Linha para o Telegram</span>
+          <div class="cv-linha" id="cvLinha"></div>
+          <p class="cv-resumo" id="cvResumo"></p>
+          <ul class="cv-avisos" id="cvAvisos"></ul>
+          <div class="cv-links"><button type="button" class="mini-link hidden" id="cvMesmoAssim">o cupom não venceu: gerar assim mesmo</button></div>
+        </div>
+        <div class="cv-acoes">
+          <button type="button" class="go" id="cvCopiar">Copiar</button>
+          <a class="cv-sec" id="cvBot" href="https://t.me/Deckcerto_bot" target="_blank" rel="noopener">Abrir o bot</a>
+        </div>
+        <p class="pi-hint">Abrir o bot já copia a linha. No Telegram, cole, envie e toque em Ligar.</p>
+
+        <div class="cv-bloco" style="margin-top:16px">
+          <span class="label">Confira e corrija antes de copiar</span>
+          <div class="cv-campos">
+            <div>
+              <label class="label" for="cvValor">Desconto</label>
+              <div class="cv-desc">
+                <input type="text" id="cvValor" inputmode="decimal" placeholder="20" autocomplete="off" spellcheck="false">
+                <select id="cvTipo" aria-label="Tipo do desconto"><option value="pct">%</option><option value="fixo">R$</option></select>
+              </div>
+            </div>
+            <div>
+              <label class="label" for="cvMin">Compra mínima (R$)</label>
+              <input type="text" id="cvMin" inputmode="decimal" placeholder="? não sei" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="cvTetoBox">
+              <label class="label" for="cvTeto">Desconto máximo (R$)</label>
+              <input type="text" id="cvTeto" placeholder="? não sei" autocomplete="off" spellcheck="false">
+            </div>
+            <div>
+              <label class="label" for="cvEscopo">Vale em</label>
+              <select id="cvEscopo">
+                <option value="todo">Todo o site</option>
+                <option value="tcg">Só brinquedos e TCG</option>
+                <option value="oficial">Só lojas oficiais</option>
+                <option value="oficialtcg">Brinquedos e TCG de loja oficial</option>
+              </select>
+              <label class="cv-sem1p"><input type="checkbox" id="cvSem1p"> Não vale para vendido pelo Mercado Livre (1P)</label>
+            </div>
+            <div class="cv-full">
+              <label class="label" for="cvAte">Vale até</label>
+              <input type="datetime-local" id="cvAte">
+            </div>
+          </div>
+          <p class="pi-hint">Em branco = não sei (a linha leva ?). Sem compra mínima: 0. Sem limite de desconto: sem (ou 0). Sem data: 24 horas.</p>
+          <div class="cv-links"><button type="button" class="mini-link" id="cvNovo">limpar e ler outro cupom</button></div>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="cp-head">
         <div>
@@ -797,7 +906,8 @@ window.addEventListener("paste", (e) => {
   if (!items) return;
   const files = [];
   for (const it of items) if (it.type && it.type.startsWith("image/")) { const f = it.getAsFile(); if (f) files.push(f); }
-  if (files.length) addFiles(files);
+  // na aba Cupons o print colado vai para o Cupom para o Vigia
+  if (files.length) ($("viewCupons").classList.contains("hidden") ? addFiles : cvAddFiles)(files);
 });
 
 // ── Imagem do post + selinho ─────────────────────────────────
@@ -4691,6 +4801,443 @@ async function cpDesfazer() {
   }
 }
 $("cpDesfazer").addEventListener("click", cpDesfazer);
+
+// ==== CUPOM VIGIA: INICIO DO BLOCO PURO (sem DOM; o cupom-vigia/teste_cupom_vigia.mjs roda este trecho no Node) ====
+// Cupom para o Vigia (pedido do dono, 07/10/2026): print das Condicoes + codigo -> a linha que o
+// parse_comando do Vigia v2 (src/vigia2/cupons.py) aceita no bot do Telegram:
+//   /cupom CODIGO DESCONTO min VALOR|? [teto VALOR|?|semteto] todo|tcg|oficial|oficialtcg Nh
+// A Claude le o print e devolve SO JSON (cvPrompt); o que nao esta no print vem null e vira "?".
+// Validade em horas inteiras ate valido_ate (arredonda pra cima, minimo 1h, maximo 720h do Vigia);
+// sem validade = 24h com aviso; cupom vencido nao gera linha.
+const CV_BOT_URL = "https://t.me/Deckcerto_bot";
+const CV_COD_RX = /^(?=[A-Z0-9_-]*[A-Z])[A-Z0-9][A-Z0-9_-]{2,29}$/; // = config.CUPOM_CODIGO_RX do Vigia
+const CV_PROIBIDAS = new Set(["CUPOM", "CUPONS", "ESGOTADO", "ESGOTOU", "ATIVO", "ACABOU", "ELE", "TESTE",
+  "ACIMA", "MINIMO", "TETO", "TODO", "TCG", "OFICIAL", "ATE", "VALIDO", "OFF"]); // = config.CUPOM_PALAVRAS_PROIBIDAS
+const CV_ESCOPOS = ["todo", "tcg", "oficial", "oficialtcg"];
+const CV_ESCOPO_TXT = { todo: "todo o site", tcg: "só brinquedos/TCG", oficial: "só lojas oficiais",
+  oficialtcg: "só brinquedos/TCG de loja oficial" };
+const CV_VALIDADE_PADRAO_H = 24, CV_VALIDADE_MAX_H = 720;
+
+// 79 | "79" | "79,90" | "R$ 79" | "1.000" | "1.000,50" | "20%" -> numero; vazio, "?" ou ilegivel -> null
+function cvNum(v) {
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  let s = String(v ?? "").trim().toLowerCase().replace(/^r\$\s*/, "").replace(/\s*%$/, "").trim();
+  if (!/^\d{1,3}(\.\d{3})+(,\d{1,2})?$|^\d+([.,]\d{1,2})?$/.test(s)) return null;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  return parseFloat(s);
+}
+const cvVazio = (v) => v == null || String(v).trim() === "" || String(v).trim() === "?";
+// numero para a linha do bot: 20 -> "20"; 99.9 -> "99,90"; pct 15.5 -> "15,5"
+function cvFmtNum(n, pct) {
+  const r = Math.round(n * 100) / 100;
+  if (Number.isInteger(r)) return String(r);
+  const s = r.toFixed(2).replace(".", ",");
+  return pct ? s.replace(/0$/, "") : s;
+}
+// R$ legivel: 79 -> "R$ 79"; 1000 -> "R$ 1.000"; 99.9 -> "R$ 99,90"
+function cvBRL(n) {
+  const r = Math.round(n * 100) / 100;
+  const [i, d] = r.toFixed(2).split(".");
+  return "R$ " + i.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (d === "00" ? "" : "," + d);
+}
+// "2026-10-07T23:59" | "2026-10-07 23:59" | "2026-10-07" (fim do dia, 23:59) -> Date local; ilegivel -> null
+function cvData(s) {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/.exec(String(s ?? "").trim());
+  if (!m) return null;
+  const hh = m[4] != null ? +m[4] : 23, mm = m[5] != null ? +m[5] : 59;
+  if (hh > 23 || mm > 59) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3], hh, mm, 0, 0);
+  return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
+}
+// Date -> "2026-10-07T23:59" (o valor do campo datetime-local)
+function cvIsoLocal(d) {
+  const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+// quando legivel: "hoje 23h59", "amanhã 10h", "12/10 23h59", "05/01/2027 23h59" (outro ano)
+function cvQuando(d, agora) {
+  const p = (n) => String(n).padStart(2, "0");
+  const dia = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dif = Math.round((dia(d) - dia(agora)) / 86400000);
+  const hora = d.getHours() + "h" + (d.getMinutes() ? p(d.getMinutes()) : "");
+  const qual = dif === 0 ? "hoje" : dif === 1 ? "amanhã" : dif === -1 ? "ontem" :
+    p(d.getDate()) + "/" + p(d.getMonth() + 1) + (d.getFullYear() !== agora.getFullYear() ? "/" + d.getFullYear() : "");
+  return qual + " " + hora;
+}
+
+// JSON das regras (cvNormaliza ou campos da tela) + agora -> { ok, linha, resumo, horas, avisos, erro, motivo }
+// motivo do erro: "codigo" | "valor" | "vencido"
+function linhaCupomVigia(j, agora) {
+  j = j || {};
+  const now = agora instanceof Date ? agora : new Date(agora);
+  const avisos = [];
+  const falha = (motivo, erro) => ({ ok: false, linha: null, resumo: "", horas: null, avisos, erro, motivo });
+  const codigo = String(j.codigo ?? "").trim().toUpperCase();
+  if (!codigo) return falha("codigo", "Digite o código do cupom.");
+  if (!CV_COD_RX.test(codigo)) return falha("codigo", "Código inválido: de 3 a 30 letras e números (vale _ e -), com pelo menos uma letra e sem espaço.");
+  if (CV_PROIBIDAS.has(codigo)) return falha("codigo", codigo + " é palavra do comando e não serve de código. Use outro nome.");
+  const tipo = j.tipo === "fixo" ? "fixo" : j.tipo === "pct" ? "pct" : null;
+  const valor = cvNum(j.valor);
+  if (!tipo || valor == null) return falha("valor", "Falta o desconto: o número e se é % ou R$.");
+  if (valor <= 0 || (tipo === "pct" && valor >= 100)) return falha("valor", "Desconto fora da faixa: % entre 0 e 100, R$ maior que zero.");
+  if (j.vencido === true) return falha("vencido", "O print diz que este cupom já venceu ou esgotou. Não gerei a linha.");
+
+  // validade em horas inteiras
+  let horas, quando;
+  const ate = cvVazio(j.valido_ate) ? null : cvData(j.valido_ate);
+  const th = cvNum(j.termina_em_horas);
+  if (!cvVazio(j.valido_ate) && !ate) avisos.push("Não entendi a data de validade (" + j.valido_ate + "). Confira o campo Vale até.");
+  if (ate) {
+    const ms = ate.getTime() - now.getTime();
+    if (ms <= 0) return falha("vencido", "Este cupom já venceu (valia até " + cvQuando(ate, now) + "). Não gerei a linha.");
+    horas = Math.max(1, Math.ceil(ms / 3600000));
+    quando = "até " + cvQuando(ate, now);
+  } else if (th != null && th >= 0) {
+    horas = Math.max(1, Math.ceil(th));
+    quando = "por " + horas + (horas === 1 ? " hora" : " horas") + ", até " + cvQuando(new Date(now.getTime() + horas * 3600000), now);
+    avisos.push("O print diz que termina em " + cvFmtNum(th) + (th === 1 ? " hora" : " horas") + ": contei a partir de agora. Se o print é antigo, ajuste o Vale até.");
+  } else {
+    horas = CV_VALIDADE_PADRAO_H;
+    quando = "por 24 horas (o print não diz a validade)";
+    avisos.push("O print não diz até quando vale: a linha usa 24h, o padrão do Vigia.");
+  }
+  if (horas > CV_VALIDADE_MAX_H) {
+    horas = CV_VALIDADE_MAX_H;
+    avisos.push("Validade maior que 30 dias: a linha usa 720h, o máximo do Vigia.");
+  }
+
+  // compra minima: null -> "min ?" (o Vigia calcula como 0 e marca a duvida); 0 -> sem minimo
+  let minimo = cvVazio(j.minimo) ? null : cvNum(j.minimo);
+  if (!cvVazio(j.minimo) && (minimo == null || minimo < 0)) {
+    avisos.push("Não entendi a compra mínima (" + j.minimo + "): a linha leva min ?.");
+    minimo = null;
+  }
+  const toks = ["/cupom", codigo, tipo === "pct" ? cvFmtNum(valor, true) + "%" : "R$" + cvFmtNum(valor)];
+  toks.push("min " + (minimo == null ? "?" : cvFmtNum(minimo)));
+  const partes = [tipo === "pct" ? cvFmtNum(valor, true) + "%" : cvBRL(valor),
+    minimo == null ? "mínimo ?" : minimo === 0 ? "sem mínimo" : "mínimo " + cvBRL(minimo)];
+
+  // teto: so cupom de %; null -> "teto ?"; sem_teto -> "semteto"
+  const teto = cvVazio(j.teto) ? null : cvNum(j.teto);
+  if (tipo === "pct") {
+    if (j.sem_teto === true) { toks.push("semteto"); partes.push("sem teto"); }
+    else if (teto != null && teto > 0) { toks.push("teto " + cvFmtNum(teto)); partes.push("teto " + cvBRL(teto)); }
+    else {
+      if (!cvVazio(j.teto) && teto == null) avisos.push("Não entendi o desconto máximo (" + j.teto + "): a linha leva teto ?.");
+      toks.push("teto ?"); partes.push("teto ?");
+    }
+  } else if (teto != null && teto > 0) {
+    avisos.push("Cupom de valor fixo não tem teto no Vigia: o desconto máximo ficou de fora da linha.");
+  }
+
+  // escopo
+  let escopo = String(j.escopo ?? "").trim().toLowerCase();
+  if (escopo === "qualquer") escopo = "todo";
+  if (!CV_ESCOPOS.includes(escopo)) {
+    if (escopo) avisos.push("Escopo desconhecido (" + j.escopo + "): usei todo o site.");
+    escopo = "todo";
+  }
+  toks.push(escopo);
+  partes.push(CV_ESCOPO_TXT[escopo]);
+  if (j.categoria_sem_tcg === true) {
+    avisos.unshift("ATENÇÃO: o print limita o cupom a uma categoria sem brinquedos e sem TCG. No Vigia ele não deve valer nos produtos; confira antes de mandar.");
+  }
+  if (j.sem_1p === true) {
+    toks.push("sem1p");
+    partes.push("não vale para vendido pelo Mercado Livre");
+  }
+  toks.push(horas + "h");
+  partes.push(quando);
+  return { ok: true, linha: toks.join(" "), resumo: partes.join(", "), horas, avisos, erro: null, motivo: null };
+}
+
+// texto da Claude -> objeto (tira crases e texto em volta). Sem JSON: erro com mensagem para o dono.
+function cvExtraiJson(texto) {
+  const t = String(texto ?? "").replace(/```[a-z]*\s*/gi, "").replace(/```/g, "");
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch {} }
+  throw new Error("A Claude não devolveu as regras num formato que dê pra ler. Toque em Ler as regras de novo.");
+}
+
+// objeto da Claude -> campos limpos do schema (o que vier estranho vira null, nunca chute)
+function cvNormaliza(o) {
+  o = o && typeof o === "object" ? o : {};
+  const tt = String(o.tipo ?? "").toLowerCase();
+  const tipo = /pct|%|percent|porcent/.test(tt) ? "pct" : /fixo|valor|r\$|reais/.test(tt) ? "fixo" : null;
+  const num = (v) => { const n = cvNum(v); return n != null && n >= 0 ? n : null; };
+  let escopo = String(o.escopo ?? "").trim().toLowerCase();
+  if (escopo === "qualquer") escopo = "todo";
+  const cod = String(o.codigo ?? "").trim().toUpperCase().replace(/\s+/g, "");
+  const ate = typeof o.valido_ate === "string" ? cvData(o.valido_ate) : null;
+  return {
+    codigo: cod && cod !== "NULL" ? cod : null,
+    tipo,
+    valor: num(o.valor),
+    minimo: num(o.minimo),
+    teto: num(o.teto),
+    sem_teto: o.sem_teto === true,
+    valido_ate: ate ? cvIsoLocal(ate) : null,
+    termina_em_horas: num(o.termina_em_horas),
+    escopo: CV_ESCOPOS.includes(escopo) ? escopo : "todo",
+    categoria_sem_tcg: o.categoria_sem_tcg === true,
+    sem_1p: o.sem_1p === true,
+    vencido: o.vencido === true,
+    observacoes: (Array.isArray(o.observacoes) ? o.observacoes : [])
+      .filter((s) => typeof s === "string" && s.trim())
+      .map((s) => s.trim().replace(/\s*[—–]\s*/g, ", ")).slice(0, 5),
+  };
+}
+
+// pedido para a Claude ler o print (agora: Date; codigo: o que o dono digitou, pode ser vazio)
+function cvPrompt(codigo, agora) {
+  const p = (n) => String(n).padStart(2, "0");
+  const hoje = p(agora.getDate()) + "/" + p(agora.getMonth() + 1) + "/" + agora.getFullYear() + " " + p(agora.getHours()) + ":" + p(agora.getMinutes());
+  return [
+    "Você lê prints das CONDIÇÕES de um cupom de desconto (app do Mercado Livre, grupo ou canal de promoções) e devolve as regras em JSON.",
+    "Agora é " + hoje + " (horário de Brasília).",
+    codigo ? "O dono diz que o código do cupom é " + codigo + "." : "O dono não digitou o código: leia do print, se aparecer.",
+    "",
+    "Responda SÓ com um objeto JSON, sem texto antes ou depois e sem crases, com estas chaves:",
+    '{"codigo": "BRINCADEIRASML" ou null, "tipo": "pct" ou "fixo", "valor": 20, "minimo": 79 ou null, "teto": 50 ou null, "sem_teto": false, "valido_ate": "2026-10-07T23:59" ou null, "termina_em_horas": 4 ou null, "escopo": "todo" ou "tcg" ou "oficial" ou "oficialtcg", "categoria_sem_tcg": false, "sem_1p": false, "vencido": false, "observacoes": ["frase curta"]}',
+    "",
+    "Regras:",
+    "1. NUNCA invente. O que não está escrito no print vem null (ou false). Não complete com o que você sabe de outros cupons.",
+    "2. tipo \"pct\" quando o desconto é em porcentagem (\"20% OFF\", \"até 20%\": valor 20); \"fixo\" quando é em reais (\"R$ 30 OFF\": valor 30).",
+    "3. minimo: a compra mínima em reais (\"compra a partir de R$79\", \"compra mínima R$ 79\": 79). Use 0 só se o print disser que não tem compra mínima.",
+    "4. teto: o desconto máximo em reais (\"desconto máximo de R$50\", \"limite de desconto R$ 50\": 50). sem_teto true só se o print disser com todas as letras que não há limite. Cupom de valor fixo: teto null.",
+    "5. valido_ate: quando o cupom acaba, hora local, no formato AAAA-MM-DDTHH:MM (\"até às 23h59 do dia 07/10/26\": \"2026-10-07T23:59\"). Só a data, sem hora: 23:59. Data sem ano: o ano de agora. termina_em_horas: só quando o print diz \"termina em N horas\" (N); \"termina em minutos\" = 0.",
+    "6. escopo: itens elegíveis de brinquedos, toys, jogos, colecionáveis ou toys-e-babys = \"tcg\"; só lojas oficiais = \"oficial\"; as duas coisas juntas = \"oficialtcg\"; sem restrição de categoria nem de loja = \"todo\". Cupom só de uma categoria que não inclui brinquedos nem TCG (eletrônicos, moda, mercado, beleza, livros): escopo \"todo\" e categoria_sem_tcg true.",
+    "7. vencido true só se o print disser que o cupom expirou, venceu, acabou ou esgotou, ou se a data de validade já passou.",
+    "8. observacoes: até 4 frases curtas, sem travessão, só com o que muda o uso e não coube nos campos (frete excluído, limite de 1.000 cupons, 1 uso por CPF, não cumulativo, só no app, cupom relâmpago para resgatar em um horário, vale para uma loja específica).",
+    "9. sem_1p true só se o print disser que o cupom não vale para produtos vendidos pelo próprio Mercado Livre (\"não se aplica a produtos 1P\", \"não válido para produtos vendidos pelo Mercado Livre\"). Sem essa frase: false.",
+  ].join("\n");
+}
+// ==== CUPOM VIGIA: FIM DO BLOCO PURO ====
+
+// ── Cupom para o Vigia: cola com a tela (aba Cupons) ─────────
+let cvImagens = [];     // mesmo formato e redimensionamento do Gerar (fileToImageBlock)
+let cvLendo = false;
+let cvVencido = false;  // o print diz que venceu; "gerar assim mesmo" limpa
+let cvForaTcg = false;  // categoria sem brinquedos e sem TCG
+let cvObs = [];         // observacoes do print (frete, limite de usos...)
+
+function cvErro(msg) { const e = $("cvErro"); e.textContent = msg; e.classList.remove("hidden"); }
+function cvSemErro() { $("cvErro").classList.add("hidden"); }
+// as mensagens de rede do Gerar falam do botao Gerar; aqui o botao e Ler as regras
+const cvMsgRede = (m) => String(m || "").replace(/Gerar de novo/g, "Ler as regras de novo");
+
+async function cvAddFiles(list) {
+  const files = Array.from(list || []).filter((f) => f.type && f.type.startsWith("image/"));
+  if (!files.length) return;
+  cvSemErro();
+  try {
+    for (const f of files) {
+      if (cvImagens.length >= MAX_IMAGES) break;
+      cvImagens.push(await fileToImageBlock(f));
+    }
+    cvRenderThumbs();
+  } catch (e) { cvErro(e.message || "Não deu pra processar essa imagem."); }
+}
+function cvRenderThumbs() {
+  const box = $("cvThumbs");
+  box.textContent = "";
+  cvImagens.forEach((img) => {
+    const t = document.createElement("div");
+    t.className = "thumb";
+    const el = document.createElement("img");
+    el.src = img.preview; el.alt = "Print do cupom";
+    const x = document.createElement("button");
+    x.type = "button"; x.textContent = "✕"; x.setAttribute("aria-label", "Remover print");
+    x.addEventListener("click", () => { cvImagens = cvImagens.filter((i) => i.id !== img.id); cvRenderThumbs(); });
+    t.appendChild(el); t.appendChild(x); box.appendChild(t);
+  });
+}
+$("cvDrop").addEventListener("click", () => $("cvFile").click());
+$("cvDrop").addEventListener("dragover", (e) => e.preventDefault());
+$("cvDrop").addEventListener("drop", (e) => { e.preventDefault(); cvAddFiles(e.dataTransfer.files); });
+$("cvFile").addEventListener("change", (e) => { cvAddFiles(e.target.files); e.target.value = ""; });
+$("cvCodigo").addEventListener("input", (e) => {
+  const v = e.target.value.toUpperCase().replace(/\s+/g, "");
+  if (v !== e.target.value) e.target.value = v;
+  cvAtualizar();
+});
+
+function cvSetLendo(on) {
+  cvLendo = on;
+  $("cvLer").disabled = on;
+  $("cvLerTxt").textContent = on ? "Lendo as regras..." : "Ler as regras";
+}
+
+// campos da tela -> JSON do schema (o mesmo que a Claude devolve). Teto "sem" ou 0 = sem teto.
+function cvEstado() {
+  const teto = $("cvTeto").value.trim();
+  const sem = /^sem/i.test(teto) || cvNum(teto) === 0;
+  return {
+    codigo: $("cvCodigo").value, tipo: $("cvTipo").value, valor: $("cvValor").value,
+    minimo: $("cvMin").value, teto: sem ? null : teto, sem_teto: sem,
+    valido_ate: $("cvAte").value || null, termina_em_horas: null, escopo: $("cvEscopo").value,
+    categoria_sem_tcg: cvForaTcg, sem_1p: $("cvSem1p").checked, vencido: cvVencido, observacoes: cvObs,
+  };
+}
+
+function cvAtualizar() {
+  if ($("cvRes").classList.contains("hidden")) return null;
+  $("cvTetoBox").classList.toggle("hidden", $("cvTipo").value === "fixo");
+  const r = linhaCupomVigia(cvEstado(), new Date());
+  const linha = $("cvLinha");
+  linha.classList.toggle("vazia", !r.ok);
+  linha.textContent = r.ok ? r.linha : r.erro;
+  $("cvResumo").textContent = r.ok ? r.resumo : "";
+  $("cvResumo").classList.toggle("hidden", !r.ok);
+  const ul = $("cvAvisos");
+  ul.textContent = "";
+  const item = (txt, cls) => { const li = document.createElement("li"); li.textContent = txt; if (cls) li.className = cls; ul.appendChild(li); };
+  r.avisos.forEach((a) => item(a, /^ATENÇÃO/.test(a) ? "forte" : ""));
+  cvObs.forEach((o) => item("Do print: " + o, "obs"));
+  $("cvMesmoAssim").classList.toggle("hidden", !(cvVencido && r.motivo === "vencido"));
+  $("cvCopiar").disabled = !r.ok;
+  $("cvBot").setAttribute("aria-disabled", String(!r.ok));
+  return r;
+}
+
+// JSON normalizado da Claude -> campos da tela
+function cvPreencher(j, agora) {
+  if (j.codigo && !$("cvCodigo").value.trim()) $("cvCodigo").value = j.codigo;
+  $("cvTipo").value = j.tipo || "pct";
+  $("cvValor").value = j.valor != null ? cvFmtNum(j.valor, j.tipo !== "fixo") : "";
+  $("cvMin").value = j.minimo != null ? cvFmtNum(j.minimo) : "";
+  $("cvTeto").value = j.sem_teto ? "sem" : j.teto != null && j.teto > 0 ? cvFmtNum(j.teto) : "";
+  $("cvEscopo").value = j.escopo || "todo";
+  $("cvSem1p").checked = j.sem_1p === true;
+  cvObs = j.observacoes.slice();
+  if (j.valido_ate) $("cvAte").value = j.valido_ate;
+  else if (j.termina_em_horas != null) {
+    const h = Math.max(1, Math.ceil(j.termina_em_horas));
+    $("cvAte").value = cvIsoLocal(new Date(agora.getTime() + h * 3600000));
+    cvObs.unshift("termina em " + cvFmtNum(j.termina_em_horas) + (j.termina_em_horas === 1 ? " hora" : " horas") +
+      " (contei a partir de agora; se o print é antigo, ajuste o Vale até)");
+  } else $("cvAte").value = "";
+  cvVencido = j.vencido;
+  cvForaTcg = j.categoria_sem_tcg;
+  $("cvRes").classList.remove("hidden");
+  cvAtualizar();
+}
+
+async function cvLerRegras() {
+  if (cvLendo) return;
+  cvSemErro();
+  const key = getKey();
+  if (!key) { ensureKey(); return; }
+  if (!cvImagens.length) { cvErro("Anexe o print das Condições do cupom (ou toque em preencher à mão)."); return; }
+  const codigo = $("cvCodigo").value.trim().toUpperCase();
+  cvSetLendo(true);
+  try {
+    const content = cvImagens.map((img) => ({
+      type: "image",
+      source: { type: "base64", media_type: img.media_type, data: img.data },
+    }));
+    content.push({ type: "text", text: cvPrompt(codigo, new Date()) });
+    // mesmo caminho do Gerar: modelo, cabecalhos, diagnostico de rede e 1 nova tentativa
+    const body = JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 700,
+      temperature: 0,
+      messages: [{ role: "user", content }],
+    });
+    const pedir = () => fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body,
+    });
+    let res;
+    try { res = await pedir(); }
+    catch (e1) {
+      const diag = await diagnosticoRede();
+      if (!diag.tentarDeNovo) throw new Error(cvMsgRede(diag.msg) + detalheRede(e1, body));
+      $("cvLerTxt").textContent = "A conexão caiu, tentando de novo...";
+      try { res = await pedir(); }
+      catch (e2) { throw new Error(cvMsgRede(diag.msg) + detalheRede(e2, body)); }
+    }
+    if (res.status >= 500) {
+      $("cvLerTxt").textContent = "A Claude está instável, tentando de novo...";
+      await new Promise((z) => setTimeout(z, 2000));
+      res = await pedir().catch(() => res);
+      if (res.status >= 500) throw new Error(cvMsgRede(msgInstavel(res.status)));
+    }
+    let data;
+    try { data = await res.json(); }
+    catch { throw new Error("A Claude devolveu uma resposta que não deu pra ler (erro " + res.status + "). Espere uns minutos e toque em Ler as regras de novo."); }
+    if (data.error) {
+      if (res.status === 401) { cvErro("Chave de API inválida. Toque na engrenagem e cole de novo."); return; }
+      throw new Error(data.error.message || "Erro na API.");
+    }
+    const texto = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+    cvPreencher(cvNormaliza(cvExtraiJson(texto)), new Date());
+  } catch (e) {
+    console.error(e);
+    cvErro(e.message || "Não deu pra ler as regras. Tente de novo.");
+  } finally { cvSetLendo(false); }
+}
+$("cvLer").addEventListener("click", cvLerRegras);
+
+$("cvAMao").addEventListener("click", () => {
+  cvSemErro();
+  if ($("cvRes").classList.contains("hidden")) {
+    cvVencido = false; cvForaTcg = false; cvObs = [];
+    $("cvRes").classList.remove("hidden");
+  }
+  cvAtualizar();
+  $("cvValor").focus();
+});
+["cvValor", "cvMin", "cvTeto", "cvAte"].forEach((id) => $(id).addEventListener("input", cvAtualizar));
+["cvTipo", "cvEscopo", "cvAte", "cvSem1p"].forEach((id) => $(id).addEventListener("change", cvAtualizar));
+$("cvMesmoAssim").addEventListener("click", () => { cvVencido = false; cvAtualizar(); });
+
+// copia a linha recalculada agora (as horas andam enquanto a tela fica aberta)
+async function cvCopiar(btn) {
+  const r = cvAtualizar();
+  if (!r || !r.ok) return false;
+  const feito = () => {
+    if (!btn) return;
+    btn.textContent = "Copiado";
+    setTimeout(() => (btn.textContent = "Copiar"), 1800);
+  };
+  try { await navigator.clipboard.writeText(r.linha); feito(); return true; }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = r.linha; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch {}
+    document.body.removeChild(ta);
+    if (ok) feito(); else cvErro("Não consegui copiar sozinho. Toque e segure a linha para copiar.");
+    return ok;
+  }
+}
+$("cvCopiar").addEventListener("click", () => cvCopiar($("cvCopiar")));
+// Abrir o bot ja copia a linha (o link abre o Telegram em seguida); sem linha valida, nao abre
+$("cvBot").addEventListener("click", (e) => {
+  const r = cvAtualizar();
+  if (r && !r.ok) { e.preventDefault(); return; }
+  if (r) cvCopiar(null);
+});
+
+$("cvNovo").addEventListener("click", () => {
+  ["cvCodigo", "cvValor", "cvMin", "cvTeto", "cvAte"].forEach((id) => ($(id).value = ""));
+  $("cvSem1p").checked = false;
+  $("cvTipo").value = "pct"; $("cvEscopo").value = "todo";
+  cvImagens = []; cvRenderThumbs();
+  cvVencido = false; cvForaTcg = false; cvObs = [];
+  $("cvRes").classList.add("hidden");
+  cvSemErro();
+  $("cvCodigo").focus();
+});
 
 // ── PWA ──────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
