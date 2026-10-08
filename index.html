@@ -2412,6 +2412,9 @@ function prefillPublish(text) {
 // toploader e sleeve sao acessorio; mascote com "Mega" nao decide colecao; numero de cartas que nao
 // bate com caixa/combo/ETB vira duvida; case/caixa lacrada sem numero nao multiplica; Booster Bundle
 // fica bundle (sem a equivalencia da Liga); codigo tipo OP-09 nao vira quantidade; sem lookbehind.
+// Pedidos do dono de 07/10 (ajustes-reconhecedor): booster variado/sortido/surpresa ou titulo com mais de uma
+// colecao fica sem colecao (fora da regua); boosters pela conta das cartas (N / 6 no PT-BR, N / 10 no ingles
+// claro, nunca em blister e ETB, o numero escrito vale mais); nome limpo para box, deck, lata, fichario e outro.
 const IDX = (() => {
   "use strict";
   const MEMORIA_LIGADA = false; // memoria por semelhanca de letras: pronta, mas DESLIGADA (com 50 promos nao provou ganho)
@@ -2501,13 +2504,16 @@ const IDX = (() => {
   const CASE_PADRAO = { blister_triplo: 12, blister_quadruplo: 12, blister_unitario: 24 }; // so com a palavra "case"
   const TIPOS_SEM_PRODUTO = new Set(["lixo", "carta_avulsa", "acessorio", "codigo_digital"]);
   const FLAGS_AMBIGUAS = new Set(["sem_tipo", "blister_sem_qualificador", "conflito_palavra_x_cartas", "kit_desafio_incerto",
-    "box_generico", "conflito_cartas", "case_sem_numero"]);
+    "box_generico", "conflito_cartas", "case_sem_numero", "cartas_sem_conta"]);
   const MASCOTE_SET_PT = { greninj: "celebracao-30-anos", sylveon: "celebracao-30-anos", ditto: "celebracao-30-anos",
     emboar: "herois-excelsos", feralig: "herois-excelsos", meganiu: "herois-excelsos" };
   const MASCOTE_TOKENS_RX = /\b(darkrai|zygarde|lucario|gardevoir|greninja|feraligat\w*|emboar|meganium|chandelure|zeraora|slowbro|delphox|excadrill|venusaur|charizard|blastoise|absol|dragonite|eevee|koraidon|miraidon|sylveon|ditto|pikachu)\b/g;
   const PIN_COLLECTION = /first partners? (deluxe )?pin|pin collection|deluxe pin/;
   const UNIDADES_SOLTAS = new Set(["blister_unitario", "blister_triplo", "blister_quadruplo", "booster_avulso"]);
   const SET_INVALIDO = new Set(["multi", "megaevolucao-serie", "aleatorio", "parceiro-inicial"]);
+  // colecoes da serie Megaevolucao (2025 em diante): "Escarlate e Violeta" junto delas e outra colecao, nao a serie
+  const SERIE_MEGA = new Set(["megaevolucao", "fogo-fantasmagorico", "herois-excelsos", "equilibrio-perfeito", "caos-ascendente",
+    "escuridao-absoluta", "reinado-delta"]);
 
   // ── tipos da tela (vocabulario do dono, 07/10) ──
   const TIPOS = [
@@ -2554,6 +2560,8 @@ const IDX = (() => {
   // Bundle" (lote ou colecao), "+ 2 Boosters de brinde", codigo OP-09, e numero fora da faixa do tipo
   // (ETB 8 a 12, caixa 12 a 40, bundle 2 a 12, kit 2 a 200)
   const FAIXA_BOOSTERS = { etb: [8, 12], booster_box: [12, 40], combo_pacotes: [2, 12], kit_boosters: [2, 200] };
+  // o combo de 18 da Copag pelo titulo ("18 boosters", "108 cartas", "mini booster box"); "18 cartas" nao e
+  const COMBO_18 = /\b18\b(?! ?(cartas|cards|card)\b)|\b108\b|mini display|mini booster box|mini combo/;
   function boostersDoTitulo(x, tipo) {
     const g = /\b(\d{1,4}) ?(boosters?|pacotes?|envelopes?|pacotinhos?|packs?)\b/g;
     let m;
@@ -2567,6 +2575,33 @@ const IDX = (() => {
     return null;
   }
 
+  // (revisao 07/10) "N cartas" que descreve o CONTEUDO do produto. Nao vale carta de brinde, promo, avulsa ou solta
+  // ("+ 12 Cartas Promo", "Ganhe 24 Cartas", "30 Cartas Avulsas de Brinde", "60 Cartas Sem Repeticao"): essas nao
+  // viram boosters. Devolve { n, palavra } da primeira que vale, ou null.
+  const ANTES_BRINDE = /(\+|\b(ganhe|brindes?|bonus|gratis|mais|extras?))\s*(de |com |e )?$/;
+  const DEPOIS_SOLTA = /^\s*[(-]?\s*(promo\w*|avulsas?|soltas?|de brindes?|brindes?|bonus|extras?|gratis|raras?|holo\w*|foil|aleatori\w*|repetidas|comuns|sem repeti\w*|nao repetidas|diferentes|variadas|sortidas|de presente)\b/;
+  function cartasDoConteudo(x) {
+    const g = /\b(\d{1,3}) ?(cartas|cards|card)\b/g;
+    let m;
+    while ((m = g.exec(x)) !== null) {
+      if (ANTES_BRINDE.test(x.slice(0, m.index)) || DEPOIS_SOLTA.test(x.slice(m.index + m[0].length))) continue;
+      return { n: parseInt(m[1], 10), palavra: m[2] };
+    }
+    return null;
+  }
+  // o titulo fala de pacote (booster, pacote, envelope, display) fora do brinde: "Lote 300 Cartas Brinde Booster" e
+  // "Kit 150 Cartas + 2 Boosters" sao cartas soltas com booster de brinde, "Combo Pokemon 120 Cartas" nem fala de booster
+  function pacoteNoTitulo(x) {
+    const g = /\b(boosters?|pacotes?|pacotinhos?|envelopes?|packs?|display)\b/g;
+    let m;
+    while ((m = g.exec(x)) !== null) {
+      if (/(\+|\b(ganhe|brindes?|bonus|gratis|mais|extras?))\s*(de |com |\d{1,2} ?)?$/.test(x.slice(0, m.index))) continue;
+      if (/^ ?(de )?(brindes?|bonus|gratis|extras?)\b/.test(x.slice(m.index + m[0].length))) continue;
+      return true;
+    }
+    return false;
+  }
+
   function jogoDe(x, dica) {
     if (/yu-?gi-?oh|yugioh/.test(x)) return ["yugioh", "alta"];
     if (/one ?piece|\bop-?\d{2}\b/.test(x)) return ["onepiece", "alta"];
@@ -2576,13 +2611,48 @@ const IDX = (() => {
     return [dica || "pokemon", "media"];
   }
 
+  // nomes da lista do banco que nao contam como "outra colecao" no titulo: serie/era, promo, galeria
+  // ("Pokemon Escarlate e Violeta Fagulhas Impetuosas" e uma colecao so; "Team Rocket's Mewtwo" e de Rivais)
+  const SET_NAO_CONTA = /^(escarlate e violeta|espada e escudo|sol e lua|diamante e perola|rubi e safira|black e white|sun e moon|sword e shield|heartgold soulsilver|x e y|xy|pokemon go|team rocket|colecao basica|the dark|megaevolucao)\b|promo|trainer gallery/;
+  // nomes da lista que aparecem inteiros no titulo; o nome dentro de outro maior sai
+  // ("destinos brilhantes" dentro de "destinos brilhantes (shiny)")
+  function setsDaLista(x, jogo, sets) {
+    const xx = " " + x + " ";
+    let achados = [];
+    for (const s of sets || []) {
+      if (s.game !== jogo) continue;
+      const nm = norm(nomeCurtoSet(s.name_br || ""));
+      if (nm.length < 6 || nm.split(" ").length < 2) continue;
+      const i = xx.indexOf(" " + nm + " ");
+      if (i >= 0) achados.push({ slug: s.slug, n: nm, ini: i, fim: i + nm.length + 1 });
+    }
+    return achados.filter((a) => !achados.some((b) => b !== a && b.n.length > a.n.length && b.ini <= a.ini && b.fim >= a.fim));
+  }
+
   // colecao: aliases (Pokemon) e, na falta, o nome de um set da lista do banco que apareca inteiro no titulo
   function achaSet(x, jogo, sets) {
     let hits = [];
     if (jogo === "pokemon") for (const [rx, sid] of SET_ALIASES) if (rx.test(x) && !hits.includes(sid)) hits.push(sid);
+    // (07/10) "Paldea" dentro de "Destinos de Paldea" ou "Evolucoes em Paldea" nao e uma segunda colecao (antes o
+    // titulo virava "multi" e ficava sem colecao). "Paldea" sozinho continua sendo Escarlate e Violeta: "Kit Boosters
+    // Paldea + Fogo Fantasmagorico" e de duas colecoes (revisao 07/10)
+    if (hits.length > 1 && hits.includes("escarlate-e-violeta")
+      && !/\bpaldea\b/.test(x.replace(/destinos de paldea|evolucoes em paldea|paldean fates|paldea evolved/g, " "))) {
+      hits = hits.filter((h) => h !== "escarlate-e-violeta");
+    }
+    // "Escarlate e Violeta" junto de colecao da serie Megaevolucao nao e o prefixo da serie (como em "Escarlate e
+    // Violeta Fagulhas Impetuosas"): e outra colecao ("Kit Boosters Escarlate e Violeta + Fogo Fantasmagorico")
+    if (jogo === "pokemon" && /escarlate e violeta|scarlet (e |and )?violet/.test(x) && hits.some((h) => SERIE_MEGA.has(h))
+      && !hits.includes("escarlate-e-violeta")) hits.push("escarlate-e-violeta");
     const parceiro = PARCEIRO.test(x);
     if (parceiro && hits.includes("celebracao-30-anos") && !/celebraca?o/.test(x)) hits = hits.filter((h) => h !== "celebracao-30-anos");
     if (jogo === "pokemon" && parceiro && !hits.length) return ["parceiro-inicial", "alta", hits];
+    // (pedido do dono 07/10) titulo que cita mais de uma colecao nao entra na regua de uma colecao: conta tambem
+    // os nomes da lista do banco que nao tem alias (colecao antiga, outros jogos)
+    const daLista = setsDaLista(x, jogo, sets);
+    const outras = daLista.filter((a) => !SET_NAO_CONTA.test(a.n) && !hits.includes(a.slug)
+      && !(jogo === "pokemon" && SET_ALIASES.some(([rx]) => rx.test(a.n))));
+    if (hits.length && outras.length) return ["multi", "baixa", hits.concat(outras.map((a) => a.slug))];
     if (hits.length === 1) return [hits[0], "alta", hits];
     if (hits.length > 1) return ["multi", "baixa", hits];
     // "Megaevolucao" sem numero e o nome da serie, nao da colecao (regra do Python, antes da lista do banco)
@@ -2592,16 +2662,60 @@ const IDX = (() => {
     }
     // lista do banco (cobre os sets sem alias e os outros jogos). So nome de 2 palavras ou mais:
     // nome de 1 palavra ("Dragon", "Destemido") aparece em titulo de outra coisa
+    const distintas = [...new Set(daLista.filter((a) => !SET_NAO_CONTA.test(a.n)).map((a) => a.slug))];
+    if (distintas.length > 1) return ["multi", "baixa", distintas];
     let melhor = null;
-    for (const s of sets || []) {
-      if (s.game !== jogo) continue;
-      const nm = norm(nomeCurtoSet(s.name_br || ""));
-      if (nm.length < 6 || nm.split(" ").length < 2) continue;
-      if ((" " + x + " ").includes(" " + nm + " ") && (!melhor || nm.length > melhor.n.length)) melhor = { slug: s.slug, n: nm };
-    }
+    for (const a of daLista) if (!melhor || a.n.length > melhor.n.length) melhor = a;
     if (melhor) return [melhor.slug, "media", [melhor.slug]];
     if (/colecoes diversas|varias colecoes|\bcolecoes\b|aleatori/.test(x)) return ["aleatorio", "alta", []];
     return [null, "nenhuma", []];
+  }
+
+  // (pedido do dono 07/10) booster variado, sortido, surpresa, misturado ou "boosters diversos" nao entra na regua
+  // de UMA colecao: vira colecao aleatoria. So nos tipos da regua (booster, blister, combo, caixa, bundle): ETB,
+  // lata, box e deck sao de uma colecao so. Vale quando a palavra fala dos pacotes ou das colecoes (ate 2 palavras
+  // de distancia, sem contar o nome da colecao: "Kit 3 Boosters Escuridao Absoluta Diversos" = "Kit 3 Boosters
+  // Diversos Escuridao Absoluta") ou, nas palavras fortes, quando o produto e so pacote (booster, combo, caixa).
+  // Nao vale quando fala da arte, do modelo, do envio, da unidade ou de uma escolha ("arte sortida", "envio
+  // aleatorio", "unidade aleatoria", "sortido Slowpoke ou Binacle"), nem no brinde ("+ 1 Booster Surpresa de
+  // Brinde", "Brinde: Booster Surpresa", "Ganhe Surpresa"). Blister e de uma colecao so: la so conta quando fala
+  // das colecoes ("Blister Triplo Colecoes Variadas"; "com 3 Boosters Sortidos" fica na colecao do titulo).
+  const VAR_FORTE = /^(variad[oa]s?|sortid[oa]s?|surpresas?|misturad[oa]s?|mist[oa]s?|aleatori[oa]s?)$/;
+  const VAR_FRACA = /^(diversos|diversas|diferentes|distint[oa]s|mix|mixed|random|assorted)$/;
+  const VAR_PACOTE = /^(boosters?|pacotes?|pacotinhos?|envelopes?|packs?)$/;
+  const VAR_COLECAO = /^(colecoes|colecao|edicoes|edicao|expansoes|expansao|sets?|series)$/;
+  const VAR_NAO = /^(artes?|modelos?|estampas?|designs?|capas?|cor|cores|ilustracoes|ilustracao|imagem|imagens|personagem|personagens|variantes?|embalagem|embalagens|visual|brindes?|presentes?|cartas?|cards?|promos?|mimos?|figuras?|envios?|enviad[oa]s?|entrega|unidades?|unid|un)$/;
+  const VAR_BRINDE = /^(\+|brindes?|ganhe|bonus|gratis|presentes?|mimos?)$/;
+  const VAR_LIGA = /^(de|da|do|das|dos|e)$/;
+  const VAR_TEM = /variad|sortid|surpresa|misturad|\bmist[oa]s?\b|aleatori|divers[oa]s\b|diferentes|distint|\bmix|random|assorted/;
+  const VAR_TIPOS = new Set(["booster_avulso", "blister_unitario", "blister_triplo", "blister_quadruplo", "combo_pacotes", "caixa_booster", "booster_bundle", "kit_misto"]);
+  function colecaoVariada(x, t, jogo, sets) {
+    if (!VAR_TIPOS.has(t) || !VAR_TEM.test(x)) return false;
+    // tira o nome das colecoes (alias e lista do banco) para medir a distancia ate a palavra do pacote
+    let xs = " " + x + " ";
+    for (const a of setsDaLista(x, jogo, sets)) xs = xs.split(" " + a.n + " ").join("  ");
+    if (jogo === "pokemon") for (const [rx] of SET_ALIASES) xs = xs.replace(new RegExp(rx.source, "g"), " ");
+    const pal = xs.split(/\s+/).map((w) => w.replace(/[^a-z0-9+\/]/g, "")).filter(Boolean);
+    const soPacote = t === "booster_avulso" || t === "combo_pacotes" || t === "caixa_booster";
+    const blister = t.indexOf("blister_") === 0;
+    // vizinho que conta, pulando "de", "da", "e" ("Mix de Artes")
+    const viz = (i, d) => { let j = i + d; while (pal[j] && VAR_LIGA.test(pal[j])) j += d; return pal[j] || ""; };
+    // "booster" de "booster box/bundle/display" e o nome do tipo, nao os pacotes
+    const pacote = (j) => VAR_PACOTE.test(pal[j]) && !/^(box|bundle|display)$/.test(pal[j + 1] || "");
+    for (let i = 0; i < pal.length; i++) {
+      const w = pal[i], forte = VAR_FORTE.test(w);
+      if (!forte && !VAR_FRACA.test(w)) continue;
+      if (VAR_NAO.test(viz(i, -1)) || VAR_NAO.test(viz(i, 1)) || /^(com|c\/)$/.test(pal[i - 1] || "")) continue;
+      if (pal.slice(i + 1, i + 4).includes("ou")) continue; // escolha entre modelos: "Sortido Slowpoke ou Binacle"
+      if (pal.slice(Math.max(0, i - 4), i).some((p) => VAR_BRINDE.test(p))) continue; // "+ 1 Booster Surpresa"
+      if (/^brindes?$/.test(pal[i + 1] || "") || (pal[i + 1] === "de" && /^brindes?$/.test(pal[i + 2] || ""))) continue;
+      const ja = [i - 2, i - 1, i + 1, i + 2].filter((j) => j >= 0 && j < pal.length);
+      if (ja.some((j) => VAR_COLECAO.test(pal[j]))) return true;
+      if (blister) continue;
+      if (ja.some(pacote)) return true;
+      if (forte && soPacote) return true;
+    }
+    return false;
   }
 
   // tipo no vocabulario do parse_ml. Devolve [tipo, qtd0, unit, flags]. A ORDEM DAS REGRAS IMPORTA.
@@ -2683,8 +2797,8 @@ const IDX = (() => {
       if (mv) { const t = VARIANTE_BLISTER_PT[mv[1]][1]; return [t, 1, t, flags.concat(["tipo_via_variante"])]; }
       return ["blister_unitario", 1, "blister_unitario", flags.concat(["blister_sem_qualificador"])];
     }
-    // 9. box colecao
-    if (/box coleca?o|coleca?o ilustra|colecao rara|serie ?0?[123]\b|series ?[123]\b|q[23] |first partner|parceir|pin collection|caixa surpresa|estampas/.test(x)) {
+    // 9. box colecao ("Coleção Premium/Especial" sem a palavra box e o nome da Copag para o box, 07/10)
+    if (/box coleca?o|coleca?o ilustra|colecao rara|coleca?o (premium|especial)\b|serie ?0?[123]\b|series ?[123]\b|q[23] |first partner|parceir|pin collection|caixa surpresa|estampas/.test(x)) {
       if (/caixa surpresa/.test(x)) return ["outro", 1, null, flags.concat(["caixa_surpresa"])];
       return ["box_colecao", 1, "box_colecao", flags];
     }
@@ -2692,8 +2806,9 @@ const IDX = (() => {
       if (/coleca?o/.test(x)) return ["box_colecao", 1, "box_colecao", flags];
       return ["box_colecao", 1, "box_colecao", flags.concat(["box_generico"])];
     }
-    // 10. baralho
-    if (/batalha de liga|\bbaralho\b|\bdeck\b|\b60 cartas|structure deck|estrutural/.test(x)) return ["baralho", 1, "baralho", flags];
+    // 10. baralho ("60 cartas" sozinho e baralho; com booster/pacote no titulo e 10 boosters, pedido do dono 07/10)
+    if (/batalha de liga|\bbaralho\b|\bdeck\b|structure deck|estrutural/.test(x)
+      || (/\b60 cartas/.test(x) && !/booster|pacote|pacotinho|envelope|\bpacks?\b/.test(x))) return ["baralho", 1, "baralho", flags];
     // 11. lata
     if (/mini latas?|\blatas?\b|\btins?\b/.test(x)) { const t = /mini/.test(x) ? "mini_lata" : "lata"; return [t, 1, t, flags]; }
     // 12. booster avulso (pacote, envelope, pack)
@@ -2701,8 +2816,8 @@ const IDX = (() => {
     return ["outro", 1, null, flags];
   }
 
-  // quantidade (lote) do anuncio: devolve [qtd, origem]
-  function achaQtd(x, tipo, qtd0) {
+  // quantidade (lote) do anuncio: devolve [qtd, origem]. porPac = cartas por booster (6 PT-BR, 10 ingles claro, null)
+  function achaQtd(x, tipo, qtd0, porPac) {
     if (TIPOS_SEM_PRODUTO.has(tipo) || tipo === "kit_misto") return [qtd0, "n/a"];
     if (qtd0 > 1) return [qtd0, "case"];
     const conteudo = (q) => ([36, 216, 108, 18].includes(q) && (tipo === "caixa_booster" || tipo === "combo_pacotes")) || (q === 121 && tipo === "etb");
@@ -2710,7 +2825,8 @@ const IDX = (() => {
     x = x.replace(/\b(charizard|mewtwo) x\b/g, "$1x");
     // 1. multiplicador explicito. CORRECAO (revisao 07/10): "c/ N" saiu ("c/ 9 boosters" e conteudo da ETB,
     //    nao 9 ETBs); entrou o numero no comeco do titulo ("2 ETB ...", "2 Combos 18 Boosters ...")
-    const m = achaNum(/\bkit (?:com |c\/ )?(\d+)\s?x?\b/, x) || achaNum(/\b(\d+) ?x\b(?! \d+ ?cm)/, x)
+    // ("Kit 60 Cartas" e o numero de cartas, nao 60 unidades: revisao 07/10)
+    const m = achaNum(/\bkit (?:com |c\/ )?(\d+)\s?x?\b(?! ?(cartas|cards|card)\b)/, x) || achaNum(/\b(\d+) ?x\b(?! \d+ ?cm)/, x)
       || achaNum(/\bx ?(\d+)\b/, x) || achaNum(/\bcase (?:lacrada )?(?:de |com )?(\d+)\b/, x)
       || /^(\d{1,2}) (etbs?|combos?|latas?|mini latas?|booster box(es)?|boxes|displays?|elite trainer|treinador)\b/.exec(x);
     if (m) {
@@ -2718,11 +2834,17 @@ const IDX = (() => {
       if (conteudo(q)) return [1, "conteudo do proprio produto"];
       if (q >= 1 && q <= 100) return [q, "kit N"];
     }
-    // 2. total de cartas coerente com o tipo unitario
-    const mc = /\b(\d{1,3}) ?(cartas|cards|card)\b/.exec(x);
-    if (mc && ["booster_avulso", "blister_triplo", "blister_quadruplo"].includes(tipo)) {
-      const n = parseInt(mc[1], 10);
-      if (CARTAS_MAP[n] && CARTAS_MAP[n][1] === tipo) return [CARTAS_MAP[n][0], "N cartas"];
+    // 2. total de cartas coerente com o tipo unitario. Booster solto (pedido do dono 07/10): N cartas / 6 no
+    //    PT-BR, / 10 no ingles claro ("Kit Boosters 48 Cartas" = 8 boosters); blister segue a tabela da Copag.
+    //    (revisao 07/10) So a carta do conteudo (nao a de brinde, promo ou avulsa); o numero de boosters escrito
+    //    vale mais ("Kit 150 Cartas + 2 Boosters" = 2); carta solta com booster de brinde nao conta
+    const cc = cartasDoConteudo(x);
+    if (cc && ["booster_avulso", "blister_triplo", "blister_quadruplo"].includes(tipo)) {
+      const n = cc.n;
+      if (tipo === "booster_avulso") {
+        const escrito = boostersDoTitulo(x, "kit_boosters") || /\b\d+ ?(unid|unidades|pct|pcs)\b/.test(x);
+        if (porPac && !escrito && pacoteNoTitulo(x) && n % porPac === 0 && n / porPac >= 1 && n / porPac <= 72) return [n / porPac, "N cartas"];
+      } else if (CARTAS_MAP[n] && CARTAS_MAP[n][1] === tipo) return [CARTAS_MAP[n][0], "N cartas"];
     }
     // 3. "N boosters", "N blisters", "N unidades"
     const m3 = achaNum(/\b(\d+) ?(unid|unidades|pct|pcs|blisters?|boosters?|envelopes?|pacotes?|pacotinhos|boxes|caixas|blist)\b/, x)
@@ -2765,8 +2887,22 @@ const IDX = (() => {
     return [];
   }
 
+  // cartas por booster para contar boosters pelas cartas (pedido do dono 07/10): Pokemon PT-BR (Copag) = 6;
+  // ingles = 10, so com o titulo claramente em ingles; o resto (japones, ingles so pela bandeira, outro jogo) = null.
+  // (revisao 07/10) PT-BR tambem precisa ser claro: titulo sem nenhum sinal de idioma so conta quando escreve
+  // "cartas" ("Pokemon Booster Pack Lot 120 Cards Surging Sparks" e ingles, nao 20 boosters)
+  function cartasPorBooster(jogo, idi, iconf, bandeira, palavra) {
+    if (jogo !== "pokemon") return null;
+    if (idi === "en") return iconf === "alta" ? 10 : null;
+    if (idi !== "pt") return null;
+    if (bandeira === "us" && iconf !== "alta") return null; // titulo sem idioma numa mensagem de produto importado
+    if (iconf === "baixa" && bandeira !== "br" && palavra !== "cartas") return null;
+    return 6;
+  }
+
   // parse_ml portado: chave no vocabulario do Python (set, tipo, unit, qtd, idioma, flags)
-  function parseMl(nome, jogo, sets) {
+  // bandeira (opcional): a da mensagem gerada, so para a conta de boosters pelas cartas
+  function parseMl(nome, jogo, sets, bandeira) {
     const x = norm(nome);
     let [sid, sconf] = achaSet(x, jogo, sets);
     let [tipo, qtd0, unit, flags] = achaTipo(x);
@@ -2775,11 +2911,18 @@ const IDX = (() => {
       if (mv && jogo === "pokemon") { tipo = unit = VARIANTE_BLISTER_PT[mv[1]][1]; flags.push("tipo_via_variante"); }
       else flags.push("sem_tipo");
     }
-    let [qtd, qorig] = achaQtd(x, tipo, qtd0);
+    // booster variado, sortido, surpresa: colecao aleatoria (pedido do dono 07/10)
+    if (sid !== "aleatorio" && sid !== "multi" && colecaoVariada(x, tipo, jogo, sets)) { sid = "aleatorio"; sconf = "alta"; flags.push("colecao_variada"); }
+    const [idi, iconf] = achaIdioma(x);
+    const cc = cartasDoConteudo(x);
+    const porPac = cartasPorBooster(jogo, idi, iconf, bandeira, cc ? cc.palavra : null);
+    let [qtd, qorig] = achaQtd(x, tipo, qtd0, porPac);
+    // (revisao 07/10) booster solto com N cartas que nao deu para contar (idioma nao claro, conta que nao fecha) e sem
+    // o numero de boosters escrito: duvida ("Pokemon Booster Pack Lot 120 Cards Surging Sparks" nao e 1 nem 20)
+    if (tipo === "booster_avulso" && cc && cc.n > 6 && (qorig === "default 1") && pacoteNoTitulo(x)) flags.push("cartas_sem_conta");
     if (UNIDADES_SOLTAS.has(unit) && qorig === "default 1" && /\b(combo|lote)\b/.test(x) && !/combo de (booster|pacotes)|combo booster|combo 18|mini display/.test(x)) {
       qtd = null; qorig = "combo sem quantidade"; flags.push("combo_sem_qtd");
     }
-    const [idi, iconf] = achaIdioma(x);
     const variantes = achaVariantes(x);
     const v = variantes[0] || null;
     if ((sid === null || sid === "megaevolucao-serie") && v && VARIANTE_BLISTER_PT[v] && idi === "pt" && ["blister_triplo", "blister_quadruplo", "blister_unitario"].includes(unit)) {
@@ -2796,13 +2939,11 @@ const IDX = (() => {
       }
     }
     if (sid === "parceiro-inicial" && v === "parceiros iniciais") sid = "herois-excelsos";
-    // CORRECAO: numero de cartas que nao bate com o tipo vira duvida ("Booster Box 144 Cartas")
-    const mc = /\b(\d{2,3}) ?(cartas|cards|card)\b/.exec(x);
-    let cartas = mc ? parseInt(mc[1], 10) : null;
-    if (cartas && ((tipo === "caixa_booster" && cartas !== 216) || (tipo === "combo_pacotes" && cartas !== 108) || (tipo === "etb" && cartas !== 121))) {
-      flags.push("conflito_cartas");
-    } else if (!(tipo === "caixa_booster" || tipo === "combo_pacotes" || tipo === "etb")) cartas = null;
-    return { x, set: sid, set_conf: sconf, tipo, unit, qtd, qtd_origem: qorig, idioma: idi, idioma_conf: iconf, variante: v, flags, cartas };
+    // numero de cartas de caixa, combo e ETB: o reconhecer conta os boosters (N / 6) ou marca duvida
+    // (revisao 07/10: so a carta do conteudo; "+ 12 Cartas Promo" e "30 Cartas Avulsas de Brinde" nao contam)
+    const cartas = cc && cc.n >= 10 && (tipo === "caixa_booster" || tipo === "combo_pacotes" || tipo === "etb") ? cc.n : null;
+    return { x, set: sid, set_conf: sconf, tipo, unit, qtd, qtd_origem: qorig, idioma: idi, idioma_conf: iconf, variante: v, flags, cartas, por_pacote: porPac,
+      pacote_no_titulo: pacoteNoTitulo(x), cartas_tit: cc ? cc.n : null };
   }
 
   // ── reconhecer(titulo): chave no vocabulario da tela ──
@@ -2812,9 +2953,10 @@ const IDX = (() => {
     const sets = opts.sets || [];
     const x0 = norm(titulo);
     const [jogo, jconf] = jogoDe(x0, opts.jogo);
-    const p = parseMl(titulo, jogo, sets);
+    const p = parseMl(titulo, jogo, sets, opts.bandeira);
     const x = p.x;
     const flags = p.flags.slice();
+    if (p.set === "multi" || p.set === "aleatorio") flags.push("varias_colecoes");
     let tipo = "outro", boosters = null, bconf = "baixa", lote = p.qtd, acessorio = false;
     const t = p.tipo;
     const map = {
@@ -2833,30 +2975,64 @@ const IDX = (() => {
       if (jogo !== "pokemon" && jogo !== "magic") { boosters = 24; bconf = "media"; }
     }
     if (tipo === "kit_boosters") {
-      // combo/kit: 18 so quando o titulo diz (18 boosters, 108 cartas, mini booster box, combo 18)
-      if (/\b18\b|\b108\b|mini display|mini booster box|mini combo/.test(x)) bconf = "alta";
+      // combo/kit: 18 so quando o titulo diz (18 boosters, 108 cartas, mini booster box, combo 18). "18 Cartas" nao e
+      // o combo de 18 (revisao 07/10: "Combo Pokemon ... 18 Cartas Holo")
+      if (COMBO_18.test(x)) bconf = "alta";
       else { bconf = "baixa"; flags.push("combo_sem_numero"); }
       if (p.qtd > 1 && p.qtd_origem === "case") lote = p.qtd; // case de combos
     }
     if (tipo === "combo_pacotes") {
       if (t === "booster_bundle") { boosters = 6; bconf = "alta"; } else { boosters = null; bconf = "baixa"; }
     }
-    if (p.cartas && flags.includes("conflito_cartas")) {
-      if (p.cartas % 6 === 0) boosters = p.cartas / 6;
-      bconf = "baixa";
-    }
     // CORRECAO: "N boosters" num produto que nao e unidade solta descreve o CONTEUDO, nao o lote
     // ("Booster Box 24 Boosters" e uma caixa de 24, nao 24 caixas; "ETB 9 boosters" e 1 ETB)
     if (!UNIDADES_SOLTAS.has(p.unit) && p.qtd_origem === "N unidades") lote = 1;
-    const nb = TIPO[tipo] && TIPO[tipo].pacote && !UNIDADES_SOLTAS.has(p.unit) && t !== "kit_misto" && !flags.includes("conflito_cartas")
-      ? boostersDoTitulo(x, tipo) : null;
+    // boosters escritos no titulo: valem mais que a conta das cartas
+    const nb = TIPO[tipo] && TIPO[tipo].pacote && !UNIDADES_SOLTAS.has(p.unit) && t !== "kit_misto" ? boostersDoTitulo(x, tipo) : null;
+    // N cartas (pedido do dono 07/10): booster Copag PT-BR tem 6 cartas ("Box Display 216 Cartas" = 36,
+    // "Booster Box 144 Cartas" = 24, "Combo 60 Cartas" = 10); ingles so com o titulo claro, 10 por pacote.
+    // ETB fica 9 (nunca pela conta) e blister nao chega aqui. Conta que nao fecha vira duvida.
+    let viaCartas = false;
+    if (p.cartas && t === "etb") {
+      if (![121, 54, 90].includes(p.cartas)) { flags.push("conflito_cartas"); bconf = "baixa"; }
+    } else if (p.cartas && (t === "caixa_booster" || t === "combo_pacotes") && !nb) {
+      const pp = p.por_pacote;
+      // conta plausivel: 2 a 72 boosters; caixa/display de 12 a 40 (mesma faixa do "N boosters" escrito)
+      const [cMin, cMax] = t === "caixa_booster" ? FAIXA_BOOSTERS.booster_box : [2, 72];
+      // quantos o NOME do tipo ja diz: caixa/display = 36 (Pokemon e Magic); combo com 18/mini = 18; combo solto = nada
+      const doTipo = t === "caixa_booster" ? (jogo === "pokemon" || jogo === "magic" ? 36 : null)
+        : (COMBO_18.test(x) ? 18 : null);
+      // (revisao 07/10) nao conta pelas cartas quando o idioma nao e claro (ou e outro jogo) e quando o combo nao fala
+      // de booster nem de pacote fora do brinde ("Combo Pokemon 120 Cartas" pode ser carta solta, nao 20 boosters).
+      // Ai vale a regra de antes: 216 na caixa e 108 no combo batem, outro numero e duvida; os boosters ficam os do
+      // tipo (One Piece: 24)
+      if (!pp || (t === "combo_pacotes" && !p.pacote_no_titulo)) {
+        if (p.cartas !== (t === "caixa_booster" ? 216 : 108)) {
+          flags.push("conflito_cartas"); bconf = "baixa";
+          if (t === "combo_pacotes" && doTipo === null) boosters = null;
+        }
+      } else {
+        const conta = p.cartas % pp === 0 && p.cartas / pp >= cMin && p.cartas / pp <= cMax ? p.cartas / pp : null;
+        if (conta && (doTipo === null || doTipo === conta)) {
+          boosters = conta; bconf = doTipo === conta ? "alta" : "media"; viaCartas = true;
+          const i = flags.indexOf("combo_sem_numero"); if (i >= 0) flags.splice(i, 1);
+        } else {
+          // "Booster Box 144 Cartas": preenche 24 pela conta, mas a palavra do tipo diz 36, entao Confere?
+          flags.push("conflito_cartas"); bconf = "baixa";
+          // sem conta: o que o tipo diz (caixa 36, One Piece 24); combo solto fica sem numero
+          boosters = conta || doTipo || (t === "caixa_booster" ? boosters : null);
+          viaCartas = !!conta;
+        }
+      }
+      if (viaCartas) flags.push("boosters_via_cartas");
+    }
     if (nb) {
       boosters = nb; bconf = "alta";
       const i = flags.indexOf("combo_sem_numero"); if (i >= 0) flags.splice(i, 1);
     }
     // convencao do dono: "Booster Box 18" (ou 12) de Pokemon e Kit de boosters, nao a caixa de 36
     if (tipo === "booster_box" && jogo === "pokemon") {
-      if (!nb && /\b18\b/.test(x) && !/\b18 ?(cartas|cards)\b/.test(x)) { boosters = 18; bconf = "media"; }
+      if (!nb && !viaCartas && /\b18\b/.test(x) && !/\b18 ?(cartas|cards)\b/.test(x)) { boosters = 18; bconf = "media"; }
       if (boosters && boosters < 24) tipo = "kit_boosters";
     }
     // convencao do dono: caixa/case/display com 12 ou mais unidades soltas = Kit de boosters (o produto e a caixa)
@@ -2865,6 +3041,15 @@ const IDX = (() => {
       tipo = "kit_boosters"; boosters = p.qtd * porUn; bconf = "media"; lote = 1;
       const i = flags.indexOf("blister_sem_qualificador"); if (i >= 0) flags.splice(i, 1);
       flags.push("caixa_de_unidades");
+    }
+    // convencao do dono ("Kit 10 Boosters" = 10 boosters soltos): combo de 2 a 11 boosters, sem o 18 do combo
+    // Copag, vira Booster com lote N. Assim o nome sugerido ("Booster X") le de volta igual e o preco por
+    // booster nao muda (07/10; antes o nome "Kit 10 Boosters X" voltava como 10 boosters e caia no booster solto).
+    // (revisao 07/10) Com mais de 1 combo no anuncio multiplica: "Case 2 Combo ... 6 Boosters" = 12 boosters
+    // (antes ficava kit de 6 com lote 2, e o nome "Kit 6 Boosters" relido dava 2 boosters). Pela conta das cartas a
+    // certeza fica media (quem decide o seguro e a mesma regra).
+    if (tipo === "kit_boosters" && t === "combo_pacotes" && boosters >= 2 && boosters <= 11 && bconf !== "baixa") {
+      tipo = "booster"; lote = boosters * (lote || 1); boosters = 1; bconf = viaCartas ? "media" : "alta"; flags.push("combo_vira_lote");
     }
     // colecao
     let colecao = p.set && !SET_INVALIDO.has(p.set) ? p.set : null;
@@ -2888,7 +3073,7 @@ const IDX = (() => {
     const colOk = !!colecao && (cconf === "alta" || cconf === "media");
     const bOk = boosters === null ? !(TIPO[tipo] && TIPO[tipo].pacote) : bconf !== "baixa";
     const seguro = tipoOk && (colOk || acessorio) && bOk;
-    const motivo = seguro ? "" : motivoDuvida({ t, tipo, flags, colecao, colOk, acessorio, bOk, cartas: p.cartas });
+    const motivo = seguro ? "" : motivoDuvida({ t, tipo, flags, colecao, colOk, acessorio, bOk, cartas: p.cartas, boosters, cartasTit: p.cartas_tit });
     const reconheceu = t !== "outro" || !!colecao || acessorio;
     return {
       jogo: jogoF, tipo, colecao, idioma, boosters, lote,
@@ -2898,7 +3083,12 @@ const IDX = (() => {
   }
 
   function motivoDuvida(o) {
-    if (o.flags.includes("conflito_cartas")) return "O título fala " + o.cartas + " cartas, que não bate com o tipo.";
+    if (o.flags.includes("conflito_cartas")) {
+      return "O título fala " + o.cartas + " cartas, que não bate com o tipo." + (o.flags.includes("boosters_via_cartas") && o.boosters ? " Pela conta das cartas, " + o.boosters + " boosters." : "");
+    }
+    // (07/10) boosters variados ou de mais de uma colecao: ficam sem colecao, fora da regua de uma colecao
+    if (o.flags.includes("varias_colecoes") && !o.colecao && TIPO[o.tipo] && TIPO[o.tipo].pacote) return "Boosters variados ou de mais de uma coleção: fica sem coleção, fora da régua.";
+    if (o.flags.includes("cartas_sem_conta")) return "O título fala " + o.cartasTit + " cartas e não deu para contar quantos boosters vêm.";
     if (o.flags.includes("combo_sem_numero")) return "Combo sem o número de boosters no título.";
     if (o.flags.includes("case_sem_numero")) return "Case sem o número de unidades.";
     if (o.flags.includes("blister_sem_qualificador")) return "Blister sem dizer se é triplo ou quádruplo.";
@@ -2907,6 +3097,8 @@ const IDX = (() => {
     if (o.t === "kit_misto") return "Mistura triplo e quádruplo no mesmo anúncio.";
     if (o.t === "carta_avulsa") return "Parece carta avulsa.";
     if (o.t === "outro") return "Não reconheci o tipo do produto.";
+    // box, deck, lata, fichario, desafio: a colecao nao entra na chave (o nome entra), entao a duvida e o nome
+    if (!o.colecao && !(TIPO[o.tipo] && TIPO[o.tipo].pacote)) return "Confira o nome do produto.";
     if (!o.colecao) return "Não achei a coleção no título.";
     if (!o.colOk) return "Não tenho certeza da coleção.";
     if (!o.bOk) return "Não tenho certeza de quantos boosters vêm.";
@@ -2927,18 +3119,153 @@ const IDX = (() => {
       .replace(/\b(copag|pok[eé]mon tcg|tcg|original|lacrad[oa]s?|oficial|pr[eé][- ]?venda|portugu[eê]s|pt-?br|envio imediato|pronta entrega|para (cards|cartas))\b/gi, " ")
       .replace(/[—–]/g, " ").replace(/\s{2,}/g, " ").trim().replace(/^[\s,.-]+|[\s,.-]+$/g, "");
   }
+  // ── nome limpo de produto que NAO e de pacote (pedido do dono 07/10) ──
+  // Box, deck, lata, mini lata, fichario, desafio e outro: a chave desses produtos e o nome, entao a sugestao
+  // sai do titulo sem o ruido do anuncio (Copag, Pokemon TCG, Original, Lacrado, PT-BR, numero de cartas e de
+  // boosters, codigo tipo "Kq", emoji e simbolo), com o tipo por extenso no comeco ("Baralho de Batalha",
+  // "Box Coleção Premium", "Lata", "Mini Lata", "Fichário") e o sufixo do Pokemon certo (ex, V, VMAX, V-ASTRO,
+  // GX; o X e o Y do Mega ficam). Sempre vai como Confere? (quem decide e o prodDoTitulo).
+  const RUIDO_NOME = [
+    // (revisao 07/10) "Novo Lacrado", "Lacrado Novo" (antes do lacrado sair sozinho e deixar o "Novo" para tras)
+    /\bnov[oa]s? (e )?(lacrad[oa]s?|selad[oa]s?|origina(l|is))\b/gi, /\b(lacrad[oa]s?|selad[oa]s?|origina(l|is)) (e )?nov[oa]s?\b/gi,
+    /\bpok[eé]mon\s*tcg\b/gi, /\b(trading )?card game\b/gi, /\btcg\b/gi, /\bcopag\b/gi, /\borigina(l|is)\b/gi,
+    /\blacrad[oa]s?\b/gi, /\boficia(l|is)\b/gi, /\bpt[- ]?br\b/gi, /\(pt\)/gi,
+    /\b((idioma|vers[aã]o)( em)? |em )?portugu[eê]s( do brasil| brasil)?\b/gi,
+    /\bpr[eé][- ]?venda\b/gi, /\bpronta entrega\b/gi, /\benvio (imediato|r[aá]pido|j[aá]|full|24 ?h)\b/gi, /\bfrete gr[aá]tis\b/gi, /\blan[cç]amento\b/gi,
+    /\bpara (cards|cartas)\b/gi, /\bjogo de cartas\b/gi, /\bcartas colecion[aá]veis\b/gi,
+    /\byu-?gi-?oh\b!?/gi, /\bmagic:? the gathering\b/gi, /\bmtg\b/gi,
+    // (revisao 07/10) codigo do vendedor, nota fiscal e "novo" do anuncio
+    /(^|\s)(sku|ref|refer[eê]ncia|c[oó]d)(\.|:|\s)\s*:?\s*[a-z0-9][\w-]*(?=\s|$)/gi, /(^|\s)c[oó]digo\s*:?\s*\d[\w-]*(?=\s|$)/gi,
+    /\b(com )?nota fiscal\b/gi, /\bselad[oa]s?\b/gi, /\b(cx|caixa) fechada\b/gi,
+  ];
+  // palavras que aparecem sem acento no titulo e vao com acento no nome
+  const ACENTO_NOME = { colecao: "Coleção", fichario: "Fichário", album: "Álbum", ilustracao: "Ilustração", evolucao: "Evolução",
+    forcas: "Forças", serie: "Série", estrategico: "Estratégico", colecionavel: "Colecionável", herois: "Heróis", pokemon: "Pokémon" };
+  const LIGACAO = new Set(["de", "da", "do", "das", "dos", "e", "com", "para", "em", "ou"]);
+  const SEM_VOGAL_OK = new Set(["gx", "mr", "jr", "lv", "xy"]);
+  const ABREV = /^(Lt|Mr|Mrs|Ms|Dr|Sr|Sra|Jr|St|Sgt|Prof)\.$/; // "Lt. Surge", "Mr. Mime"
+  // tipo -> [regex da frase no titulo, nome por extenso]; a primeira que casar vai para o comeco
+  function frasesTipo(tipo, jogo) {
+    if (tipo === "deck") return [
+      [/\b(baralho|deck)s? (de )?batalha de liga\b/i, "Baralho Batalha de Liga"],
+      [/\bbatalha de liga\b/i, "Baralho Batalha de Liga"],
+      [/\b(baralho|deck)s? (de )?batalha\b/i, "Baralho de Batalha"],
+      [/\b(deck|baralho)s? estrutura(l|is)\b/i, "Deck Estrutural"],
+      [/\bstructure deck\b/i, "Structure Deck"], [/\bstarter deck\b/i, "Starter Deck"], [/\bcommander deck\b/i, "Commander Deck"],
+      [/\b(baralho|deck)s?\b/i, jogo === "pokemon" ? "Baralho" : "Deck"],
+      [null, jogo === "pokemon" ? "Baralho" : "Deck"],
+    ];
+    if (tipo === "mini_lata") return [[/\bmini ?(latas?|tins?)\b/i, "Mini Lata"], [null, "Mini Lata"]];
+    if (tipo === "lata") return [[/\b(latas?|tins?)\b/i, "Lata"], [null, "Lata"]];
+    if (tipo === "fichario") return [[/(^|\s)(fich[aá]rio|[aá]lbum|pasta)s?(?=\s|$)/i, "Fichário"], [null, "Fichário"]];
+    if (tipo === "desafio_estrategico") return [[/\b(kit )?desafio estrat[eé]gico\b/i, "Desafio Estratégico"]];
+    return [];
+  }
+  // sobra de palavra do tipo que ja foi para o comeco ("Deck Pokemon Baralho ...", "Pasta Fichario Album")
+  const RESTO_TIPO = { deck: /\b(baralho|deck)s?\b/gi, lata: /\b(latas?|tins?)\b/gi, mini_lata: /\b(mini ?)?(latas?|tins?)\b/gi,
+    fichario: /(^|\s)(fich[aá]rio|[aá]lbum|pasta)s?(?=\s|$)/gi, box_colecao: /\b(box|caixa)( de)?\b/gi };
+  function capitaliza(w) {
+    const k = semAcento(w);
+    if (ACENTO_NOME[k] && w.toLowerCase() === k) return ACENTO_NOME[k];
+    if (w.length > 3 && w === w.toUpperCase() && w !== w.toLowerCase()) w = w.toLowerCase(); // CHARIZARD -> Charizard
+    return w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+  }
+  function nomeLimpo(titulo, r) {
+    const tipo = r.tipo, jogo = r.jogo, leve = tipo === "outro";
+    let s = " " + String(titulo || "").normalize("NFC") + " ";
+    // emoji e simbolo (o apostrofo de "Team Rocket's" fica; o "+" fica so no outro, onde costuma ser parte do kit)
+    s = s.replace(/\p{Extended_Pictographic}|\p{Regional_Indicator}|[‍️\u{1F3FB}-\u{1F3FF}]/gu, " ")
+      .replace(/[™®©•|*#!¡?¿"“”«»[\]{}<>~^=_;,—–]/g, " ").replace(/\s[-:]+\s/g, " ");
+    // quantidade do anuncio no comeco ("2x Box", "Kit 2 Mini Latas") e multiplicador solto
+    if (!leve) s = s.replace(/^\s*(kit|combo|lote)\s+(com\s+)?\d{1,2}\s*x?\s+/i, " ").replace(/^\s*\d{1,2}\s*x\s+/i, " ");
+    s = s.replace(/\s\d{1,2}x(?=\s)|\sx\d{1,2}(?=\s)/gi, " ");
+    // (revisao 07/10) quantidade no meio ou no fim ("... Kit 3", "... 2 Unidades")
+    if (!leve) s = s.replace(/\s(kit|combo|lote)\s+(com\s+)?\d{1,2}\s*x?(?=\s)/gi, " ").replace(/\s\d{1,3}\s?(unidades?|unid\.?|un\.?|p[cç]s|pe[cç]as)(?=\s)/gi, " ");
+    for (const rx of RUIDO_NOME) s = s.replace(rx, " ");
+    if (!leve) {
+      // "Pokemon Center" e "Pokemon GO" sao nome do produto (revisao 07/10: "Box Colecao Pokemon GO Mewtwo V")
+      s = s.replace(/\bpok[eé]mon\b(?! center\b| go\b)/gi, " ");
+      // conteudo do produto: boosters, carta promo e numero de cartas (no fichario o numero de cartas e a capacidade)
+      s = s.replace(/(\s(com|c\/|e)\s?|\s\+\s?)?\s\d{1,3}\s?(boosters?|pacotes?|envelopes?|pacotinhos?|packs?)\b/gi, " ");
+      s = s.replace(/(\s(com|e)\s|\s\+\s?)?(\s\d{1,2})?\s(cartas?|cards?) (promo(cional|cionais|s)?|foil|holo\w*)\b/gi, " ");
+      if (tipo !== "fichario") s = s.replace(/(\s(com|c\/)\s?|\s\+\s?)?\s\d{1,4}\s?(cartas|cards|card)\b/gi, " ");
+      s = s.replace(/\s\+(?=\s)/g, " ");
+    }
+    s = s.replace(/\bc\/\s?/gi, " ").replace(/\s\d{5,}(?=\s)/g, " ").replace(/[()]/g, " ").replace(/\s\/\s/g, " ");
+    // tipo por extenso no comeco
+    let prefixo = "";
+    if (tipo === "box_colecao") {
+      const mc = /\bcole[cç][aã]o((\s(premium|especial|ilustra[cç][aã]o|ilustrad[ao]|rara|super|exclusiva|treinador))*)(\scom\sfich[aá]rio)?\b/i.exec(s);
+      s = s.replace(RESTO_TIPO.box_colecao, " ");
+      prefixo = "Box";
+      if (mc) { prefixo += " " + mc[0].trim().split(/\s+/).map(capitaliza).map((w, i) => (i && LIGACAO.has(semAcento(w)) ? w.toLowerCase() : w)).join(" "); s = s.replace(mc[0], " "); }
+    } else {
+      for (const [rx, nome] of frasesTipo(tipo, jogo)) {
+        if (!rx) { prefixo = nome; break; }
+        if (rx.test(s)) { s = s.replace(rx, " "); prefixo = nome; break; }
+      }
+      if (prefixo && RESTO_TIPO[tipo]) s = s.replace(RESTO_TIPO[tipo], " ");
+      // "Lata Pokemon Mini Pikachu ex": o "Mini" ja esta em "Mini Lata" (revisao 07/10)
+      if (tipo === "mini_lata") s = s.replace(/\bmini\b/gi, " ");
+    }
+    // palavra a palavra: sufixo do Pokemon, codigo sem vogal ("Kq"), caixa das letras. Abreviacao com ponto fica
+    // como esta ("Lt. Surge", "Mr. Mime"; revisao 07/10)
+    const ws = s.split(/\s+/).map((w) => (ABREV.test(w) ? w : w.replace(/^[-.:/+]+|[-.:/]+$/g, ""))).filter((w) => w && (leve || w !== "+"));
+    // "EX" de colecao antiga (era XY) fica maiusculo; o "ex" de hoje fica minusculo
+    const exAntigo = /\bxy\b/i.test(String(titulo || ""));
+    const out = [];
+    for (let i = 0; i < ws.length; i++) {
+      const w = ws[i], k = semAcento(w), ant = out[out.length - 1] || "", prox = ws[i + 1] || "";
+      if (k === "ex") { out.push(exAntigo && w === "EX" ? "EX" : "ex"); continue; }
+      if (ABREV.test(w)) { out.push(w); continue; }
+      if (/^(gx|vmax|vstar|v-astro|vastro)$/.test(k)) { out.push(k === "vastro" ? "V-ASTRO" : k.toUpperCase()); continue; }
+      if (k === "v" && /^astro$/i.test(prox)) { out.push("V-ASTRO"); i++; continue; }
+      if (k === "v") { out.push("V"); continue; }
+      if (k === "x" || k === "y") { // "Mega Charizard X ex": fica; "2 x" e multiplicador: sai
+        if (/^[a-zA-ZÀ-ÿ]+$/.test(ant) && !LIGACAO.has(semAcento(ant)) && !/^\d/.test(prox)) out.push(w.toUpperCase());
+        continue;
+      }
+      // "Kq", "Cx", "Pct" e codigo de vendedor "Kq17" (o "y" conta como vogal: "Gym"; codigo de colecao fica: SV8, ST21)
+      if (/^[b-df-hj-np-tv-xz]{2,4}$/i.test(k) && !SEM_VOGAL_OK.has(k)) continue;
+      if (/^[b-df-hj-np-tv-xz]{1,3}\d{1,4}$/i.test(k) && !/^(sv|st|sm|swsh|bw|dp|xy|pr|svp|ssp|sp|lv)\d/.test(k)) continue;
+      if (LIGACAO.has(k) && (out.length || prefixo)) { out.push(k); continue; }
+      if (/\d/.test(w)) { out.push(w); continue; }
+      out.push(capitaliza(w));
+    }
+    // trecho repetido no fim do anuncio ("... Parceiro Inicial Série 2 Parceiro Inicial Serie 2")
+    const kk = (a, i, n) => a.slice(i, i + n).map((w) => semAcento(w)).join(" ");
+    for (let n = 4; n >= 2; n--) {
+      for (let i = 0; i + n <= out.length; i++) {
+        if (semAcento(out[i]) === "mega") continue; // "Mega Charizard X ex e Mega Charizard Y ex"
+        for (let j = i + n; j + n <= out.length; j++) if (kk(out, i, n) === kk(out, j, n)) { out.splice(j, n); j--; }
+      }
+    }
+    while (out.length && LIGACAO.has(semAcento(out[0]))) out.shift();
+    // ("... Equipe Rocket Copag Novo": o "Novo" do fim e do anuncio, revisao 07/10)
+    while (out.length && (LIGACAO.has(semAcento(out[out.length - 1])) || out[out.length - 1] === "+" || (!leve && /^nov[oa]s?$/i.test(out[out.length - 1])))) out.pop();
+    if (!out.length) return prefixo && prefixo !== "Box" && prefixo !== "Baralho" && prefixo !== "Deck" && prefixo !== "Lata" ? prefixo : "";
+    if (!prefixo) out[0] = out[0].charAt(0).toUpperCase() + out[0].slice(1);
+    return ((prefixo ? prefixo + " " : "") + out.join(" ")).replace(/\s+/g, " ").trim();
+  }
+
   // nome para produto novo a partir da chave (pacotes) ou do titulo limpo (box, lata, acessorio...)
   function nomeSugerido(r, titulo, sets) {
     const col = nomeColecao(r.colecao, sets);
     const idi = r.idioma && r.idioma !== "pt" ? " " + ROT_IDIOMA[r.idioma] : "";
+    // boosters variados ou de mais de uma colecao (sem colecao): o nome diz, e le de volta sem colecao
+    const variado = !col && r.flags && r.flags.includes("varias_colecoes");
     let base = "";
     switch (r.tipo) {
       case "booster": base = "Booster"; break;
       case "blister": base = "Blister Unitário"; break;
       case "blister_triplo": base = "Blister Triplo"; break;
       case "blister_quadruplo": base = "Blister Quádruplo"; break;
-      case "booster_box": base = "Booster Box" + (r.boosters && r.boosters !== 36 ? " " + r.boosters + " Boosters" : ""); break;
-      case "kit_boosters": base = "Kit " + (r.boosters || 18) + " Boosters"; break;
+      case "booster_box": base = "Booster Box" + (variado ? " Variada" : "") + (r.boosters && r.boosters !== 36 ? " " + r.boosters + " Boosters" : ""); break;
+      // (07/10) o nome precisa ler de volta como o mesmo produto: "Kit 18 Boosters" e o combo; 12 ou mais vira
+      // "Caixa N Boosters" ("Kit 24 Boosters" voltava como 24 boosters soltos); sem numero, o titulo limpo
+      case "kit_boosters": base = !r.boosters ? "" : r.boosters === 18 || r.boosters < 12 ? "Kit " + r.boosters + " Boosters" : "Caixa " + r.boosters + " Boosters";
+        if (base && variado) base += " Variados";
+        break;
       case "etb": base = "ETB"; break;
       case "combo_pacotes": base = r.base === "booster_bundle" ? "Booster Bundle" : ""; break;
       case "box_colecao": base = r.flags && r.flags.includes("com_fichario") ? "Box Coleção com Fichário" : ""; break;
@@ -2946,6 +3273,8 @@ const IDX = (() => {
     }
     if (base && (col || r.tipo === "kit_boosters" || r.tipo === "booster_box")) return (base + (col ? " " + col : "") + idi).trim();
     if (base && r.colecao === null && (r.tipo === "booster" || r.tipo.indexOf("blister") === 0 || r.tipo === "etb")) return limpaNome(titulo) || base;
+    // (07/10) box, deck, lata, mini lata, fichario, desafio e outro: nome limpo do titulo (acessorio solto segue o limpaNome)
+    if (!(TIPO[r.tipo] && TIPO[r.tipo].pacote) && !(r.acessorio && r.tipo === "outro")) return nomeLimpo(titulo, r) || limpaNome(titulo);
     return limpaNome(titulo);
   }
   // capitaliza o nome digitado e devolve acentos conhecidos (o dono digita sem acento no celular)
@@ -2992,8 +3321,13 @@ const IDX = (() => {
   // boa parte do titulo (60%+): a sugestao pode vir segura; senao vem com Confere?.
   const PARADAS = new Set(["de", "da", "do", "das", "dos", "e", "com", "para", "em", "c", "x", "o", "a", "kit",
     "pokemon", "tcg", "copag", "the", "of", "original", "oficial", "lacrado", "lacrada", "novo", "nova"]);
+  // (revisao 07/10) o nome limpo troca Deck por Baralho e Pasta/Album por Fichario: o titulo do vendedor com a outra
+  // palavra tem que achar o mesmo produto ("Deck de Batalha Mewtwo ex Equipe Rocket" = "Baralho de Batalha ...").
+  // Plural conta igual ("Latas" = "Lata").
+  const SINONIMO = { deck: "baralho", pasta: "fichario", album: "fichario", binder: "fichario", tin: "lata", team: "equipe" };
   function palavrasChave(s) {
-    return nomeNorm(s).split(" ").filter((w) => w && !PARADAS.has(w)).map((w) => (w.length > 5 ? w.slice(0, 5) : w));
+    return nomeNorm(s).split(" ").map((w) => (w.length > 3 && w.endsWith("s") ? w.slice(0, -1) : w)).filter((w) => w && !PARADAS.has(w))
+      .map((w) => SINONIMO[w] || w).map((w) => (w.length > 5 ? w.slice(0, 5) : w));
   }
   function achaPorTitulo(r, titulo, produtos) {
     if (!r) return null;
@@ -3196,7 +3530,7 @@ const IDX = (() => {
   }
 
   return { MEMORIA_LIGADA, TIPOS, TIPO, IDIOMAS, JOGOS, ROT_IDIOMA, TIPOS_REGUA, idiomaBanco, idiomaInterno, norm, semAcento, reconhecer, parseMl, achaSet, nomeColecao, nomeCurtoSet,
-    nomeSugerido, bonitoNome, limpaNome, chave, chaveIdentifica, nomeNorm, autocompletar, achaPorTitulo, semelhanca, memoria, normIndice,
+    nomeSugerido, nomeLimpo, bonitoNome, limpaNome, chave, chaveIdentifica, nomeNorm, autocompletar, achaPorTitulo, semelhanca, memoria, normIndice,
     textoIndice, comparar, brl, ddmm, unidadesPadrao };
 })();
 // ==== INDICE: FIM DO BLOCO PURO ====
@@ -3374,12 +3708,18 @@ function prodDoTitulo() {
       }
       if (!existe) existe = prodAchaPorNome(IDX.nomeSugerido(r, titulo, setsCache));
     }
-    if (existe || r.seguro || r.reconheceu) {
+    // (07/10) tipo que a regra nao reconheceu ("Calendario de Festas"): sugere o nome limpo do anuncio, no Confere?
+    const nomeOutro = existe || r.seguro || r.reconheceu ? "" : IDX.nomeSugerido(r, titulo, setsCache);
+    if (existe || r.seguro || r.reconheceu || IDX.nomeNorm(nomeOutro).length >= 3) {
       if (existe) { PROD.escolhido = existe; nome = existe.nome; }
       else {
         nome = IDX.nomeSugerido(r, titulo, setsCache); PROD.nomeGerado = true;
-        // produto novo que nao e de pacote leva o nome do anuncio: o dono confere o nome antes de virar cadastro
-        if (estado === "seguro" && !IDX.chaveIdentifica(r)) { estado = "confere"; motivo = "Produto novo com o nome do anúncio: confira o nome."; }
+        // produto novo que nao e de pacote leva o nome limpo do anuncio: nunca seguro, o dono confere o nome
+        // com 1 toque ou edita antes de virar cadastro
+        if (!IDX.chaveIdentifica(r)) {
+          if (estado === "seguro") motivo = "Produto novo com o nome do anúncio: confira o nome.";
+          estado = "confere";
+        }
       }
       PROD.sugestao = { produtoId: existe ? existe.id : null, chave: existe ? IDX.chave(existe) : IDX.chave(r), nomeNorm: IDX.nomeNorm(nome), estado, motivo };
     }
@@ -3425,7 +3765,9 @@ function prodPendencia(L) {
   if (L.tipo === "outro" && !L.colecao && !L.acessorio && !("tipo" in a)) {
     return "Ainda não entendi o que é: escolha da lista, complete o nome ou toque em Outro para corrigir o tipo.";
   }
-  if (IDX.TIPO[L.tipo] && IDX.TIPO[L.tipo].pacote && !L.colecao && !("colecao" in a)) {
+  // boosters variados ou de mais de uma colecao (07/10): ficar sem colecao e o certo, nao pede confirmacao
+  const variados = !!(L.flags && L.flags.includes("varias_colecoes"));
+  if (IDX.TIPO[L.tipo] && IDX.TIPO[L.tipo].pacote && !L.colecao && !("colecao" in a) && !variados) {
     return "Falta a coleção: toque em \"sem coleção\" para escolher (ou confirme Sem coleção).";
   }
   return "";
@@ -3445,9 +3787,12 @@ function prodPecas(L) {
   const c = L.certeza || {};
   const duv = (k) => !L.cadastrado && (c[k] === "baixa" || c[k] === "nenhuma");
   const pacote = !!(IDX.TIPO[L.tipo] && IDX.TIPO[L.tipo].pacote);
+  // (07/10) boosters variados ou de mais de uma colecao: "coleções variadas" no lugar de "sem coleção", sem duvida
+  const variados = !L.colecao && !("colecao" in PROD.ajustes) && !!(L.flags && L.flags.includes("varias_colecoes"));
   return [
     { campo: "tipo", rot: "Tipo", txt: IDX.TIPO[L.tipo] ? IDX.TIPO[L.tipo].rl : "Outro", duvida: !L.cadastrado && (L.tipo === "outro" || duv("tipo")) },
-    { campo: "colecao", rot: "Coleção", txt: L.colecao ? IDX.nomeColecao(L.colecao, setsCache) : "sem coleção", duvida: !L.cadastrado && !L.colecao && pacote },
+    { campo: "colecao", rot: "Coleção", txt: L.colecao ? IDX.nomeColecao(L.colecao, setsCache) : variados ? "coleções variadas" : "sem coleção",
+      duvida: !L.cadastrado && !L.colecao && pacote && !variados },
     { campo: "idioma", rot: "Idioma", txt: IDX.ROT_IDIOMA[L.idioma] || "PT-BR", duvida: false },
     { campo: "boosters", rot: "Boosters", txt: L.boosters === null || L.boosters === undefined ? "boosters?" : L.boosters + (L.boosters === 1 ? " booster" : " boosters"),
       duvida: pacote && (L.boosters === null || L.boosters === undefined || duv("boosters")) },
